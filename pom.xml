@@ -68,6 +68,12 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.33</version>
         </dependency>
+
+        <!--验证-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
