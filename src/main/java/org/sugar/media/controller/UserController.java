@@ -1,0 +1,130 @@
+package org.sugar.media.controller;
+
+import cn.hutool.log.StaticLog;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.sugar.media.model.UserModel;
+import org.sugar.media.service.UserService;
+import org.sugar.media.beans.UserBean;
+import org.sugar.media.beans.ResponseBean;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import cn.hutool.core.bean.BeanUtil;
+import org.sugar.media.validation.UserVal;
+
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+/**
+ * (UserModel)表控制层
+ *
+ * @author Tobin
+ * @since 2024-11-10 10:05:25
+ */
+@RestController
+@RequestMapping("/user")
+@Validated  //单参数校验时我们需要，在方法的类上加上@Validated注解，否则校验不生效。
+public class UserController {
+    /**
+     * 服务对象
+     */
+    @Autowired
+    private UserService mUserService;
+
+    /**
+     * 分页查询
+     *
+     * @return 查询结果
+     */
+    @GetMapping("/page/list")
+    public ResponseEntity<?> getMUserPageList(@RequestParam Integer pi, @RequestParam Integer ps) {
+
+
+        Page<UserModel> mUserList = this.mUserService.getMUserPageList(pi, ps);
+
+        return ResponseEntity.ok(ResponseBean.createResponseBean(mUserList.getTotalElements(), mUserList.getContent()));
+
+
+    }
+
+    /**
+     * 通过主键查询单条数据
+     *
+     * @param id 主键
+     * @return 单条数据
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getMUser(@PathVariable("id") Long id) {
+
+        Optional<UserModel> mUser = this.mUserService.getMUser(id);
+        if (!mUser.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
+        }
+        return ResponseEntity.ok(ResponseBean.createResponseBean(mUser.get()));
+
+    }
+
+    /**
+     * 新增数据
+     *
+     * @param userBean 实体
+     * @return 新增结果
+     */
+    @PostMapping
+    public ResponseEntity<?> createMUser(@RequestBody @Validated UserVal userBean) {
+
+
+        StaticLog.info("{}", userBean.toString());
+        // 是否存在校验错误
+
+        UserModel mUser = new UserModel();
+        BeanUtil.copyProperties(userBean, mUser);
+        return ResponseEntity.ok(this.mUserService.createMUser(mUser));
+    }
+
+    /**
+     * 编辑数据
+     *
+     * @param userBean 实体
+     * @return 编辑结果
+     */
+    @PutMapping
+    public ResponseEntity<?> updateMUser(@RequestBody @Validated(UserVal.Update.class) UserVal userBean) {
+
+        Optional<UserModel> mUserOptional = this.mUserService.getMUser(userBean.getId());
+        if (!mUserOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
+        }
+
+        UserModel mUser = mUserOptional.get();
+        BeanUtil.copyProperties(userBean, mUser, "createdAt", "updatedAt", "status", "deleted");
+
+
+        return ResponseEntity.ok(this.mUserService.updateMUser(mUser));
+    }
+
+    /**
+     * 删除数据
+     *
+     * @param id 主键
+     * @return 删除是否成功
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMUserById(@PathVariable("id") Long id) {
+
+        Optional<UserModel> mUser = this.mUserService.getMUser(id);
+        if (!mUser.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
+        }
+
+        this.mUserService.deleteMUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+}
+
