@@ -18,10 +18,6 @@ public class UserSecurity {
         session.set("user", user);
         session.update();
 
-
-
-        StpKit.USER.getTokenInfo();
-
         return StpKit.USER.getTokenInfo();
 
     }
