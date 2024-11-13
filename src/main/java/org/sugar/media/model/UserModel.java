@@ -52,6 +52,10 @@ public class UserModel {
     private String phone;// 电话
 
 
+    @NotNull
+    private Long zid;
+
+
     @CreationTimestamp
     private Date createdAt;
 

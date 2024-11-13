@@ -4,6 +4,7 @@ package org.sugar.media.security;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.convert.Convert;
 import org.springframework.stereotype.Service;
 import org.sugar.media.model.UserModel;
 
@@ -19,6 +20,14 @@ public class UserSecurity {
         session.update();
 
         return StpKit.USER.getTokenInfo();
+
+    }
+
+
+    // 获取当前登录用户
+    public UserModel getCurrentAdminUser() {
+        SaSession tokenSession = StpUtil.getTokenSession();
+        return Convert.convert(UserModel.class, tokenSession.getDataMap().get("user"));
 
     }
 
