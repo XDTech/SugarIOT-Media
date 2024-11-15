@@ -54,7 +54,7 @@ public class LoginController {
         }
 
         SaTokenInfo login = this.userSecurity.login(user);
-        return ResponseBean.success();
+        return ResponseBean.success(login);
     }
 
 
