@@ -31,6 +31,14 @@ public class UserService {
     private UserRepo userRepo;
 
 
+
+    // 查询账户是否存在
+
+
+    public UserModel getUser(String username,Long zid) {
+        return this.userRepo.findAllByUsernameAndZid(username,zid);
+    }
+
     @Transactional
     public UserModel createMUser(UserModel mUser) {
         return this.userRepo.save(mUser);

@@ -31,8 +31,8 @@ public class NodeVal {
     @NotNull(message = "httpsPort can not be null")
     private Integer httpsPort;
 
-    @NotBlank(message = "secret can not be null")
-    private String secret;
+//    @NotBlank(message = "secret can not be null")
+//    private String secret;
 
 
     public interface Create extends Default {

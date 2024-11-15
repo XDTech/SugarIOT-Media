@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.enums.ResponseEnum;
 
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -34,15 +36,15 @@ public class GlobalException extends Exception {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
     @ResponseBody
-    public String handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseBean handleValidationExceptions(MethodArgumentNotValidException ex) {
         ex.printStackTrace();
         List<ObjectError> allErrors = ex.getBindingResult().getAllErrors();
         if (!allErrors.isEmpty()) {
             ObjectError error = allErrors.get(0);
             String description = error.getDefaultMessage();
-            return description;
+            return ResponseBean.createResponseBean(ResponseEnum.Fail.getCode(), description);
         }
-        return "validation failed";
+        return ResponseBean.createResponseBean(ResponseEnum.Fail.getCode(), "validation failed");
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

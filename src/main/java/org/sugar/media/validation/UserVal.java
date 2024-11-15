@@ -18,9 +18,17 @@ public class UserVal {
     private String username;
 
 
-    @NotBlank(message = "pwd can not be null")
-    private String pwd;
+    @NotBlank(message = "password can not be null")
+    private String password;
 
+
+    private String name;// 姓名
+
+    private String avatar; // 头像
+
+    private String email;// 邮箱
+
+    private String phone;// 电话
 
     public interface Create extends Default {
 

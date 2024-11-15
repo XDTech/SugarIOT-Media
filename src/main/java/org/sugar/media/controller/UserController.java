@@ -1,11 +1,17 @@
 package org.sugar.media.controller;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.StaticLog;
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
+import org.sugar.media.enums.ResponseEnum;
 import org.sugar.media.model.UserModel;
+import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.UserService;
 import org.sugar.media.beans.UserBean;
 import org.sugar.media.beans.ResponseBean;
@@ -15,8 +21,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import cn.hutool.core.bean.BeanUtil;
+import org.sugar.media.utils.SecurityUtils;
 import org.sugar.media.validation.UserVal;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,6 +44,11 @@ public class UserController {
     @Autowired
     private UserService mUserService;
 
+    @Resource
+    private UserSecurity userSecurity;
+
+    private final SecurityUtils securityUtils = new SecurityUtils();
+
     /**
      * 分页查询
      *
@@ -47,7 +60,7 @@ public class UserController {
 
         Page<UserModel> mUserList = this.mUserService.getMUserPageList(pi, ps);
 
-        return ResponseEntity.ok(ResponseBean.createResponseBean(mUserList.getTotalElements(), mUserList.getContent()));
+        return ResponseEntity.ok(ResponseBean.createResponseBean(ResponseEnum.Success.getCode(), mUserList.getTotalElements(), mUserList.getContent(), ResponseEnum.Success.getMsg()));
 
 
     }
@@ -65,7 +78,7 @@ public class UserController {
         if (!mUser.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
         }
-        return ResponseEntity.ok(ResponseBean.createResponseBean(mUser.get()));
+        return ResponseEntity.ok(ResponseBean.createResponseBean(ResponseEnum.Success.getCode(), mUser.get(), ResponseEnum.Success.getMsg()));
 
     }
 
@@ -76,15 +89,40 @@ public class UserController {
      * @return 新增结果
      */
     @PostMapping
-    public ResponseEntity<?> createMUser(@RequestBody @Validated UserVal userBean) {
+    public ResponseEntity<?> createMUser(@RequestBody @Validated(UserVal.Create.class) UserVal userBean) {
+
+        StaticLog.info("{}",userBean.toString());
+
+        Long zid = this.userSecurity.getCurrentAdminUser().getZid();
+        UserModel user = this.mUserService.getUser(userBean.getUsername(), zid);
+        if (user != null) {
+            return ResponseEntity.ok(ResponseBean.createResponseBean(ResponseEnum.Fail.getCode(),"用户已存在"));
+        }
+        UserModel newUser = new UserModel();
+
+        newUser.setZid(zid);
 
 
-        StaticLog.info("{}", userBean.toString());
-        // 是否存在校验错误
+        BeanUtil.copyProperties(userBean, newUser);
 
-        UserModel mUser = new UserModel();
-        BeanUtil.copyProperties(userBean, mUser);
-        return ResponseEntity.ok(this.mUserService.createMUser(mUser));
+
+        // 生成加密盐
+        String salt = this.securityUtils.createSecuritySalt();
+
+        newUser.setSalt(salt);
+        // 生成密码
+
+        String pwd = this.securityUtils.shaEncode(newUser.getPassword() + salt);
+
+        newUser.setPassword(pwd);
+
+        UserModel userPojo = this.mUserService.createMUser(newUser);
+        // 序列化返回
+        UserBean newAminUserBean = new UserBean();
+        BeanUtil.copyProperties(userPojo, newAminUserBean);
+
+
+        return ResponseEntity.ok(ResponseBean.createResponseBean(ResponseEnum.Success.getCode(), newAminUserBean, ResponseEnum.Success.getMsg()));
     }
 
     /**
