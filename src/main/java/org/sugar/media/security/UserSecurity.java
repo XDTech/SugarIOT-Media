@@ -26,7 +26,7 @@ public class UserSecurity {
 
     // 获取当前登录用户
     public UserModel getCurrentAdminUser() {
-        SaSession tokenSession = StpUtil.getTokenSession();
+        SaSession tokenSession = StpKit.USER.getTokenSession();
         return Convert.convert(UserModel.class, tokenSession.getDataMap().get("user"));
 
     }

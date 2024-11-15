@@ -96,7 +96,7 @@ public class UserController {
         Long zid = this.userSecurity.getCurrentAdminUser().getZid();
         UserModel user = this.mUserService.getUser(userBean.getUsername(), zid);
         if (user != null) {
-            return ResponseEntity.ok(ResponseBean.createResponseBean(ResponseEnum.Fail.getCode(),"用户已存在"));
+            return ResponseEntity.ok(ResponseBean.fail("用户已存在"));
         }
         UserModel newUser = new UserModel();
 
@@ -121,8 +121,7 @@ public class UserController {
         UserBean newAminUserBean = new UserBean();
         BeanUtil.copyProperties(userPojo, newAminUserBean);
 
-
-        return ResponseEntity.ok(ResponseBean.createResponseBean(ResponseEnum.Success.getCode(), newAminUserBean, ResponseEnum.Success.getMsg()));
+        return ResponseEntity.ok(ResponseBean.success(newAminUserBean));
     }
 
     /**
