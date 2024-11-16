@@ -51,12 +51,9 @@ public class NodeController {
         nodeModel.setZid(this.userSecurity.getCurrentAdminUser().getZid());
 
 
-        NodeModel node = this.nodeService.createNode(nodeModel);
 
-        boolean sync = true;
-        switch (node.getTypes()) {
-            case zlm -> sync = this.zlmApiService.syncZlmConfig(nodeModel);
-        }
+        boolean sync = this.nodeService.createMediaSync(nodeModel,true);
+
         if (!sync) return ResponseEntity.ok(ResponseBean.custom(ResponseEnum.custom, "添加成功，但流媒体配置自动同步失败，请自行同步"));
 
 
