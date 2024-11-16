@@ -41,7 +41,7 @@ public class NodeModel {
 
     // ===========end===========
 
-    @NotBlank
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20) default 'zlm'")
     private MediaServerEnum types;// 状态

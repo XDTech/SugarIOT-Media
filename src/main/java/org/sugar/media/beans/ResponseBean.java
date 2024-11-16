@@ -43,6 +43,10 @@ public class ResponseBean {
         return new ResponseBean(ResponseEnum.Success.getCode(), null, null, ResponseEnum.Success.getMsg());
     }
 
+    public static ResponseBean success(String msg) {
+        return new ResponseBean(ResponseEnum.Success.getCode(), null, null, msg);
+    }
+
     public static ResponseBean success(Object data) {
         return new ResponseBean(ResponseEnum.Success.getCode(), null, data, ResponseEnum.Success.getMsg());
     }
@@ -57,4 +61,8 @@ public class ResponseBean {
         return new ResponseBean(ResponseEnum.Fail.getCode(), null, null, msg);
     }
 
+
+    public static ResponseBean custom(ResponseEnum responseEnum,String msg) {
+        return new ResponseBean(responseEnum.getCode(), null, null, msg);
+    }
 }

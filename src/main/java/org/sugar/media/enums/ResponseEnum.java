@@ -12,7 +12,7 @@ import lombok.Data;
 public enum ResponseEnum {
 
 
-    Success(0, "Success"), Fail(-1, "Fail");
+    Success(0, "Success"), Fail(-1, "Fail"), custom(1, "custom msg");
 
     public final int code;
     public final String msg;

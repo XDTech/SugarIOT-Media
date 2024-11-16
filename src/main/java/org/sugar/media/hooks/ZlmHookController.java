@@ -3,6 +3,7 @@ package org.sugar.media.hooks;
 import cn.hutool.log.StaticLog;
 import jakarta.servlet.http.PushBuilder;
 import org.springframework.web.bind.annotation.*;
+import org.sugar.media.beans.ResponseBean;
 
 import java.util.Map;
 
@@ -19,14 +20,16 @@ public class ZlmHookController {
 
 
     @PostMapping("/keepalive")
-    public void keepalive(@RequestBody Map<String,Object> body){
+    public ResponseBean keepalive(@RequestBody Map<String,Object> body){
         StaticLog.info("{}",body);
+
+        return ResponseBean.success();
 
     }
 
     @PostMapping("/server/started")
-    public void started(@RequestBody Map<String,Object> body){
+    public ResponseBean started(@RequestBody Map<String,Object> body){
         StaticLog.info("{}",body);
-
+        return ResponseBean.success();
     }
 }

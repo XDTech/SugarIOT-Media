@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.enums.MediaServerEnum;
+import org.sugar.media.enums.ResponseEnum;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.security.UserSecurity;
+import org.sugar.media.service.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
 import org.sugar.media.validation.NodeVal;
 import org.sugar.media.validation.UserVal;
@@ -29,23 +32,36 @@ public class NodeController {
     @Resource
     private UserSecurity userSecurity;
 
+    @Resource
+    private ZlmApiService zlmApiService;
+
 
     /**
      * create node
+     *
      * @param nodeVal
      * @return
      */
     @PostMapping
     public ResponseEntity<?> createNode(@RequestBody @Validated({NodeVal.Create.class}) NodeVal nodeVal) {
 
-        NodeModel nodeModel= new NodeModel();
+        NodeModel nodeModel = new NodeModel();
         BeanUtil.copyProperties(nodeVal, nodeModel);
         nodeModel.setTypes(MediaServerEnum.valueOf(nodeVal.getTypes()));
         nodeModel.setZid(this.userSecurity.getCurrentAdminUser().getZid());
 
-        return ResponseEntity.ok(this.nodeService.createNode(nodeModel));
-    }
 
+        NodeModel node = this.nodeService.createNode(nodeModel);
+
+        boolean sync = true;
+        switch (node.getTypes()) {
+            case zlm -> sync = this.zlmApiService.syncZlmConfig(nodeModel);
+        }
+        if (!sync) return ResponseEntity.ok(ResponseBean.custom(ResponseEnum.custom, "添加成功，但流媒体配置自动同步失败，请自行同步"));
+
+
+        return ResponseEntity.ok(ResponseBean.success("添加成功，且流媒体配置同步成功"));
+    }
 
 
 }

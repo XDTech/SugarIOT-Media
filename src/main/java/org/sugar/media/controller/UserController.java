@@ -163,5 +163,18 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     *  获取当前登录用户的用户信息
+     * @return
+     */
+    @GetMapping("/info")
+    public ResponseEntity<?> getUserInfo() {
+
+        UserModel currentAdminUser = this.userSecurity.getCurrentAdminUser();
+
+
+        return ResponseEntity.ok(ResponseBean.success(currentAdminUser));
+    }
+
 }
 
