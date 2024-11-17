@@ -48,7 +48,7 @@ public class MediaCacheService {
     }
 
     // 判断媒体是否在线
-    public boolean ifOnline(Long mediaId) {
+    public boolean isOnline(Long mediaId) {
         String status = this.getMediaStatus(mediaId);
 
 
