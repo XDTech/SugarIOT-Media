@@ -26,6 +26,7 @@ public class ZlmHookController {
     private MediaCacheService mediaCacheService;
 
 
+    // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
     @PostMapping("/keepalive")
     public ResponseBean keepalive(@RequestBody Map<String, Object> body) {
         StaticLog.info("{}", body);
@@ -38,9 +39,13 @@ public class ZlmHookController {
 
     }
 
+    // 服务器启动事件，可以用于监听服务器崩溃重启；此事件对回复不敏感。
     @PostMapping("/server/started")
     public ResponseBean started(@RequestBody Map<String, Object> body) {
         StaticLog.info("{}", body);
+        Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
+
+        this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
         return ResponseBean.success();
     }
 }
