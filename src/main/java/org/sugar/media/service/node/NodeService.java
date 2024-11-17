@@ -2,12 +2,17 @@ package org.sugar.media.service.node;
 
 
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.repository.node.NodeRepo;
+import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
+
+import java.util.List;
 
 @Service
 public class NodeService {
@@ -18,8 +23,11 @@ public class NodeService {
 
     @Resource
     private ZlmApiService zlmApiService;
+
+
+
     @Resource
-    private StringRedisTemplate stringRedisTemplate;
+    private MediaCacheService mediaCacheService;
 
 
     public NodeModel getNode(Long id) {
@@ -40,6 +48,10 @@ public class NodeService {
 
         NodeModel node = this.createNode(nodeModel);
 
+
+        // 存入redis
+        this.mediaCacheService.setMediaStatus(node.getId(), StatusEnum.online.getStatus());
+
         boolean s = true;
         if (sync) {
             switch (node.getTypes()) {
@@ -49,5 +61,14 @@ public class NodeService {
 
 
         return s;
+    }
+
+
+    public void write2Cache() {
+        List<NodeModel> modelList = this.nodeRepo.findAll();
+
+        for (NodeModel nodeModel : modelList) {
+            this.mediaCacheService.setMediaStatus(nodeModel.getId(), StatusEnum.online.getStatus());
+        }
     }
 }

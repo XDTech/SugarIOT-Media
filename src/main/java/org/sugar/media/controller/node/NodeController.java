@@ -32,8 +32,7 @@ public class NodeController {
     @Resource
     private UserSecurity userSecurity;
 
-    @Resource
-    private ZlmApiService zlmApiService;
+
 
 
     /**
