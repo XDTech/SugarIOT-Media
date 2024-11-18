@@ -22,6 +22,8 @@ public class NodeVal {
     private String types;// 状态
 
 
+    private String name;
+
     @NotBlank(message = "ip can not be null")
     private String ip;
 

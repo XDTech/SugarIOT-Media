@@ -35,6 +35,10 @@ public class NodeService {
         return this.nodeRepo.findById(id).get();
     }
 
+
+    public List<NodeModel> getNodeList(Long zid){
+        return this.nodeRepo.findAllByZid(zid);
+    }
     @Transactional
     public NodeModel createNode(NodeModel nodeModel) {
 

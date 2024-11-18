@@ -39,6 +39,9 @@ public class NodeModel {
     @UpdateTimestamp
     private Date updatedAt;
 
+
+
+
     // ===========end===========
 
     @NotNull
@@ -46,6 +49,9 @@ public class NodeModel {
     @Column(columnDefinition = "varchar(20) default 'zlm'")
     private MediaServerEnum types;// 状态
 
+
+
+    private String name;
 
     @NotBlank
     private String ip;
