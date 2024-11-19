@@ -54,7 +54,7 @@ public class NodeService {
 
 
         // 存入redis
-        this.mediaCacheService.setMediaStatus(node.getId(), StatusEnum.online.getStatus());
+        this.mediaCacheService.setMediaStatus(node.getId(), StatusEnum.offline.getStatus());
 
         boolean s = true;
         if (sync) {
@@ -72,7 +72,7 @@ public class NodeService {
         List<NodeModel> modelList = this.nodeRepo.findAll();
 
         for (NodeModel nodeModel : modelList) {
-            this.mediaCacheService.setMediaStatus(nodeModel.getId(), StatusEnum.online.getStatus());
+            this.mediaCacheService.setMediaStatus(nodeModel.getId(), StatusEnum.offline.getStatus());
         }
     }
 }
