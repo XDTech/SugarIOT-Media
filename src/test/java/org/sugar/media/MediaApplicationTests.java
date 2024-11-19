@@ -39,11 +39,11 @@ class MediaApplicationTests {
 
     @Test
     void setZlmConfig() {
-        NodeModel node = this.nodeService.getNode(1307362892365955072L);
-
-        boolean b = this.zlmApiService.syncZlmConfig(node);
-
-        StaticLog.info("{}", b);
+//        NodeModel node = this.nodeService.getNode(1307362892365955072L);
+//
+//        boolean b = this.zlmApiService.syncZlmConfig(node);
+//
+//        StaticLog.info("{}", b);
 
 
     }

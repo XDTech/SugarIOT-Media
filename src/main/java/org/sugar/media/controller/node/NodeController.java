@@ -24,6 +24,7 @@ import org.sugar.media.validation.UserVal;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -56,13 +57,56 @@ public class NodeController {
         nodeModel.setZid(this.userSecurity.getCurrentAdminUser().getZid());
 
 
-        boolean sync = this.nodeService.createMediaSync(nodeModel, true);
-
-        if (!sync)
-            return ResponseEntity.ok(ResponseBean.custom(ResponseEnum.custom, "添加成功，但流媒体配置自动同步失败，请自行同步"));
+        this.nodeService.createMediaAsync(nodeModel);
 
 
-        return ResponseEntity.ok(ResponseBean.success("添加成功，且流媒体配置同步成功"));
+        return ResponseEntity.ok(ResponseBean.success("添加成功"));
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updateNode(@RequestBody @Validated({NodeVal.Update.class}) NodeVal nodeVal) {
+
+        Optional<NodeModel> node = this.nodeService.getNode(nodeVal.getId());
+
+        if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+
+        NodeModel nodeModel = node.get();
+        BeanUtil.copyProperties(nodeVal, nodeModel);
+        nodeModel.setTypes(MediaServerEnum.valueOf(nodeVal.getTypes()));
+        this.nodeService.createMediaAsync(nodeModel);
+
+
+        return ResponseEntity.ok(ResponseBean.success("修改成功"));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteNode(@PathVariable Long id) {
+
+
+        this.nodeService.deleteNode(id);
+        this.mediaCacheService.removeMediaStatus(id);
+        return ResponseEntity.ok(ResponseBean.success("删除成功"));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getNode(@PathVariable Long id) {
+
+        NodeModel nodeModel = this.nodeService.getNode(id).get();
+
+        return ResponseEntity.ok(ResponseBean.success(nodeModel));
+    }
+
+
+    @PutMapping("/sync/{id}")
+    public ResponseEntity<?> syncConfig(@PathVariable Long id) {
+
+        NodeModel nodeModel = this.nodeService.getNode(id).get();
+
+        boolean written = this.nodeService.write2Config(nodeModel);
+        if (!written) return ResponseEntity.ok(ResponseBean.fail("同步失败"));
+
+        return ResponseEntity.ok(ResponseBean.success("同步成功"));
     }
 
 

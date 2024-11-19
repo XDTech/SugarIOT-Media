@@ -10,6 +10,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 @Configuration
@@ -20,7 +21,7 @@ public class RestTemplateConfig {
 
         // 支持中文编码
         restTemplate.getMessageConverters().set(1,
-                new StringHttpMessageConverter(Charset.forName("UTF-8")));
+                new StringHttpMessageConverter(StandardCharsets.UTF_8));
         restTemplate.getMessageConverters().add(new WxMappingJackson2HttpMessageConverter());
         MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
         mappingJackson2HttpMessageConverter.setSupportedMediaTypes(Arrays.asList(
@@ -35,8 +36,8 @@ public class RestTemplateConfig {
     @Bean
     public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setReadTimeout(60000);// 单位为ms
-        factory.setConnectTimeout(300000);// 单位为ms
+        factory.setReadTimeout(5000);// 单位为ms
+        factory.setConnectTimeout(5000);// 单位为ms
         return factory;
     }
 

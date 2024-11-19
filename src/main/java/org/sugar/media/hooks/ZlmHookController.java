@@ -7,10 +7,12 @@ import jakarta.servlet.http.PushBuilder;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.node.NodeService;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Date:2024/11/13 18:08:41
@@ -25,6 +27,9 @@ public class ZlmHookController {
     @Resource
     private MediaCacheService mediaCacheService;
 
+    @Resource
+    private NodeService nodeService;
+
 
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
     @PostMapping("/keepalive")
@@ -33,7 +38,11 @@ public class ZlmHookController {
 
         Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
 
-        this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+        Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
+        if (node.isPresent()) {
+            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+        }
+
 
         return ResponseBean.success();
 
