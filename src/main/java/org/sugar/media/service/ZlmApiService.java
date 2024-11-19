@@ -106,7 +106,7 @@ public class ZlmApiService {
             HttpHeaders headers = new HttpHeaders();
 
             headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getApiList1");
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getApiList");
 
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
