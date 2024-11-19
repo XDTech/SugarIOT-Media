@@ -1,6 +1,8 @@
 package org.sugar.media.service.node;
 
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,7 +27,6 @@ public class NodeService {
     private ZlmApiService zlmApiService;
 
 
-
     @Resource
     private MediaCacheService mediaCacheService;
 
@@ -36,9 +37,10 @@ public class NodeService {
     }
 
 
-    public List<NodeModel> getNodeList(Long zid){
+    public List<NodeModel> getNodeList(Long zid) {
         return this.nodeRepo.findAllByZid(zid);
     }
+
     @Transactional
     public NodeModel createNode(NodeModel nodeModel) {
 
@@ -72,7 +74,8 @@ public class NodeService {
         List<NodeModel> modelList = this.nodeRepo.findAll();
 
         for (NodeModel nodeModel : modelList) {
-            this.mediaCacheService.setMediaStatus(nodeModel.getId(), StatusEnum.offline.getStatus());
+            List<String> apiList = this.zlmApiService.getApiList(nodeModel);
+            this.mediaCacheService.setMediaStatus(nodeModel.getId(), CollUtil.isNotEmpty(apiList) ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
         }
     }
 }

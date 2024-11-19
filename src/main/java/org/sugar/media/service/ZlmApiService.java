@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.service.node.NodeService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -94,17 +95,21 @@ public class ZlmApiService {
 
     }
 
+
+    private String createZlmHost(NodeModel nodeModel){
+      return StrUtil.format("http://{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
+    }
     // 获取服务器api列表(getApiList)
-    public List<String> getApiList(String host, String secret) {
+    public List<String> getApiList(NodeModel nodeModel) {
 
         try {
             HttpHeaders headers = new HttpHeaders();
 
             headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(host + "/index/api/getApiList");
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getApiList1");
 
             // add param
-            builder.queryParam("secret", secret);
+            builder.queryParam("secret", nodeModel.getSecret());
             Map<String, Object> reqMap = new HashMap<>();
             HttpEntity<?> entity = new HttpEntity<>(reqMap, headers);
             ResponseEntity<Map> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, Map.class);
