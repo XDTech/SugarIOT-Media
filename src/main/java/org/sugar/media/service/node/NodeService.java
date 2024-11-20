@@ -109,9 +109,13 @@ public class NodeService {
     public void write2Cache() {
         List<NodeModel> modelList = this.nodeRepo.findAll();
 
+
         for (NodeModel nodeModel : modelList) {
-            List<String> apiList = this.zlmApiService.getApiList(nodeModel);
-            this.mediaCacheService.setMediaStatus(nodeModel.getId(), CollUtil.isNotEmpty(apiList) ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
+
+            // 首先同步一下配置
+            boolean written = write2Config(nodeModel);
+
+            this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
         }
     }
 }
