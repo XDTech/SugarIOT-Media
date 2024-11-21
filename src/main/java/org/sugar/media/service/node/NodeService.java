@@ -80,7 +80,11 @@ public class NodeService {
 
         NodeModel node = this.createNode(nodeModel);
 
-        ThreadUtil.execute(() -> write2Config(node));
+        //  将webhook配置到media
+        ThreadUtil.execute(() -> {
+            write2Config(node);
+            // TODO:同步配置，缓存到数据库
+        });
 
     }
 
@@ -92,6 +96,18 @@ public class NodeService {
      * @return
      */
     public boolean write2Config(NodeModel nodeModel) {
+        switch (nodeModel.getTypes()) {
+            case zlm -> {
+                return this.zlmApiService.syncZlmConfig(nodeModel);
+            }
+            default -> {
+                return false;
+            }
+        }
+
+    }
+
+    public boolean readConfig(NodeModel nodeModel) {
         switch (nodeModel.getTypes()) {
             case zlm -> {
                 return this.zlmApiService.syncZlmConfig(nodeModel);

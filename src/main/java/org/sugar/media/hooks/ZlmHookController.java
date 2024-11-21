@@ -40,7 +40,13 @@ public class ZlmHookController {
 
         Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
         if (node.isPresent()) {
+            // 如果是false，后续发送上线消息
+            boolean online = this.mediaCacheService.isOnline(mediaServerId);
             this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+            if(!online){
+                //TODO:发送消息
+                StaticLog.info("发送消息");
+            }
         }
 
 
@@ -54,7 +60,15 @@ public class ZlmHookController {
         StaticLog.info("{}", body);
         Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
 
-        this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+        Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
+        if (node.isPresent()) {
+            boolean online = this.mediaCacheService.isOnline(mediaServerId);
+            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+            if(!online){
+                //TODO:发送消息
+                StaticLog.info("发送消息");
+            }
+        }
         return ResponseBean.success();
     }
 }

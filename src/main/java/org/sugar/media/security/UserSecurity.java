@@ -31,5 +31,11 @@ public class UserSecurity {
 
     }
 
+    public UserModel getUser(String token) {
+
+        SaSession tokenSession = StpKit.USER.getTokenSessionByToken(token);
+        return Convert.convert(UserModel.class, tokenSession.getDataMap().get("user"));
+
+    }
 
 }

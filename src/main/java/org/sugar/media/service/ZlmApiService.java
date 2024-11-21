@@ -45,7 +45,7 @@ public class ZlmApiService {
 
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
-            this.createZlmConfig(nodeModel, builder);
+            this.createHookConfig(nodeModel, builder);
 
             StaticLog.info("{}", builder.toUriString());
             ;
@@ -73,7 +73,7 @@ public class ZlmApiService {
 
     }
 
-    private void createZlmConfig(NodeModel nodeModel, UriComponentsBuilder builder) {
+    private void createHookConfig(NodeModel nodeModel, UriComponentsBuilder builder) {
         Map<String, String> confMap = new HashMap<>();
 
         String host = StrUtil.format("http://{}:{}", this.serverIp, this.serverPort);
@@ -95,6 +95,27 @@ public class ZlmApiService {
 
     }
 
+    private void createOtherConfig(NodeModel nodeModel, UriComponentsBuilder builder) {
+        Map<String, String> confMap = new HashMap<>();
+
+        String host = StrUtil.format("http://{}:{}", this.serverIp, this.serverPort);
+
+        //    confMap.put("api.secret",nodeModel.getId().toString());
+        builder.queryParam("http.sslport", nodeModel.getHttpsPort().toString());
+        builder.queryParam("http.port", nodeModel.getHttpPort().toString());
+        // 是否启用hook事件，启用后，推拉流都将进行鉴权
+        builder.queryParam("hook.enable", "1");
+
+        // 服务器唯一id，用于触发hook时区别是哪台服务器
+        builder.queryParam("general.mediaServerId", nodeModel.getId().toString());
+
+        // 服务器启动报告，可以用于服务器的崩溃重启事件监听
+        builder.queryParam("hook.on_server_started", host + "/zlm/server/started");
+        //
+        builder.queryParam("hook.on_server_keepalive", host + "/zlm/keepalive");
+
+
+    }
 
     private String createZlmHost(NodeModel nodeModel){
       return StrUtil.format("http://{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
@@ -107,6 +128,33 @@ public class ZlmApiService {
 
             headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getApiList");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            Map<String, Object> reqMap = new HashMap<>();
+            HttpEntity<?> entity = new HttpEntity<>(reqMap, headers);
+            ResponseEntity<Map> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, Map.class);
+
+            return Convert.toList(String.class, exchange.getBody().get("data"));
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return null;
+
+        }
+
+
+    }
+
+    // 获取服务配置
+    public List<String> getServerConfig(NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getServerConfig");
 
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
