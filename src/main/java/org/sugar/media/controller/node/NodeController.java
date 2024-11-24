@@ -2,6 +2,8 @@ package org.sugar.media.controller.node;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.beans.node.NodeBean;
 import org.sugar.media.enums.MediaServerEnum;
 import org.sugar.media.enums.ResponseEnum;
@@ -26,6 +29,7 @@ import org.sugar.media.validation.UserVal;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,6 +48,9 @@ public class NodeController {
     @Resource
     private MediaCacheService mediaCacheService;
 
+    @Resource
+    private ZlmApiService zlmApiService;
+
     /**
      * create node
      *
@@ -60,6 +67,7 @@ public class NodeController {
 
 
         this.nodeService.createMediaAsync(nodeModel);
+
 
 
         return ResponseEntity.ok(ResponseBean.success("添加成功"));
@@ -98,6 +106,29 @@ public class NodeController {
 
         return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(nodeModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
     }
+
+    // 获取节点远程配置
+    @GetMapping("/remote/{id}")
+    public ResponseEntity<?> getRemoteNode(@PathVariable  @NotNull(message = "ID不能为空") Long id) {
+
+        Optional<NodeModel> node = this.nodeService.getNode(id);
+
+        if(node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("节点不存在"));
+
+        // 判定是否在线
+        boolean online = this.mediaCacheService.isOnline(node.get().getId());
+        if (!online) return ResponseEntity.ok(ResponseBean.fail("节点不在线"));
+        // 获取配置
+
+        ZlmRemoteConfigBean serverConfig = this.zlmApiService.getServerConfig(node.get());
+
+        if(ObjectUtil.isEmpty(serverConfig)) return ResponseEntity.ok(ResponseBean.fail("请检查流媒体服务是否正常"));
+
+
+
+        return  ResponseEntity.ok(ResponseBean.success(serverConfig.getData()));
+    }
+
 
 
     @PutMapping("/sync/{id}")

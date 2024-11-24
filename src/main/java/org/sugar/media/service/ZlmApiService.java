@@ -10,6 +10,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.service.node.NodeService;
 
@@ -148,7 +149,7 @@ public class ZlmApiService {
     }
 
     // 获取服务配置
-    public List<String> getServerConfig(NodeModel nodeModel) {
+    public ZlmRemoteConfigBean getServerConfig(NodeModel nodeModel) {
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -160,9 +161,9 @@ public class ZlmApiService {
             builder.queryParam("secret", nodeModel.getSecret());
             Map<String, Object> reqMap = new HashMap<>();
             HttpEntity<?> entity = new HttpEntity<>(reqMap, headers);
-            ResponseEntity<Map> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, Map.class);
+            ResponseEntity<ZlmRemoteConfigBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, ZlmRemoteConfigBean.class);
 
-            return Convert.toList(String.class, exchange.getBody().get("data"));
+            return exchange.getBody();
 
         } catch (Exception e) {
 
