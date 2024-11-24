@@ -1,14 +1,11 @@
 package org.sugar.media.service.node;
 
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.enums.MediaServerEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.enums.SyncEnum;
@@ -21,8 +18,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * ZLM Node Service
+ */
 @Service
-public class NodeService {
+public class ZlmNodeService {
 
     @Resource
     private NodeRepo nodeRepo;
@@ -53,7 +53,7 @@ public class NodeService {
 
 
     public List<NodeModel> getNodeList(Long zid) {
-        return this.nodeRepo.findAllByZidOrderByIdDesc(zid);
+        return this.nodeRepo.findAllByZidAndTypesOrderByIdDesc(zid,MediaServerEnum.zlm);
     }
 
     @Transactional
@@ -84,8 +84,9 @@ public class NodeService {
 
         //  将webhook配置到media
         ThreadUtil.execute(() -> {
-            boolean written = write2Config(node, SyncEnum.hook);
+            boolean written = write2MediaConfig(node, SyncEnum.hook);
             // TODO:新增时同步配置，缓存到数据库
+            // 1.读取配置
             this.updateTime(nodeModel, written);
         });
 
@@ -94,11 +95,12 @@ public class NodeService {
 
     /**
      * 同步所有配置调用
+     *
      * @param nodeModel
      */
     public boolean syncAll(NodeModel nodeModel) {
 
-        boolean written = write2Config(nodeModel, SyncEnum.all);
+        boolean written = write2MediaConfig(nodeModel, SyncEnum.all);
         this.updateTime(nodeModel, written);
         return written;
     }
@@ -115,7 +117,7 @@ public class NodeService {
 
         //  将webhook配置到media
         ThreadUtil.execute(() -> {
-            boolean written = write2Config(node, SyncEnum.hook);
+            boolean written = write2MediaConfig(node, SyncEnum.hook);
             this.updateTime(nodeModel, written);
         });
 
@@ -128,15 +130,17 @@ public class NodeService {
      * @param nodeModel
      * @return
      */
-    public boolean write2Config(NodeModel nodeModel, SyncEnum zlmSyncEnum) {
-        switch (nodeModel.getTypes()) {
-            case zlm -> {
-                return this.zlmApiService.syncZlmConfig(nodeModel, zlmSyncEnum);
-            }
-            default -> {
-                return false;
-            }
-        }
+    public boolean write2MediaConfig(NodeModel nodeModel, SyncEnum zlmSyncEnum) {
+
+        return this.zlmApiService.syncZlmConfig(nodeModel, zlmSyncEnum);
+
+
+    }
+
+    public ZlmRemoteConfigBean readMediaConfig(NodeModel nodeModel) {
+
+        return this.zlmApiService.getServerConfig(nodeModel);
+
 
     }
 
@@ -166,7 +170,7 @@ public class NodeService {
         for (NodeModel nodeModel : modelList) {
 
             // 首先同步一下配置
-            boolean written = write2Config(nodeModel, SyncEnum.all);
+            boolean written = write2MediaConfig(nodeModel, SyncEnum.all);
 
             //
 

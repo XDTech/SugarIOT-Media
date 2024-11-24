@@ -2,11 +2,8 @@ package org.sugar.media.controller.node;
 
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -15,32 +12,25 @@ import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.beans.node.NodeBean;
 import org.sugar.media.enums.MediaServerEnum;
-import org.sugar.media.enums.ResponseEnum;
-import org.sugar.media.enums.SyncEnum;
-import org.sugar.media.model.UserModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
-import org.sugar.media.service.node.NodeService;
+import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.validation.NodeVal;
-import org.sugar.media.validation.UserVal;
 
-import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/node")
+@RequestMapping("/node/zlm")
 @Validated
-public class NodeController {
+public class ZlmNodeController {
 
     @Resource
-    private NodeService nodeService;
+    private ZlmNodeService nodeService;
 
     @Resource
     private UserSecurity userSecurity;
@@ -63,7 +53,7 @@ public class NodeController {
 
         NodeModel nodeModel = new NodeModel();
         BeanUtil.copyProperties(nodeVal, nodeModel);
-        nodeModel.setTypes(MediaServerEnum.valueOf(nodeVal.getTypes()));
+        nodeModel.setTypes(MediaServerEnum.zlm);
         nodeModel.setZid(this.userSecurity.getCurrentAdminUser().getZid());
 
 
@@ -84,7 +74,6 @@ public class NodeController {
 
         NodeModel nodeModel = node.get();
         BeanUtil.copyProperties(nodeVal, nodeModel);
-        nodeModel.setTypes(MediaServerEnum.valueOf(nodeVal.getTypes()));
         this.nodeService.updateMediaAsync(nodeModel);
 
 

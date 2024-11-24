@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.sugar.media.enums.MediaServerEnum;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.model.node.NodeModel;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @Repository
 public interface NodeRepo extends JpaRepository<NodeModel, Long>, JpaSpecificationExecutor<NodeModel> {
 
-    List<NodeModel> findAllByZidOrderByIdDesc(Long zid);
+    List<NodeModel> findAllByZidAndTypesOrderByIdDesc(Long zid, MediaServerEnum types);
 
 
     @Modifying

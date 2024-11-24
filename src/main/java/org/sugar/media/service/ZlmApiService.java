@@ -13,7 +13,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
-import org.sugar.media.service.node.NodeService;
 
 import java.util.HashMap;
 import java.util.List;

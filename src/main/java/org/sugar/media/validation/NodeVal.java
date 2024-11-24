@@ -17,9 +17,9 @@ public class NodeVal {
     private Long id;
 
 
-    @NotNull(message = "Media server type is required")
-    @EnumValidatorInterface(enumClass = MediaServerEnum.class, message = "Invalid media server type")
-    private String types;// 状态
+//    @NotNull(message = "Media server type is required")
+//    @EnumValidatorInterface(enumClass = MediaServerEnum.class, message = "Invalid media server type")
+//    private String types;// 状态
 
 
     private String name;

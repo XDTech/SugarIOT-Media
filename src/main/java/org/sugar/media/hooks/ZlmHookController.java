@@ -3,13 +3,12 @@ package org.sugar.media.hooks;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.PushBuilder;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.service.MediaCacheService;
-import org.sugar.media.service.node.NodeService;
+import org.sugar.media.service.node.ZlmNodeService;
 
 import java.util.Date;
 import java.util.Map;
@@ -29,7 +28,7 @@ public class ZlmHookController {
     private MediaCacheService mediaCacheService;
 
     @Resource
-    private NodeService nodeService;
+    private ZlmNodeService nodeService;
 
 
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次

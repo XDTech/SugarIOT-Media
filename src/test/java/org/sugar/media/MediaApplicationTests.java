@@ -7,11 +7,9 @@ import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.sugar.media.enums.StatusEnum;
-import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
-import org.sugar.media.service.node.NodeService;
+import org.sugar.media.service.node.ZlmNodeService;
 
 @SpringBootTest
 class MediaApplicationTests {
@@ -21,7 +19,7 @@ class MediaApplicationTests {
     private ZlmApiService zlmApiService;
 
     @Resource
-    private NodeService nodeService;
+    private ZlmNodeService nodeService;
 
     @Resource
     private MediaCacheService mediaCacheService;
