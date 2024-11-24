@@ -4,6 +4,8 @@ package org.sugar.media.controller.node;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -90,16 +92,16 @@ public class NodeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getNode(@PathVariable Long id) {
+    public ResponseEntity<?> getNode(@PathVariable  @NotNull(message = "ID不能为空") Long id) {
 
-        NodeModel nodeModel = this.nodeService.getNode(id).get();
+        Optional<NodeModel> node = this.nodeService.getNode(id);
 
-        return ResponseEntity.ok(ResponseBean.success(nodeModel));
+        return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(nodeModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
     }
 
 
     @PutMapping("/sync/{id}")
-    public ResponseEntity<?> syncConfig(@PathVariable Long id) {
+    public ResponseEntity<?> syncConfig(@PathVariable @NotNull(message = "ID不能为空") Long id) {
 
         NodeModel nodeModel = this.nodeService.getNode(id).get();
 

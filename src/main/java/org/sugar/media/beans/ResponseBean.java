@@ -47,7 +47,7 @@ public class ResponseBean {
         return new ResponseBean(ResponseEnum.Success.getCode(), null, null, msg);
     }
 
-    public static ResponseBean success(Object data) {
+    public static ResponseBean  success(Object data) {
         return new ResponseBean(ResponseEnum.Success.getCode(), null, data, ResponseEnum.Success.getMsg());
     }
 
