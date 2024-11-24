@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
+import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.service.node.NodeService;
 
@@ -34,7 +35,10 @@ public class ZlmApiService {
 
 
     // 创建一个新的zlm实例时，应当初始化该方法
-    public boolean syncZlmConfig(NodeModel nodeModel) {
+
+
+
+    public boolean syncZlmConfig(NodeModel nodeModel, SyncEnum types) {
         // set config
         String host = StrUtil.format("http://{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
 
@@ -46,10 +50,23 @@ public class ZlmApiService {
 
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
-            this.createHookConfig(nodeModel, builder);
+
+
+            if(types.equals(SyncEnum.hook)){
+                this.createHookConfig(nodeModel, builder);
+            }
+
+
+            if(types.equals(SyncEnum.base)){
+               this.createBaseConfig(nodeModel,builder);
+            }
+            if(types.equals(SyncEnum.all)){
+                this.createBaseConfig(nodeModel, builder);
+                this.createHookConfig(nodeModel,builder);
+            }
 
             StaticLog.info("{}", builder.toUriString());
-            ;
+
 
             //r
             Map<String, String> reqMap = new HashMap<>();
@@ -96,7 +113,7 @@ public class ZlmApiService {
 
     }
 
-    private void createOtherConfig(NodeModel nodeModel, UriComponentsBuilder builder) {
+    private void createBaseConfig(NodeModel nodeModel, UriComponentsBuilder builder) {
         Map<String, String> confMap = new HashMap<>();
 
         String host = StrUtil.format("http://{}:{}", this.serverIp, this.serverPort);

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sugar.media.enums.MediaServerEnum;
 import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.repository.node.NodeRepo;
 import org.sugar.media.service.MediaCacheService;
@@ -71,21 +72,11 @@ public class NodeService {
 
     }
 
-
-    @Transactional
-    public boolean createMediaSync(NodeModel nodeModel, boolean sync) {
-
-        NodeModel node = this.createNode(nodeModel);
-
-
-        boolean s = true;
-        if (sync) {
-            s = write2Config(node);
-        }
-
-
-        return s;
-    }
+    /**
+     * 新增节点调用
+     *
+     * @param nodeModel
+     */
 
     public void createMediaAsync(NodeModel nodeModel) {
 
@@ -93,23 +84,54 @@ public class NodeService {
 
         //  将webhook配置到media
         ThreadUtil.execute(() -> {
-            write2Config(node);
-            // TODO:同步配置，缓存到数据库
+            boolean written = write2Config(node, SyncEnum.hook);
+            // TODO:新增时同步配置，缓存到数据库
+            this.updateTime(nodeModel, written);
         });
 
     }
 
 
     /**
-     * 同步到流媒体配置文件
+     * 同步所有配置调用
+     * @param nodeModel
+     */
+    public boolean syncAll(NodeModel nodeModel) {
+
+        boolean written = write2Config(nodeModel, SyncEnum.all);
+        this.updateTime(nodeModel, written);
+        return written;
+    }
+
+    /**
+     * 修改webhook配置时调用
+     *
+     * @param nodeModel
+     */
+    @Transactional
+    public void updateMediaAsync(NodeModel nodeModel) {
+
+        NodeModel node = this.createNode(nodeModel);
+
+        //  将webhook配置到media
+        ThreadUtil.execute(() -> {
+            boolean written = write2Config(node, SyncEnum.hook);
+            this.updateTime(nodeModel, written);
+        });
+
+    }
+
+
+    /**
+     * 同步配置到流媒体配置文件
      *
      * @param nodeModel
      * @return
      */
-    public boolean write2Config(NodeModel nodeModel) {
+    public boolean write2Config(NodeModel nodeModel, SyncEnum zlmSyncEnum) {
         switch (nodeModel.getTypes()) {
             case zlm -> {
-                return this.zlmApiService.syncZlmConfig(nodeModel);
+                return this.zlmApiService.syncZlmConfig(nodeModel, zlmSyncEnum);
             }
             default -> {
                 return false;
@@ -118,17 +140,19 @@ public class NodeService {
 
     }
 
-    public boolean readConfig(NodeModel nodeModel) {
-        switch (nodeModel.getTypes()) {
-            case zlm -> {
-                return this.zlmApiService.syncZlmConfig(nodeModel);
-            }
-            default -> {
-                return false;
-            }
-        }
 
+    // 根据同步结果，判断是否更新时间
+    private void updateTime(NodeModel nodeModel, boolean written) {
+
+        if (written) {
+            updateConfigTimeById(nodeModel.getId(), new Date());
+            updateHeartbeatTimeById(nodeModel.getId(), new Date());
+        } else {
+            updateConfigTimeById(nodeModel.getId(), null);
+            updateHeartbeatTimeById(nodeModel.getId(), null);
+        }
     }
+
 
     /**
      * 每次重启服务，都同步一下config 并且写入redis缓存
@@ -142,16 +166,11 @@ public class NodeService {
         for (NodeModel nodeModel : modelList) {
 
             // 首先同步一下配置
-            boolean written = write2Config(nodeModel);
+            boolean written = write2Config(nodeModel, SyncEnum.all);
 
             //
-            if (written) {
-                updateConfigTimeById(nodeModel.getId(), new Date());
-                updateHeartbeatTimeById(nodeModel.getId(), new Date());
-            } else {
-                updateConfigTimeById(nodeModel.getId(), null);
-                updateHeartbeatTimeById(nodeModel.getId(), null);
-            }
+
+            this.updateTime(nodeModel, written);
 
             this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
         }

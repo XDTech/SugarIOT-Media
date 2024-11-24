@@ -16,6 +16,7 @@ import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.beans.node.NodeBean;
 import org.sugar.media.enums.MediaServerEnum;
 import org.sugar.media.enums.ResponseEnum;
+import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.security.UserSecurity;
@@ -84,7 +85,7 @@ public class NodeController {
         NodeModel nodeModel = node.get();
         BeanUtil.copyProperties(nodeVal, nodeModel);
         nodeModel.setTypes(MediaServerEnum.valueOf(nodeVal.getTypes()));
-        this.nodeService.createMediaAsync(nodeModel);
+        this.nodeService.updateMediaAsync(nodeModel);
 
 
         return ResponseEntity.ok(ResponseBean.success("修改成功"));
@@ -136,7 +137,7 @@ public class NodeController {
 
         NodeModel nodeModel = this.nodeService.getNode(id).get();
 
-        boolean written = this.nodeService.write2Config(nodeModel);
+        boolean written = this.nodeService.syncAll(nodeModel);
         if (!written) return ResponseEntity.ok(ResponseBean.fail("同步失败"));
 
         return ResponseEntity.ok(ResponseBean.success("同步成功"));
