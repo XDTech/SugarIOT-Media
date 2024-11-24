@@ -11,6 +11,7 @@ import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.node.NodeService;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,6 +44,7 @@ public class ZlmHookController {
             // 如果是false，后续发送上线消息
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
             this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+            this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
             if(!online){
                 //TODO:发送消息
                 StaticLog.info("发送消息");
@@ -64,6 +66,7 @@ public class ZlmHookController {
         if (node.isPresent()) {
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
             this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+            this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
             if(!online){
                 //TODO:发送消息
                 StaticLog.info("发送消息");

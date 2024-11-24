@@ -117,7 +117,6 @@ public class NodeController {
 
         List<NodeModel> nodeList = this.nodeService.getNodeList(this.userSecurity.getCurrentAdminUser().getZid());
 
-
         List<NodeBean> list = BeanConverterUtil.convertList(nodeList, NodeBean.class);
 
         list = list.stream().peek(nodeBean -> nodeBean.setOnline(this.mediaCacheService.isOnline(nodeBean.getId()))).collect(Collectors.toList());

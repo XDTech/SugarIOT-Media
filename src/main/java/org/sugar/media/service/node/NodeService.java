@@ -16,6 +16,7 @@ import org.sugar.media.repository.node.NodeRepo;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +35,16 @@ public class NodeService {
     private MediaCacheService mediaCacheService;
 
 
+    @Transactional
+    public void updateConfigTimeById(Long id, Date syncConfigTime) {
+        this.nodeRepo.updateConfigTimeById(id, syncConfigTime);
+    }
+
+    @Transactional
+    public void updateHeartbeatTimeById(Long id, Date syncHeartbeatTime) {
+        this.nodeRepo.updateHeartbeatTimeById(id, syncHeartbeatTime);
+    }
+
     public Optional<NodeModel> getNode(Long id) {
 
         return this.nodeRepo.findById(id);
@@ -41,7 +52,7 @@ public class NodeService {
 
 
     public List<NodeModel> getNodeList(Long zid) {
-        return this.nodeRepo.findAllByZid(zid);
+        return this.nodeRepo.findAllByZidOrderByIdDesc(zid);
     }
 
     @Transactional
@@ -120,8 +131,10 @@ public class NodeService {
     }
 
     /**
-     * 同步到redis缓存
+     * 每次重启服务，都同步一下config 并且写入redis缓存
      */
+
+    @Transactional
     public void write2Cache() {
         List<NodeModel> modelList = this.nodeRepo.findAll();
 
@@ -130,6 +143,15 @@ public class NodeService {
 
             // 首先同步一下配置
             boolean written = write2Config(nodeModel);
+
+            //
+            if (written) {
+                updateConfigTimeById(nodeModel.getId(), new Date());
+                updateHeartbeatTimeById(nodeModel.getId(), new Date());
+            } else {
+                updateConfigTimeById(nodeModel.getId(), null);
+                updateHeartbeatTimeById(nodeModel.getId(), null);
+            }
 
             this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
         }

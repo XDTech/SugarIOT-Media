@@ -44,11 +44,21 @@ public class NodeModel {
 
     // ===========end===========
 
+
+    // 配置文件同步时间
+    private Date syncConfigTime;
+
+    // 心跳检测同步时间
+    private Date syncHeartbeatTime;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20) default 'zlm'")
     private MediaServerEnum types;// 状态
 
+
+
+    // 默认节点
 
 
     private String name;
