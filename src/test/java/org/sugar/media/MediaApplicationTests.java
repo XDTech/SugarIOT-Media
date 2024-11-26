@@ -31,7 +31,7 @@ class MediaApplicationTests {
         StaticLog.info("{}", test);
 
 
-      //  this.zlmApiService.getApiList("http://192.168.1.6", "JDG6XqSrvtzLTWw54xgQW8yEO6WjLrqO");
+        //  this.zlmApiService.getApiList("http://192.168.1.6", "JDG6XqSrvtzLTWw54xgQW8yEO6WjLrqO");
     }
 
 
@@ -42,6 +42,7 @@ class MediaApplicationTests {
 //        boolean b = this.zlmApiService.syncZlmConfig(node);
 //
 //        StaticLog.info("{}", b);
+
 
 
     }

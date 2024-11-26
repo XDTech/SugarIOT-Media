@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import jakarta.websocket.*;
@@ -12,6 +13,7 @@ import jakarta.websocket.server.ServerEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.security.UserSecurity;
 
@@ -166,12 +168,11 @@ public class WebSocketServer {
         });
     }
 
-    public static void sendSystemMsg(String message) {
+    public static void sendSystemMsg(SocketMsgBean message) {
         // 遍历在线map集合
         onlineSessionClientMap.forEach((onlineSid, toSession) -> {
 
-            StaticLog.info("服务端给客户端群发消息 ==>{}, message = {}", onlineSid, message);
-            toSession.getAsyncRemote().sendText(message);
+            toSession.getAsyncRemote().sendText(JSONUtil.toJsonStr(message));
         });
     }
 

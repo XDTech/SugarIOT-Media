@@ -1,11 +1,20 @@
 package org.sugar.media.config;
 
+import cn.hutool.core.convert.Convert;
 import jakarta.annotation.Resource;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
+import org.sugar.media.beans.SocketMsgBean;
+import org.sugar.media.enums.SocketMsgEnum;
+import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.MediaCacheService;
+import org.sugar.media.service.node.ZlmNodeService;
+
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * Date:2024/11/20 13:36:21
@@ -16,7 +25,8 @@ import org.sugar.media.service.MediaCacheService;
     public class RedisKeyExpirationListener extends KeyExpirationEventMessageListener {
 
 
-
+    @Resource
+    private ZlmNodeService zlmNodeService;
 
 
         public RedisKeyExpirationListener(RedisMessageListenerContainer listenerContainer) {
@@ -38,7 +48,16 @@ import org.sugar.media.service.MediaCacheService;
             System.out.println(message.getBody().toString()+"=-===");
             if (expiredKey.startsWith(MediaCacheService.REDIS_KEY_PREFIX)) {
 
+                String[] split = expiredKey.split(MediaCacheService.REDIS_KEY_PREFIX);
+
+                String mediaId = split[1];
+
+                Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(mediaId));
+                node.ifPresent(nodeModel -> WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOffline, new Date(), nodeModel.getName())));
+
+
             }
+
 
         }
 

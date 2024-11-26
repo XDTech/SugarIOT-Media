@@ -5,6 +5,8 @@ import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.beans.SocketMsgBean;
+import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.server.WebSocketServer;
@@ -48,10 +50,11 @@ public class ZlmHookController {
             if(!online){
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline,new Date(),node.get().getName()));
             }
             this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
 
-            WebSocketServer.sendSystemMsg("心跳检测");
+
         }
 
 
@@ -72,6 +75,8 @@ public class ZlmHookController {
             if(!online){
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline,new Date(),node.get().getName()));
+
             }
             this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
 
