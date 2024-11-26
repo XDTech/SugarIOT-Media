@@ -10,6 +10,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
@@ -44,7 +45,6 @@ public class ZlmApiService {
         try {
             HttpHeaders headers = new HttpHeaders();
 
-            headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(host + "/index/api/setServerConfig");
 
             // add param
@@ -134,13 +134,12 @@ public class ZlmApiService {
         try {
             HttpHeaders headers = new HttpHeaders();
 
-            headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getApiList");
 
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
             Map<String, Object> reqMap = new HashMap<>();
-            HttpEntity<?> entity = new HttpEntity<>(reqMap, headers);
+            HttpEntity<?> entity = new HttpEntity<>( headers);
             ResponseEntity<Map> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, Map.class);
 
             return Convert.toList(String.class, exchange.getBody().get("data"));
@@ -161,13 +160,11 @@ public class ZlmApiService {
         try {
             HttpHeaders headers = new HttpHeaders();
 
-            headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getServerConfig");
 
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
-            Map<String, Object> reqMap = new HashMap<>();
-            HttpEntity<?> entity = new HttpEntity<>(reqMap, headers);
+            HttpEntity<?> entity = new HttpEntity<>(headers);
             ResponseEntity<ZlmRemoteConfigBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, ZlmRemoteConfigBean.class);
 
             return exchange.getBody();
@@ -181,6 +178,33 @@ public class ZlmApiService {
 
 
     }
+
+
+    public CommonBean restartServer(NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/restartServer");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            Map<String, Object> reqMap = new HashMap<>();
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
+
+            return exchange.getBody();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return null;
+
+        }
+
+
+    }
+
 
 
 }

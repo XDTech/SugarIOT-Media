@@ -95,7 +95,7 @@ public class ZlmNodeService {
             // TODO:新增时同步配置，缓存到数据库
             // 1.读取配置
 
-             this.readMediaConfig(node);
+            this.readMediaConfig(node);
 
             //
             this.createNode(node);
@@ -194,13 +194,20 @@ public class ZlmNodeService {
         for (NodeModel nodeModel : modelList) {
 
             // 首先同步一下配置
-            boolean written = write2MediaConfig(nodeModel, SyncEnum.all);
 
-            //
+            boolean written = this.writeAllAndUpdateTime(nodeModel);
 
-            this.updateTime(nodeModel, written);
-
-            this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus(),nodeModel.getAliveInterval());
+            this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus(), nodeModel.getAliveInterval());
         }
+    }
+
+
+    @Transactional
+    public boolean writeAllAndUpdateTime(NodeModel nodeModel) {
+        boolean written = write2MediaConfig(nodeModel, SyncEnum.all);
+
+        this.updateTime(nodeModel, written);
+
+        return written;
     }
 }

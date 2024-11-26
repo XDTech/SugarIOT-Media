@@ -78,7 +78,7 @@ public class ZlmHookController {
                 WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline,new Date(),node.get().getName()));
 
             }
-            this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
+            this.nodeService.writeAllAndUpdateTime(node.get());
 
         }
         return ResponseBean.success();

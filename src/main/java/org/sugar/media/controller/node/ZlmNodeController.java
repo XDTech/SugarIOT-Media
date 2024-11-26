@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.beans.node.NodeBean;
 import org.sugar.media.enums.MediaServerEnum;
@@ -148,6 +149,23 @@ public class ZlmNodeController {
 
         return ResponseEntity.ok(ResponseBean.success("同步成功"));
     }
+
+    @PostMapping("/restart/{id}")
+    public ResponseEntity<?> restartZlm(@PathVariable @NotNull(message = "ID不能为空") Long id) {
+
+        NodeModel nodeModel = this.nodeService.getNode(id).get();
+
+
+        CommonBean commonBean = this.zlmApiService.restartServer(nodeModel);
+
+
+        if(ObjectUtil.isEmpty(commonBean)) return ResponseEntity.ok(ResponseBean.fail("重启失败"));
+
+
+
+        return ResponseEntity.ok(ResponseBean.success(commonBean));
+    }
+
 
 
     @GetMapping("/list")
