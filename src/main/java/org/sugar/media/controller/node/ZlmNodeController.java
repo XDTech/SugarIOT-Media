@@ -12,6 +12,7 @@ import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.beans.node.NodeBean;
 import org.sugar.media.enums.MediaServerEnum;
+import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.MediaCacheService;
@@ -19,6 +20,7 @@ import org.sugar.media.service.ZlmApiService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.validation.NodeVal;
+import org.sugar.media.validation.ZlmNodeVal;
 
 import java.util.List;
 import java.util.Optional;
@@ -74,8 +76,23 @@ public class ZlmNodeController {
 
         NodeModel nodeModel = node.get();
         BeanUtil.copyProperties(nodeVal, nodeModel);
-        this.nodeService.updateMediaAsync(nodeModel);
+        this.nodeService.updateMediaAsync(nodeModel, SyncEnum.hook);
 
+
+        return ResponseEntity.ok(ResponseBean.success("修改成功"));
+    }
+
+    @PutMapping("/advance")
+    public ResponseEntity<?> updateAdvance(@RequestBody @Validated() ZlmNodeVal nodeVal) {
+
+        Optional<NodeModel> node = this.nodeService.getNode(nodeVal.getId());
+
+        if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+
+        NodeModel nodeModel = node.get();
+        BeanUtil.copyProperties(nodeVal, nodeModel);
+        this.nodeService.updateMediaAsync(nodeModel, SyncEnum.base);
 
         return ResponseEntity.ok(ResponseBean.success("修改成功"));
     }

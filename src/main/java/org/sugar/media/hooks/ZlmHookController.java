@@ -7,12 +7,14 @@ import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.node.ZlmNodeService;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Date:2024/11/13 18:08:41
@@ -34,7 +36,6 @@ public class ZlmHookController {
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
     @PostMapping("/keepalive")
     public ResponseBean keepalive(@RequestBody Map<String, Object> body) {
-        StaticLog.info("{}", body);
 
         Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
 
@@ -42,13 +43,15 @@ public class ZlmHookController {
         if (node.isPresent()) {
             // 如果是false，后续发送上线消息
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
-            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+
+            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(),node.get().getAliveInterval());
             if(!online){
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
             }
             this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
 
+            WebSocketServer.sendSystemMsg("心跳检测");
         }
 
 
@@ -65,13 +68,27 @@ public class ZlmHookController {
         Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
         if (node.isPresent()) {
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
-            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus());
+            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(),node.get().getAliveInterval());
             if(!online){
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
             }
             this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
 
+        }
+        return ResponseBean.success();
+    }
+
+
+    // 离线
+    @PostMapping("/server/exited")
+    public ResponseBean exited(@RequestBody Map<String, Object> body) {
+        StaticLog.info("{}", body);
+        Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
+
+        Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
+        if (node.isPresent()) {
+            this.mediaCacheService.removeMediaStatus(mediaServerId);
         }
         return ResponseBean.success();
     }

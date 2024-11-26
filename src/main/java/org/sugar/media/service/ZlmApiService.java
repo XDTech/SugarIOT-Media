@@ -106,6 +106,8 @@ public class ZlmApiService {
 
         // 服务器启动报告，可以用于服务器的崩溃重启事件监听
         builder.queryParam("hook.on_server_started", host + "/zlm/server/started");
+
+        builder.queryParam("hook.on_server_exited", host + "/zlm/server/exited");
         //
         builder.queryParam("hook.on_server_keepalive", host + "/zlm/keepalive");
 
@@ -113,23 +115,12 @@ public class ZlmApiService {
     }
 
     private void createBaseConfig(NodeModel nodeModel, UriComponentsBuilder builder) {
-        Map<String, String> confMap = new HashMap<>();
 
-        String host = StrUtil.format("http://{}:{}", this.serverIp, this.serverPort);
-
-        //    confMap.put("api.secret",nodeModel.getId().toString());
-        builder.queryParam("http.sslport", nodeModel.getHttpsPort().toString());
-        builder.queryParam("http.port", nodeModel.getHttpPort().toString());
-        // 是否启用hook事件，启用后，推拉流都将进行鉴权
-        builder.queryParam("hook.enable", "1");
-
-        // 服务器唯一id，用于触发hook时区别是哪台服务器
-        builder.queryParam("general.mediaServerId", nodeModel.getId().toString());
-
-        // 服务器启动报告，可以用于服务器的崩溃重启事件监听
-        builder.queryParam("hook.on_server_started", host + "/zlm/server/started");
+        builder.queryParam("rtmp.port",nodeModel.getRtmpPort());
         //
-        builder.queryParam("hook.on_server_keepalive", host + "/zlm/keepalive");
+        builder.queryParam("rtsp.port", nodeModel.getRtspPort());
+        builder.queryParam("hook.timeoutSec", nodeModel.getTimeoutSec());
+        builder.queryParam("hook.alive_interval", nodeModel.getAliveInterval());
 
 
     }

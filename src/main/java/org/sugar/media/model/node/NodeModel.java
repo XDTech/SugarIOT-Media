@@ -77,4 +77,23 @@ public class NodeModel {
     @NotBlank
     private String secret;
 
+    // =====ZLM配置 可跟后续平台公用
+
+    // ==webhook配置
+
+    // keepalive hook触发间隔,单位秒，float类型
+    private Float aliveInterval ;
+
+    // hook api最大等待回复时间，单位秒
+    private Integer timeoutSec;
+
+
+    // rtmp port
+    @Column(columnDefinition = "int4 default 1935")
+    private Integer rtmpPort;
+
+    // rtsp port
+    @Column(columnDefinition = "int4 default 554")
+    private Integer rtspPort;
+
 }

@@ -21,19 +21,26 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class MediaCacheService {
 
-    private static final long TTL_SECONDS = 15; // 每个媒体的 TTL 为 15 秒
+    private static final long TTL_ms = 10*1000; // 每个媒体的 TTL 为 10 秒
     public static  String REDIS_KEY_PREFIX = "media_status:"; // Key 的前缀
 
 
+    private static final long ttl_delay=5*1000;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
 
-    // 保存媒体状态并设置独立的 TTL
-    public void setMediaStatus(Long mediaId, String status) {
+    // 保存媒体状态并设置独立的 TTL 毫秒
+    public void setMediaStatus(Long mediaId,String status, Float seconds) {
+
+        long expTime=TTL_ms+ttl_delay;
         String key = REDIS_KEY_PREFIX + mediaId;
 
-        stringRedisTemplate.opsForValue().set(key, status, TTL_SECONDS, TimeUnit.SECONDS);
+        // 秒转毫秒
+        if(seconds!=null){
+           expTime=Convert.toLong(seconds*1000)+ttl_delay;
+        }
+        stringRedisTemplate.opsForValue().set(key, status, expTime, TimeUnit.MILLISECONDS);
     }
 
     // 获取媒体状态

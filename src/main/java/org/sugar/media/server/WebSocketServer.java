@@ -1,7 +1,9 @@
 package org.sugar.media.server;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import jakarta.websocket.*;
@@ -19,6 +21,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static jakarta.websocket.CloseReason.CloseCodes.CLOSED_ABNORMALLY;
+
 /**
  * Date:2024/11/20 14:19:49
  * Author：Tobin
@@ -32,7 +36,6 @@ public class WebSocketServer {
     /**
      * 静态变量，用来记录当前在线连接数，线程安全的类。
      */
-    private static final AtomicInteger onlineSessionClientCount = new AtomicInteger(0);
     /**
      * 存放所有在线的客户端
      */
@@ -48,6 +51,7 @@ public class WebSocketServer {
     /**
      * 连接uid和连接会话
      */
+
     private String uid;
     private String token;
     private Session session;
@@ -68,20 +72,22 @@ public class WebSocketServer {
 
         // 鉴权失败
         if (ObjectUtil.isEmpty(user)) {
-            session.close();
+            session.close(new CloseReason(CLOSED_ABNORMALLY, "fail"));
             return;
         }
 
         StaticLog.info("连接建立中 ==> session_id = {}， sid = {}", session.getId(), token);
         //加入 Map中。将页面的uid和session绑定或者session.getId()与session
-        //onlineSessionIdClientMap.put(session.getId(), session);
-        onlineSessionClientMap.put(token, session);
+
         //在线数加1
-        onlineSessionClientCount.incrementAndGet();
+
+        onlineSessionClientMap.put(Convert.toStr(user.getId()), session);
+
         this.token = token;
+        this.uid = Convert.toStr(user.getId());
         this.session = session;
 //        sendToOne(uid, "连接成功");
-        StaticLog.info("连接建立成功，当前在线数为：{} ==> 开始监听新连接：session_id = {}， sid = {},。", onlineSessionClientCount, session.getId(), uid);
+        StaticLog.info("连接建立成功，当前在线数为：{} ==> 开始监听新连接：session_id = {}， sid = {},。", onlineSessionClientMap.size(), session.getId(), uid);
     }
 
     /**
@@ -91,14 +97,23 @@ public class WebSocketServer {
      * @param session
      */
     @OnClose
-    public void onClose(@PathParam("token") String token, Session session) {
+    public void onClose(@PathParam("token") String token, Session session) throws IOException {
+        StaticLog.info("{}触发关闭方法,{}", token, uid);
+
         //onlineSessionIdClientMap.remove(session.getId());
+        session.close();
         // 从 Map中移除
-        onlineSessionClientMap.remove(uid);
+        if (StrUtil.isBlank(uid)) return;
 
         //在线数减1
-        onlineSessionClientCount.decrementAndGet();
-        StaticLog.info("连接关闭成功，当前在线数为：{} ==> 关闭该连接信息：session_id = {}， sid = {},。", onlineSessionClientCount, session.getId(), uid);
+        if (onlineSessionClientMap.containsKey(uid)) {
+            onlineSessionClientMap.get(Convert.toStr(uid)).close();
+        }
+
+        onlineSessionClientMap.remove(uid);
+
+
+        StaticLog.info("连接关闭成功，当前在线数为：{} ==> 关闭该连接信息：session_id = {}， sid = {},。", onlineSessionClientMap.size(), session.getId(), uid);
     }
 
     /**
@@ -120,7 +135,7 @@ public class WebSocketServer {
         String toSid = "";
         //A给B发送消息，A要知道B的信息，发送消息的时候把B的信息携带过来
         StaticLog.info("服务端收到客户端消息 ==> fromSid = {}, toSid = {}, message = {}", uid, toSid, message);
-        sendToOne(phone, message);
+       // sendToOne(phone, message);
     }
 
     /**
@@ -130,7 +145,7 @@ public class WebSocketServer {
      * @param error
      */
     @OnError
-    public void onError(Session session, Throwable error) {
+    public void onError(Session session, Throwable error) throws IOException {
         StaticLog.error("WebSocket发生错误，错误信息为：" + error.getMessage());
         error.printStackTrace();
     }
@@ -148,6 +163,15 @@ public class WebSocketServer {
                 StaticLog.info("服务端给客户端群发消息 ==> sid = {}, toSid = {}, message = {}", uid, onlineSid, message);
                 toSession.getAsyncRemote().sendText(message);
             }
+        });
+    }
+
+    public static void sendSystemMsg(String message) {
+        // 遍历在线map集合
+        onlineSessionClientMap.forEach((onlineSid, toSession) -> {
+
+            StaticLog.info("服务端给客户端群发消息 ==>{}, message = {}", onlineSid, message);
+            toSession.getAsyncRemote().sendText(message);
         });
     }
 

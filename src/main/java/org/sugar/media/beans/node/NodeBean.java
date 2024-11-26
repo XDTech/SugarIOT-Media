@@ -44,4 +44,16 @@ public class NodeBean {
 
     // 心跳检测同步时间
     private Date syncHeartbeatTime;
+
+    private Float aliveInterval ;
+
+    // hook api最大等待回复时间，单位秒
+    private Integer timeoutSec;
+
+
+    // rtmp port
+    private Integer rtmpPort;
+
+    // rtsp port
+    private Integer rtspPort;
 }

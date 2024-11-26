@@ -1,7 +1,10 @@
 package org.sugar.media.service.node;
 
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,7 @@ import org.sugar.media.service.ZlmApiService;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -38,6 +42,7 @@ public class ZlmNodeService {
 
     @Transactional
     public void updateConfigTimeById(Long id, Date syncConfigTime) {
+
         this.nodeRepo.updateConfigTimeById(id, syncConfigTime);
     }
 
@@ -53,7 +58,7 @@ public class ZlmNodeService {
 
 
     public List<NodeModel> getNodeList(Long zid) {
-        return this.nodeRepo.findAllByZidAndTypesOrderByIdDesc(zid,MediaServerEnum.zlm);
+        return this.nodeRepo.findAllByZidAndTypesOrderByIdDesc(zid, MediaServerEnum.zlm);
     }
 
     @Transactional
@@ -78,6 +83,8 @@ public class ZlmNodeService {
      * @param nodeModel
      */
 
+
+    @Transactional
     public void createMediaAsync(NodeModel nodeModel) {
 
         NodeModel node = this.createNode(nodeModel);
@@ -87,7 +94,13 @@ public class ZlmNodeService {
             boolean written = write2MediaConfig(node, SyncEnum.hook);
             // TODO:新增时同步配置，缓存到数据库
             // 1.读取配置
-            this.updateTime(nodeModel, written);
+
+             this.readMediaConfig(node);
+
+            //
+            this.createNode(node);
+
+            this.updateTime(node, written);
         });
 
     }
@@ -98,6 +111,7 @@ public class ZlmNodeService {
      *
      * @param nodeModel
      */
+    @Transactional
     public boolean syncAll(NodeModel nodeModel) {
 
         boolean written = write2MediaConfig(nodeModel, SyncEnum.all);
@@ -105,19 +119,15 @@ public class ZlmNodeService {
         return written;
     }
 
-    /**
-     * 修改webhook配置时调用
-     *
-     * @param nodeModel
-     */
+
     @Transactional
-    public void updateMediaAsync(NodeModel nodeModel) {
+    public void updateMediaAsync(NodeModel nodeModel, SyncEnum syncEnum) {
 
         NodeModel node = this.createNode(nodeModel);
 
         //  将webhook配置到media
         ThreadUtil.execute(() -> {
-            boolean written = write2MediaConfig(node, SyncEnum.hook);
+            boolean written = write2MediaConfig(node, syncEnum);
             this.updateTime(nodeModel, written);
         });
 
@@ -137,16 +147,30 @@ public class ZlmNodeService {
 
     }
 
-    public ZlmRemoteConfigBean readMediaConfig(NodeModel nodeModel) {
 
-        return this.zlmApiService.getServerConfig(nodeModel);
+    // 读取高级配置，并且赋值到node model
 
+    public NodeModel readMediaConfig(NodeModel nodeModel) {
 
+        ZlmRemoteConfigBean serverConfig = this.zlmApiService.getServerConfig(nodeModel);
+
+        if (serverConfig.getCode().equals(0) && CollUtil.isNotEmpty(serverConfig.getData())) {
+
+            Map<String, String> configMap = serverConfig.getData().get(0);
+            nodeModel.setAliveInterval(Convert.toFloat(configMap.get("hook.alive_interval")));
+            nodeModel.setTimeoutSec(Convert.toInt(configMap.get("hook.timeoutSec")));
+            nodeModel.setRtmpPort(Convert.toInt(configMap.get("rtmp.port")));
+            nodeModel.setRtspPort(Convert.toInt(configMap.get("rtsp.port")));
+
+        }
+        return nodeModel;
     }
 
 
     // 根据同步结果，判断是否更新时间
-    private void updateTime(NodeModel nodeModel, boolean written) {
+
+    @Transactional
+    public void updateTime(NodeModel nodeModel, boolean written) {
 
         if (written) {
             updateConfigTimeById(nodeModel.getId(), new Date());
@@ -176,7 +200,7 @@ public class ZlmNodeService {
 
             this.updateTime(nodeModel, written);
 
-            this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
+            this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus(),nodeModel.getAliveInterval());
         }
     }
 }
