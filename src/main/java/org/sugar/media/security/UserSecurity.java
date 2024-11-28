@@ -31,6 +31,11 @@ public class UserSecurity {
 
     }
 
+    public Long getCurrentZid() {
+      return this.getCurrentAdminUser().getZid();
+
+    }
+
     public UserModel getUser(String token) {
 
         SaSession tokenSession = StpKit.USER.getTokenSessionByToken(token);

@@ -7,11 +7,14 @@ import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.sugar.media.config.WebSocketConfig;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
 import org.sugar.media.service.node.ZlmNodeService;
 
-@SpringBootTest
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class MediaApplicationTests {
 
 
@@ -44,7 +47,14 @@ class MediaApplicationTests {
 //        StaticLog.info("{}", b);
 
 
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl( "http://localhost/index/api/addStreamProxy");
 
+        // add param
+        builder.queryParam("secret", "__defaultVhost__");
+        builder.queryParam("vhost", true);
+        builder.queryParam("app", true);
+        builder.queryParam("stream", true);
+        StaticLog.info("{}",builder.toUriString());
     }
 
     @Test

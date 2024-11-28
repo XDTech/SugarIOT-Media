@@ -14,6 +14,7 @@ import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.model.stream.StreamPullModel;
 
 import java.util.HashMap;
 import java.util.List;
@@ -190,6 +191,42 @@ public class ZlmApiService {
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
             Map<String, Object> reqMap = new HashMap<>();
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
+
+            return exchange.getBody();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return null;
+
+        }
+
+
+    }
+   public CommonBean addStreamProxy(StreamPullModel pullModel,NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/addStreamProxy");
+
+            // add param
+            builder.queryParam("secret", "__defaultVhost__");
+            builder.queryParam("vhost", nodeModel.getSecret());
+            builder.queryParam("app", nodeModel.getSecret());
+            builder.queryParam("stream", nodeModel.getSecret());
+            builder.queryParam("url", nodeModel.getSecret());
+            builder.queryParam("timeout_sec", nodeModel.getSecret());
+            builder.queryParam("enable_rtsp", nodeModel.getSecret());
+            builder.queryParam("enable_rtmp", pullModel.isEnableRtmp());
+            builder.queryParam("enable_mp4", nodeModel.getSecret());
+            builder.queryParam("enable_ts", nodeModel.getSecret());
+            builder.queryParam("enable_fmp4", nodeModel.getSecret());
+            builder.queryParam("enable_audio", nodeModel.getSecret());
+            builder.queryParam("add_mute_audio", nodeModel.getSecret());
+            builder.queryParam("mp4_max_second", nodeModel.getSecret());
             HttpEntity<?> entity = new HttpEntity<>(headers);
             ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
 
