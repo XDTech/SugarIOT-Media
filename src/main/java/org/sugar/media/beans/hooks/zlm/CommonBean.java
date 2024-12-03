@@ -2,6 +2,7 @@ package org.sugar.media.beans.hooks.zlm;
 
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -17,5 +18,7 @@ public class CommonBean {
 
     private String msg;
 
-    private Map<String,Object> data;
+    private Long nodeId;
+
+    private Map<String,Object> data=new HashMap<>();
 }

@@ -25,6 +25,7 @@ import org.sugar.media.service.node.NodeService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -75,6 +76,8 @@ public class StreamPullService {
             // 把key存下来
             String key = Convert.toStr(commonBean.getData().get("key"));
             mStreamPull.setStreamKey(key);
+            mStreamPull.setNodeId(commonBean.getNodeId());
+
         } else {
             // 失败直接返回
             return commonBean;
@@ -112,8 +115,10 @@ public class StreamPullService {
             commonBean.setMsg("当前节点不在线");
         }
 
-        return this.zlmApiService.addStreamProxy(streamPullModel, nodeModel);
+        commonBean = this.zlmApiService.addStreamProxy(streamPullModel, nodeModel);
+        commonBean.setNodeId(nodeModel.getId());
 
+        return commonBean;
 
     }
 

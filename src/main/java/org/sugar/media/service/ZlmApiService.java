@@ -237,11 +237,11 @@ public class ZlmApiService {
             } else if (pullModel.getAutoClose().equals(AutoCloseEnum.no)) {
                 builder.queryParam("auto_close", "0");
             }
+            StaticLog.info("{}",builder.toUriString());
             HttpEntity<?> entity = new HttpEntity<>(headers);
             ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
 
             StaticLog.info("{}",exchange.getBody().toString());
-            StaticLog.info("{}",exchange.getBody().getData().get("key"));
             return exchange.getBody();
 
         } catch (Exception e) {

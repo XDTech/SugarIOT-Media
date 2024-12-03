@@ -3,6 +3,7 @@ package org.sugar.media.controller.stream;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,7 +141,7 @@ public class StreamPullController {
      */
 
     @PutMapping
-    public ResponseEntity<?> updateMStreamPull(@RequestBody @Validated(StreamPullVal.Update.class) StreamPullBean mStreamPullBean) {
+    public ResponseEntity<?> updateMStreamPull(@RequestBody @Validated(StreamPullVal.Update.class) StreamPullVal mStreamPullBean) {
 
         Optional<StreamPullModel> mStreamPullOptional = this.mStreamPullService.getMStreamPull(mStreamPullBean.getId());
         if (mStreamPullOptional.isEmpty()) {
@@ -162,8 +163,8 @@ public class StreamPullController {
         BeanUtil.copyProperties(mStreamPullBean, mStreamPull, "createdAt");
 
 
-        CommonBean commonBean = this.mStreamPullService.autoPullStream(streamPullModel);
-        return ResponseEntity.ok(ResponseBean.createResponseBean(commonBean.getCode(), commonBean.getMsg()));
+        this.mStreamPullService.updateMStreamPull(mStreamPull);
+        return ResponseEntity.ok(ResponseBean.success());
 
     }
 
@@ -186,7 +187,7 @@ public class StreamPullController {
     }
 
 
-    @GetMapping("/node/{streamPullId}")
+    @PostMapping("/proxy/{streamPullId}")
     public ResponseEntity<?> getStreamPlayerNode(@PathVariable("streamPullId") Long id) {
 
         Optional<StreamPullModel> mStreamPull = this.mStreamPullService.getMStreamPull(id);
@@ -194,8 +195,15 @@ public class StreamPullController {
             return ResponseEntity.ok(ResponseBean.fail());
         }
 
-        // 获取节点
 
+        CommonBean commonBean = this.mStreamPullService.playStreamPull(mStreamPull.get());
+
+        StaticLog.info("{}", commonBean.toString());
+        if (commonBean.getCode().equals(0)) {
+            mStreamPull.get().setNodeId(commonBean.getNodeId());
+            mStreamPull.get().setStreamKey(Convert.toStr(commonBean.getData().get("key")));
+            this.mStreamPullService.updateMStreamPull(mStreamPull.get());
+        }
 
         return ResponseEntity.ok(ResponseBean.success());
     }
@@ -208,16 +216,16 @@ public class StreamPullController {
             return ResponseEntity.ok(ResponseBean.fail());
         }
         // 获取节点
-        if(mStreamPull.get().getNodeId()== null){
+        if (mStreamPull.get().getNodeId() == null) {
             return ResponseEntity.ok(ResponseBean.fail("没有分配节点"));
         }
 
         Optional<NodeModel> node = this.nodeService.getNode(mStreamPull.get().getNodeId());
-        if (node.isEmpty()) return  ResponseEntity.ok(ResponseBean.fail("节点不存在"));
+        if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("节点不存在"));
 
         CommonBean commonBean = this.zlmApiService.closeStreamProxy(mStreamPull.get(), node.get());
 
-        if(commonBean.getCode().equals(0)&& Convert.toBool(commonBean.getData().get("flag"))){
+        if (commonBean.getCode().equals(0) && Convert.toBool(commonBean.getData().get("flag"))) {
             return ResponseEntity.ok(ResponseBean.success());
         }
 
