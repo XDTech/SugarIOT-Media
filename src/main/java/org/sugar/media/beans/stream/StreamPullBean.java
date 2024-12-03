@@ -2,7 +2,6 @@ package org.sugar.media.beans.stream;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -24,7 +23,6 @@ public class StreamPullBean  {
 
     private String app;
 
-    private Boolean autoClose;
 
     private Boolean enableAudio;
 
@@ -49,6 +47,15 @@ public class StreamPullBean  {
     private String url;
 
     private Date createdAt;
+    private  String playerType;
+
+
+    private boolean enablePull;
+
+
+    private String autoClose;
+
+    private String nodeName;
 
 }
 

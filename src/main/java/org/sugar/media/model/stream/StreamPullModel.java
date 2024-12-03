@@ -9,6 +9,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.validator.constraints.UniqueElements;
+import org.sugar.media.enums.AutoCloseEnum;
+import org.sugar.media.enums.PlayerTypeEnum;
 
 import java.util.Date;
 
@@ -56,7 +59,21 @@ public class StreamPullModel {
     private String stream;
 
 
-    private Long nodeId; //播放使用的节点(这个节点根据负载均衡策略生成)
+    // 播放方式
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(20) default 'balance'")
+    private PlayerTypeEnum playerType=PlayerTypeEnum.balance;
+
+    private Long nodeId; //播放使用的节点
+
+
+    //  流的唯一标识
+    private String streamKey;
+
+
+    @Column(columnDefinition = "bool default false")
+    private boolean enablePull=false; //是否开启拉流 默认关闭
 
 
     // 拉流超时时间 默认10s
@@ -103,7 +120,8 @@ public class StreamPullModel {
     private Long mp4MaxSecond=1800L;
 
     // 无人观看时，是否直接关闭(而不是通过on_none_reader hook返回close)
-    @Column(columnDefinition = "bool default false")
-    private boolean autoClose=false;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(20) default 'ignore'")
+    private AutoCloseEnum autoClose=AutoCloseEnum.ignore;
 
 }

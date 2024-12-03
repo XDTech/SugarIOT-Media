@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.groups.Default;
 import lombok.Data;
+import org.sugar.media.enums.AutoCloseEnum;
+import org.sugar.media.enums.PlayerTypeEnum;
+import org.sugar.media.validation.validator.EnumValidatorInterface;
 
 @Data
 public class StreamPullVal {
@@ -38,6 +41,19 @@ public class StreamPullVal {
     // enable_mp4
     @NotNull(message = "enable Mp4 not null")
     private Boolean enableMp4;
+
+
+    @NotBlank(message = "player type is required")
+    @EnumValidatorInterface(enumClass = PlayerTypeEnum.class, message = "Invalid player type")
+    private  String playerType;
+
+    private Long nodeId; //播放使用的节点
+
+    private boolean enablePull;
+
+
+    @EnumValidatorInterface(enumClass = AutoCloseEnum.class, message = "Invalid autoClose")
+    private String autoClose;
 
     public interface Create extends Default {
 

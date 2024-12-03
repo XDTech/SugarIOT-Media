@@ -1,6 +1,7 @@
 package org.sugar.media.controller.stream;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.NotNull;
@@ -12,15 +13,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.stream.StreamPullBean;
+import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.security.UserSecurity;
+import org.sugar.media.service.ZlmApiService;
+import org.sugar.media.service.node.NodeService;
+import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.service.stream.StreamPullService;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.validation.stream.StreamPullVal;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * (MStreamPull)表控制层
@@ -40,18 +47,36 @@ public class StreamPullController {
 
     @Resource
     private UserSecurity userSecurity;
+
+    @Resource
+    private ZlmNodeService zlmNodeService;
+
+    @Resource
+    private NodeService nodeService;
+
+    @Resource
+    private ZlmApiService zlmApiService;
+
     /**
      * 分页查询
      *
      * @return 查询结果
      */
     @GetMapping("/page/list")
-    public ResponseEntity<?> getMStreamPullPageList(@RequestParam Integer pi, @RequestParam Integer ps,@RequestParam(required = false) String name) {
+    public ResponseEntity<?> getMStreamPullPageList(@RequestParam Integer pi, @RequestParam Integer ps, @RequestParam(required = false) String name) {
 
 
-        Page<StreamPullModel> mStreamPullList = this.mStreamPullService.getMStreamPullPageList(pi, ps,name);
+        Page<StreamPullModel> mStreamPullList = this.mStreamPullService.getMStreamPullPageList(pi, ps, name);
 
         List<StreamPullBean> streamPullBeans = BeanConverterUtil.convertList(mStreamPullList.getContent(), StreamPullBean.class);
+
+
+        streamPullBeans = streamPullBeans.stream().peek((streamPullBean -> {
+            Optional<NodeModel> node = this.zlmNodeService.getNode(streamPullBean.getNodeId());
+            node.ifPresent(nodeModel -> streamPullBean.setNodeName(nodeModel.getName()));
+        })).collect(Collectors.toList());
+
+
         return ResponseEntity.ok(ResponseBean.success(mStreamPullList.getTotalElements(), streamPullBeans));
 
 
@@ -70,8 +95,8 @@ public class StreamPullController {
         if (mStreamPull.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
         }
-        StreamPullBean streamPullBean=new StreamPullBean();
-        BeanUtil.copyProperties(mStreamPull.get(),streamPullBean);
+        StreamPullBean streamPullBean = new StreamPullBean();
+        BeanUtil.copyProperties(mStreamPull.get(), streamPullBean);
         return ResponseEntity.ok(ResponseBean.success(streamPullBean));
 
     }
@@ -91,7 +116,7 @@ public class StreamPullController {
         StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentZid(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
 
 
-        if(ObjectUtil.isNotEmpty(streamPullModel)){
+        if (ObjectUtil.isNotEmpty(streamPullModel)) {
             return ResponseEntity.ok(ResponseBean.fail("App+Stream重复"));
         }
 
@@ -99,8 +124,12 @@ public class StreamPullController {
         BeanUtil.copyProperties(mStreamPullBean, mStreamPull);
 
         mStreamPull.setZid(this.userSecurity.getCurrentZid());
-        this.mStreamPullService.createMStreamPull(mStreamPull);
-        return ResponseEntity.ok(ResponseBean.success());
+
+        CommonBean commonBean = this.mStreamPullService.autoPullStream(mStreamPull);
+
+        return ResponseEntity.ok(ResponseBean.createResponseBean(commonBean.getCode(), commonBean.getMsg()));
+
+
     }
 
     /**
@@ -123,15 +152,19 @@ public class StreamPullController {
         StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentZid(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
 
 
-        if(ObjectUtil.isNotEmpty(streamPullModel)&&!streamPullModel.getId().equals(mStreamPullBean.getId())){
+        if (ObjectUtil.isNotEmpty(streamPullModel) && !streamPullModel.getId().equals(mStreamPullBean.getId())) {
             return ResponseEntity.ok(ResponseBean.fail("App+Stream重复"));
         }
 
         StreamPullModel mStreamPull = mStreamPullOptional.get();
-        BeanUtil.copyProperties(mStreamPullBean, mStreamPull, "createdAt", "updatedAt", "status", "deleted");
-        this.mStreamPullService.updateMStreamPull(mStreamPull);
 
-        return ResponseEntity.ok(ResponseBean.success());
+
+        BeanUtil.copyProperties(mStreamPullBean, mStreamPull, "createdAt");
+
+
+        CommonBean commonBean = this.mStreamPullService.autoPullStream(streamPullModel);
+        return ResponseEntity.ok(ResponseBean.createResponseBean(commonBean.getCode(), commonBean.getMsg()));
+
     }
 
     /**
@@ -150,6 +183,45 @@ public class StreamPullController {
 
         this.mStreamPullService.deleteMStreamPull(id);
         return ResponseEntity.ok(ResponseBean.success());
+    }
+
+
+    @GetMapping("/node/{streamPullId}")
+    public ResponseEntity<?> getStreamPlayerNode(@PathVariable("streamPullId") Long id) {
+
+        Optional<StreamPullModel> mStreamPull = this.mStreamPullService.getMStreamPull(id);
+        if (mStreamPull.isEmpty()) {
+            return ResponseEntity.ok(ResponseBean.fail());
+        }
+
+        // 获取节点
+
+
+        return ResponseEntity.ok(ResponseBean.success());
+    }
+
+    @DeleteMapping("/close/proxy/{streamPullId}")
+    public ResponseEntity<?> delStreamProxy(@PathVariable("streamPullId") Long id) {
+
+        Optional<StreamPullModel> mStreamPull = this.mStreamPullService.getMStreamPull(id);
+        if (mStreamPull.isEmpty()) {
+            return ResponseEntity.ok(ResponseBean.fail());
+        }
+        // 获取节点
+        if(mStreamPull.get().getNodeId()== null){
+            return ResponseEntity.ok(ResponseBean.fail("没有分配节点"));
+        }
+
+        Optional<NodeModel> node = this.nodeService.getNode(mStreamPull.get().getNodeId());
+        if (node.isEmpty()) return  ResponseEntity.ok(ResponseBean.fail("节点不存在"));
+
+        CommonBean commonBean = this.zlmApiService.closeStreamProxy(mStreamPull.get(), node.get());
+
+        if(commonBean.getCode().equals(0)&& Convert.toBool(commonBean.getData().get("flag"))){
+            return ResponseEntity.ok(ResponseBean.success());
+        }
+
+        return ResponseEntity.ok(ResponseBean.fail("断开失败，请检查流是否存在"));
     }
 
 }

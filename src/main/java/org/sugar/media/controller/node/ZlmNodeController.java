@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class ZlmNodeController {
 
     @Resource
-    private ZlmNodeService nodeService;
+    private ZlmNodeService zlmNodeService;
 
     @Resource
     private UserSecurity userSecurity;
@@ -60,7 +60,7 @@ public class ZlmNodeController {
         nodeModel.setZid(this.userSecurity.getCurrentAdminUser().getZid());
 
 
-        this.nodeService.createMediaAsync(nodeModel);
+        this.zlmNodeService.createMediaAsync(nodeModel);
 
 
 
@@ -70,14 +70,14 @@ public class ZlmNodeController {
     @PutMapping
     public ResponseEntity<?> updateNode(@RequestBody @Validated({NodeVal.Update.class}) NodeVal nodeVal) {
 
-        Optional<NodeModel> node = this.nodeService.getNode(nodeVal.getId());
+        Optional<NodeModel> node = this.zlmNodeService.getNode(nodeVal.getId());
 
         if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
 
 
         NodeModel nodeModel = node.get();
         BeanUtil.copyProperties(nodeVal, nodeModel);
-        this.nodeService.updateMediaAsync(nodeModel, SyncEnum.hook);
+        this.zlmNodeService.updateMediaAsync(nodeModel, SyncEnum.hook);
 
 
         return ResponseEntity.ok(ResponseBean.success("修改成功"));
@@ -86,14 +86,14 @@ public class ZlmNodeController {
     @PutMapping("/advance")
     public ResponseEntity<?> updateAdvance(@RequestBody @Validated() ZlmNodeVal nodeVal) {
 
-        Optional<NodeModel> node = this.nodeService.getNode(nodeVal.getId());
+        Optional<NodeModel> node = this.zlmNodeService.getNode(nodeVal.getId());
 
         if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
 
 
         NodeModel nodeModel = node.get();
         BeanUtil.copyProperties(nodeVal, nodeModel);
-        this.nodeService.updateMediaAsync(nodeModel, SyncEnum.base);
+        this.zlmNodeService.updateMediaAsync(nodeModel, SyncEnum.base);
 
         return ResponseEntity.ok(ResponseBean.success("修改成功"));
     }
@@ -102,7 +102,7 @@ public class ZlmNodeController {
     public ResponseEntity<?> deleteNode(@PathVariable Long id) {
 
 
-        this.nodeService.deleteNode(id);
+        this.zlmNodeService.deleteNode(id);
         this.mediaCacheService.removeMediaStatus(id);
         return ResponseEntity.ok(ResponseBean.success("删除成功"));
     }
@@ -110,7 +110,7 @@ public class ZlmNodeController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getNode(@PathVariable  @NotNull(message = "ID不能为空") Long id) {
 
-        Optional<NodeModel> node = this.nodeService.getNode(id);
+        Optional<NodeModel> node = this.zlmNodeService.getNode(id);
 
         return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(nodeModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
     }
@@ -119,7 +119,7 @@ public class ZlmNodeController {
     @GetMapping("/remote/{id}")
     public ResponseEntity<?> getRemoteNode(@PathVariable  @NotNull(message = "ID不能为空") Long id) {
 
-        Optional<NodeModel> node = this.nodeService.getNode(id);
+        Optional<NodeModel> node = this.zlmNodeService.getNode(id);
 
         if(node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("节点不存在"));
 
@@ -142,9 +142,9 @@ public class ZlmNodeController {
     @PutMapping("/sync/{id}")
     public ResponseEntity<?> syncConfig(@PathVariable @NotNull(message = "ID不能为空") Long id) {
 
-        NodeModel nodeModel = this.nodeService.getNode(id).get();
+        NodeModel nodeModel = this.zlmNodeService.getNode(id).get();
 
-        boolean written = this.nodeService.syncAll(nodeModel);
+        boolean written = this.zlmNodeService.syncAll(nodeModel);
         if (!written) return ResponseEntity.ok(ResponseBean.fail("同步失败"));
 
         return ResponseEntity.ok(ResponseBean.success("同步成功"));
@@ -153,7 +153,7 @@ public class ZlmNodeController {
     @PostMapping("/restart/{id}")
     public ResponseEntity<?> restartZlm(@PathVariable @NotNull(message = "ID不能为空") Long id) {
 
-        NodeModel nodeModel = this.nodeService.getNode(id).get();
+        NodeModel nodeModel = this.zlmNodeService.getNode(id).get();
 
 
         CommonBean commonBean = this.zlmApiService.restartServer(nodeModel);
@@ -171,7 +171,7 @@ public class ZlmNodeController {
     @GetMapping("/list")
     public ResponseEntity<?> getNodeList() {
 
-        List<NodeModel> nodeList = this.nodeService.getNodeList(this.userSecurity.getCurrentAdminUser().getZid());
+        List<NodeModel> nodeList = this.zlmNodeService.getNodeList(this.userSecurity.getCurrentAdminUser().getZid());
 
         List<NodeBean> list = BeanConverterUtil.convertList(nodeList, NodeBean.class);
 

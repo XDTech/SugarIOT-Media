@@ -10,7 +10,7 @@ import java.util.Arrays;
  * Author：Tobin
  * Description:
  */
-public class EnumValidator implements ConstraintValidator<EnumValidatorInterface, String> {
+public class EnumValidator implements ConstraintValidator<EnumValidatorInterface, Object> {
 
     private Class<? extends Enum<?>> enumClass;
 
@@ -20,7 +20,7 @@ public class EnumValidator implements ConstraintValidator<EnumValidatorInterface
     }
 
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
+    public boolean isValid(Object value, ConstraintValidatorContext context) {
         if (value == null) {
             return false; // 如果允许空值，可直接返回 true；否则，返回 false
         }

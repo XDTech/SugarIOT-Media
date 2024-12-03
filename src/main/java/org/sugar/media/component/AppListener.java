@@ -15,7 +15,7 @@ public class AppListener {
 
 
     @Resource
-    private ZlmNodeService nodeService;
+    private ZlmNodeService zlmNodeService;
 
 
 
@@ -24,7 +24,7 @@ public class AppListener {
 
 
         // 节点列表写入缓存
-        this.nodeService.write2Cache();
+        this.zlmNodeService.write2Cache();
 
     }
 }

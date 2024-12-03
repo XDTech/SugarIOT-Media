@@ -12,9 +12,11 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
+import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
+import org.sugar.media.utils.BaseUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +40,6 @@ public class ZlmApiService {
     // 创建一个新的zlm实例时，应当初始化该方法
 
 
-
     public boolean syncZlmConfig(NodeModel nodeModel, SyncEnum types) {
         // set config
         String host = StrUtil.format("http://{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
@@ -52,17 +53,17 @@ public class ZlmApiService {
             builder.queryParam("secret", nodeModel.getSecret());
 
 
-            if(types.equals(SyncEnum.hook)){
+            if (types.equals(SyncEnum.hook)) {
                 this.createHookConfig(nodeModel, builder);
             }
 
 
-            if(types.equals(SyncEnum.base)){
-               this.createBaseConfig(nodeModel,builder);
-            }
-            if(types.equals(SyncEnum.all)){
+            if (types.equals(SyncEnum.base)) {
                 this.createBaseConfig(nodeModel, builder);
-                this.createHookConfig(nodeModel,builder);
+            }
+            if (types.equals(SyncEnum.all)) {
+                this.createBaseConfig(nodeModel, builder);
+                this.createHookConfig(nodeModel, builder);
             }
 
             StaticLog.info("{}", builder.toUriString());
@@ -117,7 +118,7 @@ public class ZlmApiService {
 
     private void createBaseConfig(NodeModel nodeModel, UriComponentsBuilder builder) {
 
-        builder.queryParam("rtmp.port",nodeModel.getRtmpPort());
+        builder.queryParam("rtmp.port", nodeModel.getRtmpPort());
         //
         builder.queryParam("rtsp.port", nodeModel.getRtspPort());
         builder.queryParam("hook.timeoutSec", nodeModel.getTimeoutSec());
@@ -126,9 +127,10 @@ public class ZlmApiService {
 
     }
 
-    private String createZlmHost(NodeModel nodeModel){
-      return StrUtil.format("http://{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
+    private String createZlmHost(NodeModel nodeModel) {
+        return StrUtil.format("http://{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
     }
+
     // 获取服务器api列表(getApiList)
     public List<String> getApiList(NodeModel nodeModel) {
 
@@ -140,7 +142,7 @@ public class ZlmApiService {
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
             Map<String, Object> reqMap = new HashMap<>();
-            HttpEntity<?> entity = new HttpEntity<>( headers);
+            HttpEntity<?> entity = new HttpEntity<>(headers);
             ResponseEntity<Map> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, Map.class);
 
             return Convert.toList(String.class, exchange.getBody().get("data"));
@@ -205,7 +207,8 @@ public class ZlmApiService {
 
 
     }
-   public CommonBean addStreamProxy(StreamPullModel pullModel,NodeModel nodeModel) {
+
+    public CommonBean addStreamProxy(StreamPullModel pullModel, NodeModel nodeModel) {
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -213,20 +216,56 @@ public class ZlmApiService {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/addStreamProxy");
 
             // add param
-            builder.queryParam("secret", "__defaultVhost__");
-            builder.queryParam("vhost", nodeModel.getSecret());
-            builder.queryParam("app", nodeModel.getSecret());
-            builder.queryParam("stream", nodeModel.getSecret());
-            builder.queryParam("url", nodeModel.getSecret());
-            builder.queryParam("timeout_sec", nodeModel.getSecret());
-            builder.queryParam("enable_rtsp", nodeModel.getSecret());
-            builder.queryParam("enable_rtmp", pullModel.isEnableRtmp());
-            builder.queryParam("enable_mp4", nodeModel.getSecret());
-            builder.queryParam("enable_ts", nodeModel.getSecret());
-            builder.queryParam("enable_fmp4", nodeModel.getSecret());
-            builder.queryParam("enable_audio", nodeModel.getSecret());
-            builder.queryParam("add_mute_audio", nodeModel.getSecret());
-            builder.queryParam("mp4_max_second", nodeModel.getSecret());
+            builder.queryParam("secret", nodeModel.getSecret());
+            builder.queryParam("vhost", "__defaultVhost__");
+            builder.queryParam("app", pullModel.getApp());
+            builder.queryParam("stream", pullModel.getStream());
+            builder.queryParam("url", pullModel.getUrl());
+            builder.queryParam("timeout_sec", pullModel.getTimeoutSec());
+            builder.queryParam("enable_rtsp", BaseUtil.convertBool(pullModel.isEnableRtsp()));
+            builder.queryParam("enable_rtmp", BaseUtil.convertBool(pullModel.isEnableRtmp()));
+            builder.queryParam("enable_mp4", BaseUtil.convertBool(pullModel.isEnableMp4()));
+            builder.queryParam("enable_ts", BaseUtil.convertBool(pullModel.isEnableTs()));
+            builder.queryParam("enable_fmp4", BaseUtil.convertBool(pullModel.isEnableFmp4()));
+            builder.queryParam("enable_audio", BaseUtil.convertBool(pullModel.isEnableAudio()));
+            builder.queryParam("add_mute_audio", BaseUtil.convertBool(pullModel.isAddMuteAudio()));
+            builder.queryParam("mp4_max_second", pullModel.getMp4MaxSecond());
+
+            if (pullModel.getAutoClose().equals(AutoCloseEnum.yes)) {
+                builder.queryParam("auto_close", "1");
+
+            } else if (pullModel.getAutoClose().equals(AutoCloseEnum.no)) {
+                builder.queryParam("auto_close", "0");
+            }
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
+
+            StaticLog.info("{}",exchange.getBody().toString());
+            StaticLog.info("{}",exchange.getBody().getData().get("key"));
+            return exchange.getBody();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return null;
+
+        }
+
+
+    }
+
+
+    public CommonBean closeStreamProxy(StreamPullModel pullModel, NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/delStreamProxy");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            builder.queryParam("key", pullModel.getStreamKey());
+
             HttpEntity<?> entity = new HttpEntity<>(headers);
             ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
 
@@ -241,7 +280,4 @@ public class ZlmApiService {
 
 
     }
-
-
-
 }

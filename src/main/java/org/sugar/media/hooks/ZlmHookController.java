@@ -32,7 +32,7 @@ public class ZlmHookController {
     private MediaCacheService mediaCacheService;
 
     @Resource
-    private ZlmNodeService nodeService;
+    private ZlmNodeService zlmNodeService;
 
 
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -41,7 +41,7 @@ public class ZlmHookController {
 
         Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
 
-        Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
+        Optional<NodeModel> node = this.zlmNodeService.getNode(mediaServerId);
         if (node.isPresent()) {
             // 如果是false，后续发送上线消息
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
@@ -52,7 +52,7 @@ public class ZlmHookController {
                 StaticLog.info("发送消息");
                 WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline,new Date(),node.get().getName()));
             }
-            this.nodeService.updateHeartbeatTimeById(mediaServerId,new Date());
+            this.zlmNodeService.updateHeartbeatTimeById(mediaServerId,new Date());
 
 
         }
@@ -68,7 +68,7 @@ public class ZlmHookController {
         StaticLog.info("{}", body);
         Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
 
-        Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
+        Optional<NodeModel> node = this.zlmNodeService.getNode(mediaServerId);
         if (node.isPresent()) {
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
             this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(),node.get().getAliveInterval());
@@ -78,7 +78,7 @@ public class ZlmHookController {
                 WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline,new Date(),node.get().getName()));
 
             }
-            this.nodeService.writeAllAndUpdateTime(node.get());
+            this.zlmNodeService.writeAllAndUpdateTime(node.get());
 
         }
         return ResponseBean.success();
@@ -91,7 +91,7 @@ public class ZlmHookController {
         StaticLog.info("{}", body);
         Long mediaServerId = Convert.toLong(body.get("mediaServerId"));
 
-        Optional<NodeModel> node = this.nodeService.getNode(mediaServerId);
+        Optional<NodeModel> node = this.zlmNodeService.getNode(mediaServerId);
         if (node.isPresent()) {
             this.mediaCacheService.removeMediaStatus(mediaServerId);
         }
