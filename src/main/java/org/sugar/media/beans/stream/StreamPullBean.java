@@ -24,6 +24,12 @@ public class StreamPullBean  {
     private String app;
 
 
+    // 0表示正常 1表示正在尝试拉流
+    private String status;
+
+    private String streamKey;
+
+
     private Boolean enableAudio;
 
     private Boolean enableFmp4;

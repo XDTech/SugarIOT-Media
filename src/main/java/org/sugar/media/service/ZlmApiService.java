@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
+import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.SyncEnum;
@@ -246,8 +247,12 @@ public class ZlmApiService {
 
         } catch (Exception e) {
 
+            CommonBean commonBean = new CommonBean();
+            commonBean.setCode(-1);
+            commonBean.setMsg(e.getMessage());
+
             e.printStackTrace();
-            return null;
+            return commonBean;
 
         }
 
@@ -273,11 +278,47 @@ public class ZlmApiService {
 
         } catch (Exception e) {
 
+            CommonBean commonBean = new CommonBean();
+            commonBean.setCode(-1);
+            commonBean.setMsg(e.getMessage());
+
             e.printStackTrace();
-            return null;
+            return commonBean;
+
+        }
+    }
+
+    /**
+     * 获取拉流代理
+     */
+    public StreamProxyInfoBean getStreamProxyInfo(String  streamkey, NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getProxyInfo");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            builder.queryParam("key", streamkey);
+
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<StreamProxyInfoBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, StreamProxyInfoBean.class);
+
+            return exchange.getBody();
+
+        } catch (Exception e) {
+
+            StreamProxyInfoBean streamProxyInfoBean = new StreamProxyInfoBean();
+            streamProxyInfoBean.setCode(-1);
+
+
+            e.printStackTrace();
+            return streamProxyInfoBean;
 
         }
 
-
     }
+
+
 }

@@ -15,10 +15,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
+import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
 import org.sugar.media.beans.stream.StreamPullBean;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.security.UserSecurity;
+import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
 import org.sugar.media.service.node.ZlmNodeService;
@@ -58,6 +60,9 @@ public class StreamPullController {
     @Resource
     private ZlmApiService zlmApiService;
 
+    @Resource
+    private MediaCacheService mediaCacheService;
+
     /**
      * 分页查询
      *
@@ -67,14 +72,27 @@ public class StreamPullController {
     public ResponseEntity<?> getMStreamPullPageList(@RequestParam Integer pi, @RequestParam Integer ps, @RequestParam(required = false) String name) {
 
 
-        Page<StreamPullModel> mStreamPullList = this.mStreamPullService.getMStreamPullPageList(pi, ps, name);
+        Page<StreamPullModel> mStreamPullList = this.mStreamPullService.getMStreamPullPageList(pi, ps, name, this.userSecurity.getCurrentZid());
 
         List<StreamPullBean> streamPullBeans = BeanConverterUtil.convertList(mStreamPullList.getContent(), StreamPullBean.class);
 
 
         streamPullBeans = streamPullBeans.stream().peek((streamPullBean -> {
             Optional<NodeModel> node = this.zlmNodeService.getNode(streamPullBean.getNodeId());
-            node.ifPresent(nodeModel -> streamPullBean.setNodeName(nodeModel.getName()));
+            streamPullBean.setStatus("1");
+            node.ifPresent(nodeModel -> {
+
+                streamPullBean.setNodeName(nodeModel.getName());
+
+                if (this.mediaCacheService.isOnline(nodeModel.getId())) {
+                    // 加载流状态
+                    StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(streamPullBean.getStreamKey(), node.get());
+                    if(streamProxyInfo.getCode()==0){
+                        StaticLog.info("{}",Convert.toStr(streamProxyInfo.toString()));
+                        streamPullBean.setStatus(Convert.toStr(streamProxyInfo.getData().getStatus()));
+                    }
+                }
+            });
         })).collect(Collectors.toList());
 
 
@@ -224,6 +242,7 @@ public class StreamPullController {
         if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("节点不存在"));
 
         CommonBean commonBean = this.zlmApiService.closeStreamProxy(mStreamPull.get(), node.get());
+
 
         if (commonBean.getCode().equals(0) && Convert.toBool(commonBean.getData().get("flag"))) {
             return ResponseEntity.ok(ResponseBean.success());

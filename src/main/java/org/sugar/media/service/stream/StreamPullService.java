@@ -143,7 +143,7 @@ public class StreamPullService {
     }
 
     // 分页查询
-    public Page<StreamPullModel> getMStreamPullPageList(Integer pi, Integer ps, String name) {
+    public Page<StreamPullModel> getMStreamPullPageList(Integer pi, Integer ps, String name,Long zid) {
         // Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         PageRequest pageRequest = PageRequest.of(pi - 1, ps);
         Specification<StreamPullModel> specification = (Root<StreamPullModel> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
@@ -153,6 +153,9 @@ public class StreamPullService {
 
             if (!StrUtil.isEmpty(name)) {
                 predicatesList.add(cb.like(root.get("name"), "%" + name + "%"));
+            }
+            if (zid!=null) {
+                predicatesList.add(cb.equal(root.get("zid"), zid));
             }
             // --------------------------------------------
             // 模糊查询
