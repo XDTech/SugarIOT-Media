@@ -31,7 +31,10 @@ public class StreamPullVal {
     private String stream;
 
 
+    private boolean enableHls;
 
+
+    private boolean enableAudio;
 
     // 拉流超时时间 默认10s
     @NotNull(message = "timout not null")

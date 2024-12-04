@@ -224,6 +224,7 @@ public class ZlmApiService {
             builder.queryParam("url", pullModel.getUrl());
             builder.queryParam("timeout_sec", pullModel.getTimeoutSec());
             builder.queryParam("enable_rtsp", BaseUtil.convertBool(pullModel.isEnableRtsp()));
+            builder.queryParam("enable_hls", BaseUtil.convertBool(pullModel.isEnableHls()));
             builder.queryParam("enable_rtmp", BaseUtil.convertBool(pullModel.isEnableRtmp()));
             builder.queryParam("enable_mp4", BaseUtil.convertBool(pullModel.isEnableMp4()));
             builder.queryParam("enable_ts", BaseUtil.convertBool(pullModel.isEnableTs()));

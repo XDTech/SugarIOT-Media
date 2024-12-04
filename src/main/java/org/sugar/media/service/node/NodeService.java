@@ -32,4 +32,12 @@ public class NodeService {
 
     }
 
+    // 获取节点的播放url
+
+    public void createNodePlayerUrl(NodeModel nodeModel){
+
+
+
+    }
+
 }

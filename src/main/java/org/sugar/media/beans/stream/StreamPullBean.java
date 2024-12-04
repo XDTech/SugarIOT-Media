@@ -29,6 +29,8 @@ public class StreamPullBean  {
 
     private String streamKey;
 
+    private Boolean enableHls;
+
 
     private Boolean enableAudio;
 

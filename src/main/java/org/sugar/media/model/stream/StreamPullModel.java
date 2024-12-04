@@ -81,9 +81,14 @@ public class StreamPullModel {
     private Float timeoutSec;
 
 
-    // enable_mp4
+    // enable_mp4 录制
     @Column(columnDefinition = "bool default false")
     private boolean enableMp4=false;
+
+
+    // hls 录制
+    @Column(columnDefinition = "bool default false")
+    private boolean enableHls=false;
 
 
     // 是否转协议为rtsp/webrtc
