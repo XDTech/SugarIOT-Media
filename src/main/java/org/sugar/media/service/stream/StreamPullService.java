@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.enums.PlayerTypeEnum;
 import org.sugar.media.model.node.NodeModel;
@@ -111,12 +113,26 @@ public class StreamPullService {
         }
 
         if (!this.mediaCacheService.isOnline(nodeModel.getId())) {
-            commonBean.setCode(-1);
-            commonBean.setMsg("当前节点不在线");
+            commonBean.setCode(-4);
+            commonBean.setMsg("节点已经离线");
         }
 
         commonBean = this.zlmApiService.addStreamProxy(streamPullModel, nodeModel);
         commonBean.setNodeId(nodeModel.getId());
+
+        if (!commonBean.getCode().equals(0)) {
+
+            if (commonBean.getMsg().equals("DESCRIBE:401 Unauthorized")) {
+
+                commonBean.setMsg("拉流地址认证失败，请检查用户名密码准确性");
+            }
+
+            if (commonBean.getMsg().equals("play rtsp timeout")) {
+
+                commonBean.setMsg("播放超时，请检查拉流地址准确性");
+            }
+        }
+
 
         return commonBean;
 
@@ -143,7 +159,7 @@ public class StreamPullService {
     }
 
     // 分页查询
-    public Page<StreamPullModel> getMStreamPullPageList(Integer pi, Integer ps, String name,Long zid) {
+    public Page<StreamPullModel> getMStreamPullPageList(Integer pi, Integer ps, String name, Long zid) {
         // Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         PageRequest pageRequest = PageRequest.of(pi - 1, ps);
         Specification<StreamPullModel> specification = (Root<StreamPullModel> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
@@ -154,7 +170,7 @@ public class StreamPullService {
             if (!StrUtil.isEmpty(name)) {
                 predicatesList.add(cb.like(root.get("name"), "%" + name + "%"));
             }
-            if (zid!=null) {
+            if (zid != null) {
                 predicatesList.add(cb.equal(root.get("zid"), zid));
             }
             // --------------------------------------------

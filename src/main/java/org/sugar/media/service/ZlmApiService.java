@@ -243,7 +243,6 @@ public class ZlmApiService {
             HttpEntity<?> entity = new HttpEntity<>(headers);
             ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
 
-            StaticLog.info("{}",exchange.getBody().toString());
             return exchange.getBody();
 
         } catch (Exception e) {

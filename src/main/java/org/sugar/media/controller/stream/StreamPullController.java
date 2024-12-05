@@ -2,6 +2,7 @@ package org.sugar.media.controller.stream;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
@@ -17,6 +18,7 @@ import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
 import org.sugar.media.beans.stream.StreamPullBean;
+import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.security.UserSecurity;
@@ -26,9 +28,11 @@ import org.sugar.media.service.node.NodeService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.service.stream.StreamPullService;
 import org.sugar.media.utils.BeanConverterUtil;
+import org.sugar.media.validation.ZlmNodeVal;
 import org.sugar.media.validation.stream.StreamPullVal;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -87,8 +91,8 @@ public class StreamPullController {
                 if (this.mediaCacheService.isOnline(nodeModel.getId())) {
                     // 加载流状态
                     StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(streamPullBean.getStreamKey(), node.get());
-                    if(streamProxyInfo.getCode()==0){
-                        StaticLog.info("{}",Convert.toStr(streamProxyInfo.toString()));
+                    if (streamProxyInfo.getCode() == 0) {
+                        StaticLog.info("{}", Convert.toStr(streamProxyInfo.toString()));
                         streamPullBean.setStatus(Convert.toStr(streamProxyInfo.getData().getStatus()));
                     }
                 }
@@ -201,10 +205,23 @@ public class StreamPullController {
         }
 
         this.mStreamPullService.deleteMStreamPull(id);
+
+        ThreadUtil.execute(() -> {
+            if (mStreamPull.get().getNodeId() != null) {
+                Optional<NodeModel> node = this.nodeService.getNode(mStreamPull.get().getNodeId());
+                node.ifPresent(nodeModel -> this.zlmApiService.closeStreamProxy(mStreamPull.get(), nodeModel));
+            }
+        });
         return ResponseEntity.ok(ResponseBean.success());
     }
 
 
+    /**
+     * 拉流代理
+     *
+     * @param id
+     * @return
+     */
     @PostMapping("/proxy/{streamPullId}")
     public ResponseEntity<?> getStreamPlayerNode(@PathVariable("streamPullId") Long id) {
 
@@ -212,18 +229,65 @@ public class StreamPullController {
         if (mStreamPull.isEmpty()) {
             return ResponseEntity.ok(ResponseBean.fail());
         }
+        Optional<NodeModel> node = this.nodeService.getNode(mStreamPull.get().getNodeId());
+        if (node.isPresent()) {
+
+            // 判断节点是否在线
+            boolean online = this.mediaCacheService.isOnline(node.get().getId());
+            if (!online) return ResponseEntity.ok(ResponseBean.fail("节点已经离线"));
+
+            // 查询拉流代理是否正在拉流
+            StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(mStreamPull.get().getStreamKey(), node.get());
+            if (streamProxyInfo.getCode() == 0 && streamProxyInfo.getData() != null && streamProxyInfo.getData().getStatus() == 0) {
+                // 拉流代理已经存在，此处返回播放成功
+                return ResponseEntity.ok(ResponseBean.success());
+            }
+        }
 
 
         CommonBean commonBean = this.mStreamPullService.playStreamPull(mStreamPull.get());
-
         StaticLog.info("{}", commonBean.toString());
+
         if (commonBean.getCode().equals(0)) {
             mStreamPull.get().setNodeId(commonBean.getNodeId());
             mStreamPull.get().setStreamKey(Convert.toStr(commonBean.getData().get("key")));
             this.mStreamPullService.updateMStreamPull(mStreamPull.get());
+            return ResponseEntity.ok(ResponseBean.success());
         }
 
-        return ResponseEntity.ok(ResponseBean.success());
+
+        return ResponseEntity.ok(ResponseBean.createResponseBean(commonBean.getCode(), commonBean.getMsg()));
+    }
+
+
+    /**
+     * 获取拉流代理播放地址
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/proxy/address/{streamPullId}")
+    public ResponseEntity<?> getStreamPlayerAddress(@PathVariable("streamPullId") Long id) {
+
+        Optional<StreamPullModel> mStreamPull = this.mStreamPullService.getMStreamPull(id);
+        if (mStreamPull.isEmpty()) {
+            return ResponseEntity.ok(ResponseBean.fail());
+        }
+        Optional<NodeModel> node = this.nodeService.getNode(mStreamPull.get().getNodeId());
+
+        if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("播放节点不存在"));
+
+        // 判断节点是否离线
+        if (!this.mediaCacheService.isOnline(node.get().getId()))
+            return ResponseEntity.ok(ResponseBean.fail("播放节点已经离线"));
+
+        // 在线-->获取地址
+        Map<String, List<String>> nodePlayerUrl = this.nodeService.createNodePlayerUrl(mStreamPull.get(), node.get());
+
+
+        if (nodePlayerUrl.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("播放地址为空"));
+
+        return ResponseEntity.ok(ResponseBean.success(nodePlayerUrl));
     }
 
     @DeleteMapping("/close/proxy/{streamPullId}")
@@ -250,6 +314,7 @@ public class StreamPullController {
 
         return ResponseEntity.ok(ResponseBean.fail("断开失败，请检查流是否存在"));
     }
+
 
 }
 
