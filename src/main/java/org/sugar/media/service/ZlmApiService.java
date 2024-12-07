@@ -117,6 +117,9 @@ public class ZlmApiService {
         // 鉴权
         builder.queryParam("hook.on_play", host + "/zlm/on_play");
 
+        // 流未找到
+        builder.queryParam("hook.on_stream_not_found", host + "/zlm/stream/nof/found");
+
 
     }
 

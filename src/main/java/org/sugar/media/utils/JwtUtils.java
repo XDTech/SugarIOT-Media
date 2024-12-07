@@ -5,6 +5,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
+import cn.hutool.jwt.JWTValidator;
+import jakarta.servlet.http.PushBuilder;
 
 import java.util.Date;
 import java.util.Map;
@@ -34,6 +36,7 @@ public class JwtUtils {
             jwt.setPayload(key, value);
         });
 
+        token = jwt.sign();
 
         return token;
     }
@@ -44,6 +47,27 @@ public class JwtUtils {
 
         return JWT.create().setKey(key.getBytes()).setExpiresAt(dateTime).sign();
 
+
+    }
+
+    public static boolean verifyToken(String token) {
+
+        try {
+            // 首先验证签名
+
+            boolean verify = JWTUtil.verify(token, key.getBytes());
+
+
+            if (!verify) return false;
+            // 验证是否过期
+            JWTValidator.of(token).validateDate(new Date());
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return false;
+        }
 
     }
 

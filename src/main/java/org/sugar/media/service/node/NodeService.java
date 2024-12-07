@@ -54,7 +54,7 @@ public class NodeService {
         switch (nodeModel.getTypes()) {
             case zlm -> {
 
-                return this.createZlmUrl(streamPullModel, nodeModel);
+                return this.createZlmUrl(streamPullModel, nodeModel,nodeModel.getZid());
 
             }
             default -> {
@@ -72,9 +72,11 @@ public class NodeService {
      * @return
      * @see <a href="https://docs.zlmediakit.com/zh/guide/media_server/play_url_rules.html">zlm播放url规则</a>
      */
-    public Map<String, List<String>> createZlmUrl(StreamPullModel streamPullModel, NodeModel nodeModel) {
+    public Map<String, List<String>> createZlmUrl(StreamPullModel streamPullModel, NodeModel nodeModel,Long zid) {
 
-        String token = JwtUtils.createToken();
+        Map<String,Object> tokenMap=new HashMap<>();
+        tokenMap.put("zid",zid);
+        String token = JwtUtils.createToken(tokenMap);
         Map<String, List<String>> map = new HashMap<>();
         String appStream = StrUtil.format("{}/{}", streamPullModel.getApp(), streamPullModel.getStream());
         String host = StrUtil.format("{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
