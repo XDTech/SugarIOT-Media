@@ -197,6 +197,7 @@ public class ZlmNodeService {
 
             boolean written = this.writeAllAndUpdateTime(nodeModel);
 
+
             this.mediaCacheService.setMediaStatus(nodeModel.getId(), written ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus(), nodeModel.getAliveInterval());
         }
     }

@@ -1,6 +1,8 @@
 package org.sugar.media.service.stream;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.Console;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -23,6 +25,7 @@ import org.sugar.media.repository.stream.StreamPullRepo;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
+import org.sugar.media.utils.LeastConnectionUtil;
 
 
 import java.util.ArrayList;
@@ -91,13 +94,28 @@ public class StreamPullService {
     }
 
 
-    // 1.判断是否修改了app和stream，如果修改了，把之前的流关闭
-    // 2.判断是否修改了节点，如果修改了，把之前的流关闭
+    // 执行负载均衡，返回合适的node
+    public NodeModel executeBalance() {
 
-    public void updateStreamPull() {
+        String serverId = LeastConnectionUtil.leastConnections();
+
+        if (StrUtil.isBlank(serverId)) return null;
+
+        //
+        Long mediaId = Convert.toLong(serverId);
+        Optional<NodeModel> node = this.nodeService.getNode(mediaId);
+
+        if (node.isEmpty()) return null;
+
+        boolean online = this.mediaCacheService.isOnline(mediaId);
+        if (!online) return null;
+
+        Console.log("执行负载均衡策略{}", node.get().toString());
+
+        return node.get();
+
 
     }
-
 
     // 播放拉流代理
     public CommonBean playStreamPull(StreamPullModel streamPullModel) {
@@ -110,6 +128,11 @@ public class StreamPullService {
         } else {
             // 根据负载均衡策略选择合适的node
 
+            NodeModel balanceModel = this.executeBalance();
+
+            if (ObjectUtil.isNotEmpty(balanceModel)) {
+                nodeModel = balanceModel;
+            }
         }
 
         if (!this.mediaCacheService.isOnline(nodeModel.getId())) {

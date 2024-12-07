@@ -16,6 +16,7 @@ import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.node.ZlmNodeService;
+import org.sugar.media.utils.LeastConnectionUtil;
 
 import java.util.Date;
 import java.util.Optional;
@@ -50,8 +51,9 @@ public class RedisRemoveListener implements MessageListener {
 
             String mediaId = split[1];
 
+            LeastConnectionUtil.removeServerList(mediaId);
             Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(mediaId));
-            StaticLog.info("{}",node.isPresent());
+            StaticLog.info("{}", node.isPresent());
             node.ifPresent(nodeModel -> WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOffline, new Date(), nodeModel.getName())));
 
 

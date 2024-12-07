@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Service;
 import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.utils.LeastConnectionUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -41,6 +42,10 @@ public class MediaCacheService {
         // 秒转毫秒
         if (seconds != null) {
             expTime = Convert.toLong(seconds * 1000) + ttl_delay;
+        }
+
+        if (status.equals(StatusEnum.online.getStatus())) {
+            LeastConnectionUtil.addServerList(Convert.toStr(mediaId));
         }
         stringRedisTemplate.opsForValue().set(key, status, expTime, TimeUnit.MILLISECONDS);
     }
@@ -83,7 +88,7 @@ public class MediaCacheService {
 
                 String online = stringRedisTemplate.opsForValue().get(key);
                 StaticLog.info("{}", online);
-                if(online.equals("1")){
+                if (online.equals("1")) {
                     ids.add(Convert.toLong(key.split(":")[1]));
                 }
             });

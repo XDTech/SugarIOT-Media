@@ -179,6 +179,14 @@ public class ZlmHookController {
         CommonBean commonBean = this.zlmApiService.addStreamProxy(streamPullModel, node.get());
 
         Console.log("{}====拉流耗时", timer.intervalRestart());
+
+        if (commonBean.getCode().equals(0)) {
+            // 在此处更新节点
+            streamPullModel.setNodeId(node.get().getId());
+            streamPullModel.setStreamKey(Convert.toStr(commonBean.getData().get("key")));
+            this.streamPullService.updateMStreamPull(streamPullModel);
+
+        }
         return ResponseBean.createResponseBean(commonBean.getCode(), commonBean.getMsg());
     }
 

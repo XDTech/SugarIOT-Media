@@ -1,5 +1,8 @@
 package org.sugar.media.utils;
 
+import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.ArrayUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +41,24 @@ public class LeastConnectionUtil {
             }
         }
         //返回连接数最少的服务器地址
+        addConnection(selectedServerAddress);
         return selectedServerAddress;
+    }
+
+
+    // 增加连接数
+    public static void addConnection(String server) {
+        connectionsMap.put(server, connectionsMap.getOrDefault(server, 0) + 1);
+    }
+
+    public static void addServerList(String server) {
+        if (!serverList.contains(server)) {
+            serverList.add(server);
+        }
+    }
+
+    public static void removeServerList(String server) {
+        serverList.remove(server);
     }
 
 }
