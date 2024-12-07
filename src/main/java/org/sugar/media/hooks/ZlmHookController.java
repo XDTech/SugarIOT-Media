@@ -1,17 +1,21 @@
 package org.sugar.media.hooks;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.jwt.JWTValidator;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
+import org.sugar.media.beans.hooks.zlm.OnPlayBean;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.node.ZlmNodeService;
+import org.sugar.media.utils.BaseUtil;
 
 import java.util.Date;
 import java.util.Map;
@@ -46,13 +50,13 @@ public class ZlmHookController {
             // 如果是false，后续发送上线消息
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
 
-            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(),node.get().getAliveInterval());
-            if(!online){
+            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(), node.get().getAliveInterval());
+            if (!online) {
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline,new Date(),node.get().getName()));
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline, new Date(), node.get().getName()));
             }
-            this.zlmNodeService.updateHeartbeatTimeById(mediaServerId,new Date());
+            this.zlmNodeService.updateHeartbeatTimeById(mediaServerId, new Date());
 
 
         }
@@ -71,16 +75,39 @@ public class ZlmHookController {
         Optional<NodeModel> node = this.zlmNodeService.getNode(mediaServerId);
         if (node.isPresent()) {
             boolean online = this.mediaCacheService.isOnline(mediaServerId);
-            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(),node.get().getAliveInterval());
-            if(!online){
+            this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(), node.get().getAliveInterval());
+            if (!online) {
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline,new Date(),node.get().getName()));
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline, new Date(), node.get().getName()));
 
             }
             this.zlmNodeService.writeAllAndUpdateTime(node.get());
 
         }
+        return ResponseBean.success();
+    }
+
+    @PostMapping("/on_play")
+    public ResponseBean onPlay(@RequestBody OnPlayBean body) {
+
+        StaticLog.info("{}", body.toString());
+
+        Map<String, String> stringMap = BaseUtil.paramConvertToMap(body.getParams());
+
+        StaticLog.info("{}", stringMap);
+        if (MapUtil.isEmpty(stringMap) || !stringMap.containsKey("sign")) {
+            return ResponseBean.fail();
+        }
+
+        try {
+            JWTValidator.of(stringMap.get("sign")).validateDate(new Date());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseBean.fail();
+        }
+
+
         return ResponseBean.success();
     }
 

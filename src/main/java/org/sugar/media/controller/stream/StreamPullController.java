@@ -218,10 +218,11 @@ public class StreamPullController {
 
     /**
      * 拉流代理
-     *
+     * @deprecated  通过按需拉流实现
      * @param id
      * @return
      */
+    @Deprecated
     @PostMapping("/proxy/{streamPullId}")
     public ResponseEntity<?> getStreamPlayerNode(@PathVariable("streamPullId") Long id) {
 

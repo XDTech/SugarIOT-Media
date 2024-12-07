@@ -1,12 +1,15 @@
 package org.sugar.media.service.node;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTUtil;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.repository.node.NodeRepo;
+import org.sugar.media.utils.JwtUtils;
 
 import java.util.*;
 
@@ -26,6 +29,16 @@ public class NodeService {
     public Optional<NodeModel> getNode(Long id) {
 
         return this.nodeRepo.findById(id);
+    }
+
+
+    public List<NodeModel> getNodeAll(List<Long> ids) {
+
+        return this.nodeRepo.findAllByIdIn(ids);
+    }
+    public List<NodeModel> getNodeAll() {
+
+        return this.nodeRepo.findAll();
     }
 
 
@@ -61,6 +74,7 @@ public class NodeService {
      */
     public Map<String, List<String>> createZlmUrl(StreamPullModel streamPullModel, NodeModel nodeModel) {
 
+        String token = JwtUtils.createToken();
         Map<String, List<String>> map = new HashMap<>();
         String appStream = StrUtil.format("{}/{}", streamPullModel.getApp(), streamPullModel.getStream());
         String host = StrUtil.format("{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
@@ -69,10 +83,10 @@ public class NodeService {
 
         // rtmp url (ws/wss/http/https .flv)
         if (streamPullModel.isEnableRtmp()) {
-            String ws = StrUtil.format("ws://{}/{}.live.flv", host, appStream);
-            String wss = StrUtil.format("wss://{}/{}.live.flv", sslHost, appStream);
-            String http = StrUtil.format("http://{}/{}.live.flv", host, appStream);
-            String https = StrUtil.format("https://{}/{}.live.flv", sslHost, appStream);
+            String ws = StrUtil.format("ws://{}/{}.live.flv?sign={}", host, appStream,token);
+            String wss = StrUtil.format("wss://{}/{}.live.flv?sign={}", sslHost, appStream,token);
+            String http = StrUtil.format("http://{}/{}.live.flv?sign={}", host, appStream,token);
+            String https = StrUtil.format("https://{}/{}.live.flv?sign={}", sslHost, appStream,token);
 
             List<String> list = new ArrayList<>();
             list.add(ws);
@@ -84,10 +98,10 @@ public class NodeService {
 
         // ts url (ws/wss/http/https .ts)
         if (streamPullModel.isEnableTs()) {
-            String ws = StrUtil.format("ws://{}/{}.live.ts", host, appStream);
-            String wss = StrUtil.format("wss://{}/{}.live.ts", sslHost, appStream);
-            String http = StrUtil.format("http://{}/{}.live.ts", host, appStream);
-            String https = StrUtil.format("https://{}/{}.live.ts", sslHost, appStream);
+            String ws = StrUtil.format("ws://{}/{}.live.ts?sign={}", host, appStream,token);
+            String wss = StrUtil.format("wss://{}/{}.live.ts?sign={}", sslHost, appStream,token);
+            String http = StrUtil.format("http://{}/{}.live.ts?sign={}", host, appStream,token);
+            String https = StrUtil.format("https://{}/{}.live.ts?sign={}", sslHost, appStream,token);
 
 
             List<String> list = new ArrayList<>();
@@ -101,8 +115,8 @@ public class NodeService {
 
         if (streamPullModel.isEnableHls()) {
 
-            String http = StrUtil.format("http://{}/{}/hls.m3u8", host, appStream);
-            String https = StrUtil.format("https://{}/{}/hls.m3u8", sslHost, appStream);
+            String http = StrUtil.format("http://{}/{}/hls.m3u8?sign={}", host, appStream,token);
+            String https = StrUtil.format("https://{}/{}/hls.m3u8?sign={}", sslHost, appStream,token);
 
             List<String> list = new ArrayList<>();
 
@@ -116,10 +130,10 @@ public class NodeService {
         if (streamPullModel.isEnableFmp4()) {
 
 
-            String ws = StrUtil.format("ws://{}/{}.live.mp4", host, appStream);
-            String wss = StrUtil.format("wss://{}/{}.live.mp4", sslHost, appStream);
-            String http = StrUtil.format("http://{}/{}.live.mp4", host, appStream);
-            String https = StrUtil.format("https://{}/{}.live.mp4", sslHost, appStream);
+            String ws = StrUtil.format("ws://{}/{}.live.mp4?sign={}&s=1", host, appStream,token);
+            String wss = StrUtil.format("wss://{}/{}.live.mp4?sign={}", sslHost, appStream,token);
+            String http = StrUtil.format("http://{}/{}.live.mp4?sign={}", host, appStream,token);
+            String https = StrUtil.format("https://{}/{}.live.mp4?sign={}", sslHost, appStream,token);
 
             List<String> list = new ArrayList<>();
             list.add(ws);

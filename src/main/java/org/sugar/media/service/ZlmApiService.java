@@ -114,6 +114,9 @@ public class ZlmApiService {
         //
         builder.queryParam("hook.on_server_keepalive", host + "/zlm/keepalive");
 
+        // 鉴权
+        builder.queryParam("hook.on_play", host + "/zlm/on_play");
+
 
     }
 
