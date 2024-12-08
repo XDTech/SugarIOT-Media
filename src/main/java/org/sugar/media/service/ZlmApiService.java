@@ -126,6 +126,10 @@ public class ZlmApiService {
         // 无人观看事件
         builder.queryParam("hook.on_stream_none_reader", host + "/zlm/stream/none/reader");
 
+        // 流量统计事件
+        builder.queryParam("hook.on_flow_report", host + "/zlm/on/flow/report");
+
+
 
     }
 

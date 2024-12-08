@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
+import org.sugar.media.beans.hooks.zlm.FlowReportBean;
 import org.sugar.media.beans.hooks.zlm.OnPlayBean;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
@@ -226,6 +227,18 @@ public class ZlmHookController {
 
 
         return map;
+    }
+
+    /**
+     * 流量统计事件
+     * @param data
+     * @return
+     */
+    @PostMapping("/on/flow/report")
+    public ResponseBean on_flow_report(@RequestBody FlowReportBean data) {
+
+
+        return ResponseBean.success();
     }
 
     /**
