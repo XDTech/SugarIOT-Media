@@ -120,6 +120,9 @@ public class ZlmApiService {
         // 流未找到
         builder.queryParam("hook.on_stream_not_found", host + "/zlm/stream/nof/found");
 
+        // 无人观看事件
+        builder.queryParam("hook.on_stream_none_reader", host + "/zlm/stream/none/reader");
+
 
     }
 

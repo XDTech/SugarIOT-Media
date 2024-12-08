@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
@@ -31,6 +32,7 @@ import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.JwtUtils;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -191,6 +193,40 @@ public class ZlmHookController {
         return ResponseBean.success();
     }
 
+
+    /**
+     * 无人观看事件，关闭流
+     *
+     * @param body
+     * @return
+     */
+    @PostMapping("/stream/none/reader")
+    public Map<String, Object> on_stream_none_reader(@RequestBody OnPlayBean body) {
+        Map<String, Object> map = new HashMap<>();
+        StaticLog.info("{}", body);
+
+
+        // 重置拉流代理
+        /// 查询是哪个node
+
+        ThreadUtil.execute(() -> {
+            Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(body.getMediaServerId()));
+            if (node.isPresent()) {
+                StreamPullModel streamPullModel = this.streamPullService.onlyStream(node.get().getZid(), body.getApp(), body.getStream());
+                if (ObjectUtil.isNotEmpty(streamPullModel)) {
+                    this.streamPullService.resetStream(streamPullModel);
+                }
+            }
+        });
+
+
+        //end=========
+        map.put("code", 0);
+        map.put("close", true);
+
+
+        return map;
+    }
 
     /**
      * 根据参数鉴权
