@@ -104,6 +104,9 @@ public class ZlmApiService {
         // 是否启用hook事件，启用后，推拉流都将进行鉴权
         builder.queryParam("hook.enable", "1");
 
+        // 关闭hls 否则会自动录制
+        builder.queryParam("protocol.enable_hls", "0");
+
         // 服务器唯一id，用于触发hook时区别是哪台服务器
         builder.queryParam("general.mediaServerId", nodeModel.getId().toString());
 
