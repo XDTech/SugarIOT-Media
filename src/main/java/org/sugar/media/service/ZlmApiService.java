@@ -224,7 +224,7 @@ public class ZlmApiService {
 
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
-            builder.queryParam("vhost", "__defaultVhost__");
+            builder.queryParam("vhost", pullModel.getVhost());
             builder.queryParam("app", pullModel.getApp());
             builder.queryParam("stream", pullModel.getStream());
             builder.queryParam("url", pullModel.getUrl());
