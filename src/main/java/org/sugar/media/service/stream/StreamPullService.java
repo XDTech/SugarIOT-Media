@@ -230,6 +230,17 @@ public class StreamPullService {
         return this.streamPullRepo.save(mStreamPull);
     }
 
+
+    @Transactional
+    public void resetStream(StreamPullModel mStreamPull) {
+        mStreamPull.setStreamKey(null);
+        //如果是负载均衡，把node节点存为空
+        if (mStreamPull.getPlayerType().equals(PlayerTypeEnum.balance)) {
+            mStreamPull.setNodeId(null);
+        }
+        this.updateMStreamPull(mStreamPull);
+    }
+
     @Transactional
     public void deleteMStreamPull(StreamPullModel mStreamPull) {
         this.streamPullRepo.delete(mStreamPull);

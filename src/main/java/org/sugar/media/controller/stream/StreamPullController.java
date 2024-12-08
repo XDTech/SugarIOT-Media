@@ -290,13 +290,8 @@ public class StreamPullController {
 
         if (commonBean.getCode().equals(0) && Convert.toBool(commonBean.getData().get("flag"))) {
 
-            // 断开成功，把stream key  存为空
-            mStreamPull.get().setStreamKey(null);
-            //如果是负载均衡，把node节点存为空
-            if (mStreamPull.get().getPlayerType().equals(PlayerTypeEnum.balance)) {
-                mStreamPull.get().setNodeId(null);
-            }
-            this.mStreamPullService.updateMStreamPull(mStreamPull.get());
+
+            this.mStreamPullService.resetStream(mStreamPull.get());
             return ResponseEntity.ok(ResponseBean.success());
         }
 

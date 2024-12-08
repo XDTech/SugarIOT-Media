@@ -117,18 +117,8 @@ public class ZlmHookController {
     public ResponseBean onPlay(@RequestBody OnPlayBean body) {
 
         StaticLog.info("{}", body.toString());
-
-        Map<String, String> stringMap = BaseUtil.paramConvertToMap(body.getParams());
-
-
-        if (MapUtil.isEmpty(stringMap) || !stringMap.containsKey("sign")) {
-            return ResponseBean.fail();
-        }
-
-        boolean sign = JwtUtils.verifyToken(stringMap.get("sign"));
-
-        if (!sign) return ResponseBean.fail("鉴权失败");
-
+        Map<String, String> authentication = this.authentication(body.getParams());
+        if (MapUtil.isEmpty(authentication)) return ResponseBean.fail();
 
         return ResponseBean.success();
     }
@@ -141,15 +131,13 @@ public class ZlmHookController {
 
         // 再次鉴权
         TimeInterval timer = DateUtil.timer();
-        Map<String, String> stringMap = BaseUtil.paramConvertToMap(body.getParams());
-        if (MapUtil.isEmpty(stringMap) || !stringMap.containsKey("sign")) {
-            return ResponseBean.fail();
-        }
+        Map<String, String> authentication = this.authentication(body.getParams());
 
-        boolean sign = JwtUtils.verifyToken(stringMap.get("sign"));
 
-        if (!sign) return ResponseBean.fail();
-        JWT parseToken = JWTUtil.parseToken(stringMap.get("sign"));
+        if (MapUtil.isEmpty(authentication)) return ResponseBean.fail();
+
+
+        JWT parseToken = JWTUtil.parseToken(authentication.get("sign"));
         Object zid = parseToken.getPayload("zid");
         if (ObjectUtil.isEmpty(zid)) return ResponseBean.fail();
 
@@ -203,5 +191,25 @@ public class ZlmHookController {
         return ResponseBean.success();
     }
 
+
+    /**
+     * 根据参数鉴权
+     *
+     * @return
+     */
+    private Map<String, String> authentication(String param) {
+        Map<String, String> stringMap = BaseUtil.paramConvertToMap(param);
+
+
+        if (MapUtil.isEmpty(stringMap) || !stringMap.containsKey("sign")) {
+            return null;
+        }
+
+        boolean sign = JwtUtils.verifyToken(stringMap.get("sign"));
+
+        if (!sign) return null;
+
+        return stringMap;
+    }
 
 }
