@@ -182,7 +182,6 @@ public class ZlmHookController {
 
         if (commonBean.getCode().equals(0)) {
             // 在此处更新节点
-            streamPullModel.setNodeId(node.get().getId());
             streamPullModel.setStreamKey(Convert.toStr(commonBean.getData().get("key")));
             this.streamPullService.updateMStreamPull(streamPullModel);
 

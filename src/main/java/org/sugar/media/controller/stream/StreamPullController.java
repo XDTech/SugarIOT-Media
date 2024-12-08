@@ -84,14 +84,11 @@ public class StreamPullController {
 
 
         streamPullBeans = streamPullBeans.stream().peek((streamPullBean -> {
-
+            streamPullBean.setStatus("1");
             if (streamPullBean.getNodeId() != null) {
                 Optional<NodeModel> node = this.zlmNodeService.getNode(streamPullBean.getNodeId());
-                streamPullBean.setStatus("1");
                 node.ifPresent(nodeModel -> {
-
                     streamPullBean.setNodeName(nodeModel.getName());
-
                     if (this.mediaCacheService.isOnline(nodeModel.getId())) {
                         // 加载流状态
                         StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(streamPullBean.getStreamKey(), node.get());
@@ -223,11 +220,10 @@ public class StreamPullController {
 
 
     /**
-     * 拉流代理
+     * 手动拉流代理
      *
      * @param id
      * @return
-     * @deprecated 通过按需拉流实现
      */
     @PostMapping("/proxy/{streamPullId}")
     public ResponseEntity<?> getStreamPlayerNode(@PathVariable("streamPullId") Long id) {
@@ -236,32 +232,8 @@ public class StreamPullController {
         if (mStreamPull.isEmpty()) {
             return ResponseEntity.ok(ResponseBean.fail());
         }
-        Optional<NodeModel> node = this.nodeService.getNode(mStreamPull.get().getNodeId());
-        if (node.isPresent()) {
 
-            // 判断节点是否在线
-            boolean online = this.mediaCacheService.isOnline(node.get().getId());
-            if (!online) return ResponseEntity.ok(ResponseBean.fail("节点已经离线"));
-
-            // 查询拉流代理是否正在拉流
-            StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(mStreamPull.get().getStreamKey(), node.get());
-            if (streamProxyInfo.getCode() == 0 && streamProxyInfo.getData() != null && streamProxyInfo.getData().getStatus() == 0) {
-                // 拉流代理已经存在，此处返回播放成功
-                return ResponseEntity.ok(ResponseBean.success());
-            }
-        }
-
-
-        CommonBean commonBean = this.mStreamPullService.playStreamPull(mStreamPull.get());
-        StaticLog.info("{}", commonBean.toString());
-
-        if (commonBean.getCode().equals(0)) {
-            mStreamPull.get().setNodeId(commonBean.getNodeId());
-            mStreamPull.get().setStreamKey(Convert.toStr(commonBean.getData().get("key")));
-            this.mStreamPullService.updateMStreamPull(mStreamPull.get());
-            return ResponseEntity.ok(ResponseBean.success());
-        }
-
+        CommonBean commonBean = this.mStreamPullService.manualPullStream(mStreamPull.get());
 
         return ResponseEntity.ok(ResponseBean.createResponseBean(commonBean.getCode(), commonBean.getMsg()));
     }
@@ -269,7 +241,7 @@ public class StreamPullController {
 
     /**
      * 获取拉流代理播放地址
-     * todo: 在此处应该指定节点
+     * : 在此处应该指定节点
      *
      * @param id
      * @return
@@ -282,42 +254,15 @@ public class StreamPullController {
             return ResponseEntity.ok(ResponseBean.fail());
         }
 
-        Optional<NodeModel> node = Optional.empty();
-        // 判断节点是否离线
-        if (mStreamPull.get().getPlayerType().equals(PlayerTypeEnum.manual)) {
-            node = this.nodeService.getNode(mStreamPull.get().getNodeId());
-        } else {
-            // :1.如果是负载均衡，判断node id是否存在 不存在 直接生成一个
 
-            if (mStreamPull.get().getNodeId() == null) {
+        Optional<NodeModel> playerNode = this.mStreamPullService.getPlayerNode(mStreamPull.get());
 
-                NodeModel nodeModel = this.mStreamPullService.executeBalance();
-                node = Optional.ofNullable(nodeModel);
 
-            } else {
-                //  2.如果存在 判断是否在线，如果不在线，生成一个
-                boolean online = this.mediaCacheService.isOnline(mStreamPull.get().getNodeId());
-
-                if (!online) {
-                    NodeModel nodeModel = this.mStreamPullService.executeBalance();
-                    node = Optional.ofNullable(nodeModel);
-
-                } else {
-                    // 在线
-                    node = this.nodeService.getNode(mStreamPull.get().getNodeId());
-                }
-
-            }
-        }
-
-        if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("暂无可以用播放节点"));
-
-        if (!this.mediaCacheService.isOnline(node.get().getId()))
-            return ResponseEntity.ok(ResponseBean.fail("节点已离线"));
+        if (playerNode.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("暂无可以用播放节点"));
 
 
         // 在线-->获取地址
-        Map < String, List < String >> nodePlayerUrl = this.nodeService.createNodePlayerUrl(mStreamPull.get(), node.get());
+        Map<String, List<String>> nodePlayerUrl = this.nodeService.createNodePlayerUrl(mStreamPull.get(), playerNode.get());
 
 
         if (nodePlayerUrl.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("播放地址为空"));
@@ -344,8 +289,17 @@ public class StreamPullController {
 
 
         if (commonBean.getCode().equals(0) && Convert.toBool(commonBean.getData().get("flag"))) {
+
+            // 断开成功，把stream key  存为空
+            mStreamPull.get().setStreamKey(null);
+            //如果是负载均衡，把node节点存为空
+            if (mStreamPull.get().getPlayerType().equals(PlayerTypeEnum.balance)) {
+                mStreamPull.get().setNodeId(null);
+            }
+            this.mStreamPullService.updateMStreamPull(mStreamPull.get());
             return ResponseEntity.ok(ResponseBean.success());
         }
+
 
         return ResponseEntity.ok(ResponseBean.fail("断开失败，请检查流是否存在"));
     }

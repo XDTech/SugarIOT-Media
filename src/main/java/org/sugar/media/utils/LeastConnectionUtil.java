@@ -1,6 +1,7 @@
 package org.sugar.media.utils;
 
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ArrayUtil;
 
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class LeastConnectionUtil {
 
     // 增加连接数
     public static void addConnection(String server) {
+        Console.log("当前选择的服务器：{}，连接数{}", server, connectionsMap.getOrDefault(server, 0) + 1);
         connectionsMap.put(server, connectionsMap.getOrDefault(server, 0) + 1);
     }
 

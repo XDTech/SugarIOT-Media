@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
+import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
 import org.sugar.media.enums.PlayerTypeEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
@@ -65,7 +66,13 @@ public class StreamPullService {
     }
 
 
-    // 创建并且立即拉流
+    /**
+     * 创建并且立即拉流，此处运行负载均衡策略
+     * (新建拉流代理时调用)
+     *
+     * @param mStreamPull
+     * @return
+     */
     @Transactional
     public CommonBean autoPullStream(StreamPullModel mStreamPull) {
 
@@ -81,7 +88,6 @@ public class StreamPullService {
             // 把key存下来
             String key = Convert.toStr(commonBean.getData().get("key"));
             mStreamPull.setStreamKey(key);
-            mStreamPull.setNodeId(commonBean.getNodeId());
 
         } else {
             // 失败直接返回
@@ -95,7 +101,7 @@ public class StreamPullService {
 
 
     // 执行负载均衡，返回合适的node
-    public NodeModel executeBalance() {
+    private NodeModel executeBalance() {
 
         String serverId = LeastConnectionUtil.leastConnections();
 
@@ -117,29 +123,87 @@ public class StreamPullService {
 
     }
 
-    // 播放拉流代理
-    public CommonBean playStreamPull(StreamPullModel streamPullModel) {
-        CommonBean commonBean = new CommonBean();
-        NodeModel nodeModel = new NodeModel();
-        if (streamPullModel.getPlayerType().equals(PlayerTypeEnum.manual)) {
-            Optional<NodeModel> node = this.nodeService.getNode(streamPullModel.getNodeId());
-            if (node.isPresent()) nodeModel = node.get();
 
+    /**
+     * 获取播放节点，包含运行负载均衡策略
+     * 播放时调用，自动保存要播放的节点id
+     *
+     * @param mStreamPull
+     * @return
+     */
+
+    @Transactional
+    public Optional<NodeModel> getPlayerNode(StreamPullModel mStreamPull) {
+        Optional<NodeModel> node = Optional.empty();
+        // 判断节点是否离线
+        if (mStreamPull.getPlayerType().equals(PlayerTypeEnum.manual)) {
+            node = this.nodeService.getNode(mStreamPull.getNodeId());
         } else {
-            // 根据负载均衡策略选择合适的node
+            // :1.如果是负载均衡，判断node id是否存在 不存在 直接生成一个
 
-            NodeModel balanceModel = this.executeBalance();
+            if (mStreamPull.getNodeId() == null) {
 
-            if (ObjectUtil.isNotEmpty(balanceModel)) {
-                nodeModel = balanceModel;
+                NodeModel nodeModel = this.executeBalance();
+                // 把node id存下来
+                if (ObjectUtil.isNotNull(nodeModel)) {
+
+                    mStreamPull.setNodeId(nodeModel.getId());
+                    this.createMStreamPull(mStreamPull);
+                }
+                node = Optional.ofNullable(nodeModel);
+
+
+            } else {
+                //  2.如果存在 判断是否在线，如果不在线，生成一个
+                boolean online = this.mediaCacheService.isOnline(mStreamPull.getNodeId());
+
+                if (!online) {
+                    NodeModel nodeModel = this.executeBalance();
+
+                    // 把node id存下来
+                    if (ObjectUtil.isNotNull(nodeModel)) {
+                        mStreamPull.setNodeId(nodeModel.getId());
+                        this.createMStreamPull(mStreamPull);
+                    }
+
+                    node = Optional.ofNullable(nodeModel);
+
+                } else {
+                    // 在线
+                    node = this.nodeService.getNode(mStreamPull.getNodeId());
+                }
+
             }
         }
 
-        if (!this.mediaCacheService.isOnline(nodeModel.getId())) {
-            commonBean.setCode(-4);
-            commonBean.setMsg("节点已经离线");
+        // 如果不在线，返回空
+        if (node.isPresent() && !this.mediaCacheService.isOnline(node.get().getId())) {
+            node = Optional.empty();
         }
 
+        return node;
+    }
+
+
+    /**
+     * 调用zlm api 添加拉流代理，此处自动调用 负载均衡策略
+     *
+     * @param streamPullModel
+     * @return
+     */
+    private CommonBean playStreamPull(StreamPullModel streamPullModel) {
+        CommonBean commonBean = new CommonBean();
+
+        Optional<NodeModel> playerNode = this.getPlayerNode(streamPullModel);
+
+        if (playerNode.isEmpty()) {
+
+            commonBean.setCode(-4);
+            commonBean.setMsg("暂无可以用播放节点");
+            return commonBean;
+        }
+
+        NodeModel nodeModel = playerNode.get();
         commonBean = this.zlmApiService.addStreamProxy(streamPullModel, nodeModel);
         commonBean.setNodeId(nodeModel.getId());
 
@@ -213,6 +277,50 @@ public class StreamPullService {
 
         };
         return this.streamPullRepo.findAll(specification, pageRequest);
+
+    }
+
+
+    /**
+     * 手动添加拉流代理
+     *
+     * @return
+     */
+
+    @Transactional
+    public CommonBean manualPullStream(StreamPullModel streamPullModel) {
+        CommonBean commonBean = new CommonBean();
+        // 1.获取播放节点
+        Optional<NodeModel> node = this.getPlayerNode(streamPullModel);
+
+        if (node.isEmpty()) {
+            commonBean.setCode(-1);
+            commonBean.setMsg("暂无可用播放节点");
+            return commonBean;
+        }
+
+        // 2. 如果key存在 查询拉流代理是否正在拉流
+
+        if (StrUtil.isNotBlank(streamPullModel.getStreamKey())) {
+            StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(streamPullModel.getStreamKey(), node.get());
+            if (streamProxyInfo.getCode() == 0 && streamProxyInfo.getData() != null && streamProxyInfo.getData().getStatus() == 0) {
+                // 拉流代理已经存在，此处返回播放成功
+                commonBean.setCode(0);
+                return commonBean;
+            }
+        }
+
+
+        // 3. 添加拉流代理
+        commonBean = this.zlmApiService.addStreamProxy(streamPullModel, node.get());
+        if (commonBean.getCode().equals(0)) {
+            // 在此处更新节点
+            streamPullModel.setStreamKey(Convert.toStr(commonBean.getData().get("key")));
+            this.updateMStreamPull(streamPullModel);
+
+        }
+
+        return commonBean;
 
     }
 }
