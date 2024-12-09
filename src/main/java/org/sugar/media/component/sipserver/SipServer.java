@@ -1,8 +1,9 @@
-package org.sugar.media.component.sip;
+package org.sugar.media.component.sipserver;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import javax.sip.ListeningPoint;
@@ -19,16 +20,16 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-public class SipInitListener implements CommandLineRunner {
+public class SipServer implements CommandLineRunner {
 
 
     private SipFactory sipFactory;
     private SipStack sipStack;
-    private SipProvider sipProvider;
+    private SipProvider udpSipProvider;
 
 
     @Resource
-    private SipProcessListener sipProcessListener;
+    private SipEventListener sipEventListener;
 
     @Override
     public void run(String... args) throws Exception {
@@ -45,13 +46,19 @@ public class SipInitListener implements CommandLineRunner {
 
             // 创建监听器
             ListeningPoint lp = sipStack.createListeningPoint("0.0.0.0", 5060, ListeningPoint.UDP);
-            sipProvider = sipStack.createSipProvider(lp);
-            sipProvider.addSipListener(sipProcessListener);
+            udpSipProvider = sipStack.createSipProvider(lp);
+            udpSipProvider.addSipListener(sipEventListener);
 
             sipStack.start();
            log.info("SIP Server started on port 5060...");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    @Bean
+    public SipProvider udpSipProvider() {
+        return udpSipProvider;
     }
 }
