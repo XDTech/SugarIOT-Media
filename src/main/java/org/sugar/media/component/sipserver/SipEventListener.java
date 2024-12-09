@@ -38,7 +38,6 @@ public class SipEventListener implements SipListener {
     public void processRequest(RequestEvent requestEvent) {
         RequestEventExt evtExt = (RequestEventExt) requestEvent;
 //      evtExt.getServerTransaction().;
-
         // 获取信令
         String method = evtExt.getRequest().getMethod();
 
@@ -72,7 +71,7 @@ public class SipEventListener implements SipListener {
      */
     @Override
     public void processResponse(ResponseEvent responseEvent) {
-
+        log.info("收到摄像机服务响应");
         Response response = responseEvent.getResponse();
         int status = response.getStatusCode();
         if( (status >= 200) && (status < 300) ) { //Success!
