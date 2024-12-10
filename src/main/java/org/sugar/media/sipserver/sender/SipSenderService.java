@@ -1,15 +1,19 @@
 package org.sugar.media.sipserver.sender;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.log.StaticLog;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.header.SIPDate;
 import gov.nist.javax.sip.header.SIPDateHeader;
 import gov.nist.javax.sip.message.SIPRequest;
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.sugar.media.sipserver.SipServer;
+import org.sugar.media.sipserver.utils.SipUtils;
 
 import javax.sip.ServerTransaction;
 import javax.sip.SipFactory;
@@ -36,6 +40,10 @@ import java.util.List;
 public class SipSenderService {
 
 
+    @Resource
+    private SipUtils sipUtils;
+
+
     /**
      * 发送401消息
      *
@@ -46,19 +54,21 @@ public class SipSenderService {
 
         try {
             SIPRequest request = (SIPRequest) requestEventExt.getRequest();
-            ServerTransaction serverTransaction = this.createServerTransaction(requestEventExt, request);
             MessageFactory message = this.createMessageFactory();
 
-            if (ObjectUtil.isNotNull(serverTransaction) && ObjectUtil.isNotNull(message)) {
+            if (ObjectUtil.isNotNull(message)) {
 
 
                 Response response = message.createResponse(Response.UNAUTHORIZED, request);
-
+                String tag = request.getToHeader().getTag();
+                if (tag == null) {
+                    request.getToHeader().setTag(this.sipUtils.getNewTag());
+                }
                 WWWAuthenticateHeader authHeader = SipFactory.getInstance().createHeaderFactory().createWWWAuthenticateHeader("Digest");
                 authHeader.setParameter("realm", "example.com");
                 authHeader.setParameter("nonce", "some_nonce_value");
                 response.setHeader(authHeader);
-                serverTransaction.sendResponse(response);
+                SipServer.udpSipProvider().sendResponse(response);
             }
 
         } catch (Exception e) {
@@ -74,15 +84,18 @@ public class SipSenderService {
 
         try {
             SIPRequest request = (SIPRequest) requestEventExt.getRequest();
-            ServerTransaction serverTransaction = this.createServerTransaction(requestEventExt, request);
             MessageFactory message = this.createMessageFactory();
-
-            if (ObjectUtil.isNotNull(serverTransaction) && ObjectUtil.isNotNull(message)) {
+            String tag = request.getToHeader().getTag();
+            if (tag == null) {
+                request.getToHeader().setTag(this.sipUtils.getNewTag());
+            }
+            if (ObjectUtil.isNotNull(message)) {
 
                 Response response = message.createResponse(Response.FORBIDDEN, request);
 
                 response.setReasonPhrase("password error");
-                serverTransaction.sendResponse(response);
+                SipServer.udpSipProvider().sendResponse(response);
+
             }
 
         } catch (Exception e) {
@@ -93,7 +106,7 @@ public class SipSenderService {
     }
 
 
-    public void sendDeviceInfoRequest(SipProvider sipProvider, RequestEventExt requestEventExt) {
+    public void sendDeviceInfoRequest(SipProvider sipProvider) {
         try {
 
             MessageFactory message = this.createMessageFactory();
@@ -167,34 +180,55 @@ public class SipSenderService {
 
     public void sendOKMessage(RequestEventExt requestEventExt) {
 
+        this.sendMessage(requestEventExt, Response.OK);
 
+    }
+
+
+    public void sendMessage(RequestEventExt requestEventExt, int status) {
         try {
             SIPRequest request = (SIPRequest) requestEventExt.getRequest();
-            ServerTransaction serverTransaction = this.createServerTransaction(requestEventExt, request);
+            // ServerTransaction serverTransaction = this.createServerTransaction(requestEventExt, request);
             MessageFactory message = this.createMessageFactory();
 
-            if (ObjectUtil.isNotNull(serverTransaction) && ObjectUtil.isNotNull(message)) {
+            if (ObjectUtil.isNotNull(message)) {
 
-                Response response = message.createResponse(Response.OK, request);
+                Response response = message.createResponse(status, request);
+                response.setStatusCode(status);
+
+
+                String tag = request.getToHeader().getTag();
+                if (tag == null) {
+                    request.getToHeader().setTag(this.sipUtils.getNewTag());
+                }
+
                 // 添加日期头
-                SIPDateHeader dateHeader = new SIPDateHeader();
-                dateHeader.setDate(new SIPDate());
-                response.setHeader(dateHeader);
+//                SIPDateHeader dateHeader = new SIPDateHeader();
+//                dateHeader.setDate(new SIPDate());
+//                response.setHeader(dateHeader);
                 // 添加Expires
-//                response.addHeader(request.getExpires());
-                // 添加Contact
-                //    response.addHeader(request.getHeader(ContactHeader.NAME));
+                if (response.getExpires() == null) {
+                    response.setExpires(SipFactory.getInstance().createHeaderFactory().createExpiresHeader(3600));
+                }
 
-                serverTransaction.sendResponse(response);
+
+                response.addHeader(response.getExpires());
+
+
+                // 添加Contact
+
+                if (request.getContactHeader() == null) {
+                    response.addHeader(SipFactory.getInstance().createHeaderFactory().createContactHeader());
+                }
+
+                SipServer.udpSipProvider().sendResponse(response);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             log.info("发送认证消息失败");
         }
-
     }
-
 
     private MessageFactory createMessageFactory() {
         try {
@@ -207,26 +241,6 @@ public class SipSenderService {
         }
     }
 
-    private ServerTransaction createServerTransaction(RequestEventExt requestEventExt, SIPRequest request) {
-        try {
-            SipProvider source = (SipProvider) requestEventExt.getSource();
-
-            ServerTransaction serverTransaction = requestEventExt.getServerTransaction();
-
-            if (serverTransaction == null) {
-                serverTransaction = source.getNewServerTransaction(request);
-            }
-
-            return serverTransaction;
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-            log.info("创建ServerTransaction失败");
-            return null;
-
-        }
-    }
 
 
 }

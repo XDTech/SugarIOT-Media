@@ -81,7 +81,7 @@ public class RegisterEventService implements SipSignalHandler {
 //                ListeningPoint[] listeningPoints = source.getListeningPoints();
                 log.info("{}设备上线", request.getViaHost());
 
-                this.sipSenderService.sendDeviceInfoRequest(source, requestEventExt);
+                this.sipSenderService.sendDeviceInfoRequest(source);
             }
 
 

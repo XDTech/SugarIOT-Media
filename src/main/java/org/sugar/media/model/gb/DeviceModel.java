@@ -18,7 +18,7 @@ import java.util.Date;
  */
 @Data
 @Entity
-@Table(name = "m_gb_device", schema = "public", indexes = {@Index(name = "idx_zid", columnList = "zid")}) // 1.表名 2.模式
+@Table(name = "m_gb_device", schema = "public", indexes = {@Index(name = "idx_device_zid", columnList = "zid")}) // 1.表名 2.模式
 @DynamicInsert
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 忽略  lazy 层级/为空 时候的引用
 public class DeviceModel {

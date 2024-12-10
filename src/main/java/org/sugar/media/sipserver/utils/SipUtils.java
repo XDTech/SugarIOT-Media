@@ -78,4 +78,14 @@ public class SipUtils {
         return cmdType;
     }
 
+    public  String getNewTag(){
+        return String.valueOf(System.currentTimeMillis());
+    }
+
+
+//    public static  String getNewViaTag() {
+//        return "z9hG4bK" + RandomStringUtils.randomNumeric(10);
+//    }
+
+
 }

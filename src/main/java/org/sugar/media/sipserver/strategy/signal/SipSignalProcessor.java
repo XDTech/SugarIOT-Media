@@ -33,8 +33,6 @@ public class SipSignalProcessor {
         RequestEventExt evtExt = (RequestEventExt) requestEvent;
         String method = evtExt.getRequest().getMethod();
         SipSignalHandler handler = handlers.get(method);
-        Console.log("Method:{}",method);
-
         if (handler != null) {
             handler.processMessage(evtExt);
         } else {

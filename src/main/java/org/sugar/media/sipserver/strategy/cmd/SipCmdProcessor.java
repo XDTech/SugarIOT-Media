@@ -4,6 +4,7 @@ import cn.hutool.core.lang.Console;
 import gov.nist.javax.sip.RequestEventExt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.sipserver.strategy.signal.SipSignal;
 import org.sugar.media.sipserver.strategy.signal.SipSignalHandler;
 
@@ -22,6 +23,9 @@ import java.util.Map;
 @Component
 public class SipCmdProcessor {
 
+    @Autowired
+    private SipSenderService sipSenderService;
+
     private final Map<String, SipCmdHandler> handlers = new HashMap<>();
 
     @Autowired
@@ -35,12 +39,13 @@ public class SipCmdProcessor {
     public void processCmdType(String cmdType, RequestEventExt evtExt) {
 
         SipCmdHandler handler = handlers.get(cmdType);
-        Console.log("cmd type:{}", cmdType);
 
         if (handler != null) {
             handler.processMessage(evtExt);
         } else {
             System.out.println("No CMD found for method: " + cmdType);
+            // 任何情况都回复200
+            this.sipSenderService.sendOKMessage(evtExt);
         }
     }
 }

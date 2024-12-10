@@ -82,8 +82,11 @@ public class SipEventListener implements SipListener {
     }
 
     @Override
-    public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
-        log.warn("sip IO异常");
+    public void processTransactionTerminated(TransactionTerminatedEvent event) {
+        log.warn("事务终止: {}", event.isServerTransaction() ? "服务器事务" : "客户端事务");
+        if (event.getServerTransaction() != null) {
+            log.warn("终止事务 ID: {}", event.getServerTransaction().getBranchId());
+        }
     }
 
     @Override
