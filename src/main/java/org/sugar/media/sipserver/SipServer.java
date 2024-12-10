@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.sugar.media.sipserver.utils.SipConfUtils;
 
 import javax.sip.ListeningPoint;
 import javax.sip.SipFactory;
@@ -29,10 +30,14 @@ public class SipServer implements CommandLineRunner {
 
 
     @Resource
+    private SipConfUtils sipConfUtils;
+
+
+    @Resource
     private SipEventListener sipEventListener;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         try {
             // 配置 SIP 属性
             Properties properties = new Properties();
@@ -45,14 +50,14 @@ public class SipServer implements CommandLineRunner {
             sipStack = sipFactory.createSipStack(properties);
 
             // 创建监听器
-            ListeningPoint lp = sipStack.createListeningPoint("192.168.31.65", 5060, ListeningPoint.UDP);
+            ListeningPoint lp = sipStack.createListeningPoint(this.sipConfUtils.getIp(), this.sipConfUtils.getPort(), ListeningPoint.UDP);
             udpSipProvider = sipStack.createSipProvider(lp);
             udpSipProvider.addSipListener(sipEventListener);
             sipStack.start();
 
             String ipAddress = udpSipProvider.getListeningPoint(ListeningPoint.UDP).getIPAddress();
 
-            log.info("SIP Server started on {} port 5060...", ipAddress);
+            log.info("SIP Server started on {} port {}...", ipAddress, this.sipConfUtils.getPort());
         } catch (Exception e) {
             e.printStackTrace();
         }

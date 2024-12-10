@@ -20,7 +20,7 @@ import javax.sip.header.AuthorizationHeader;
 /**
  * Date:2024/12/09 11:01:14
  * Author：Tobin
- * Description: 28181  处理认证事件
+ * Description: 28181  处理message消息
  */
 
 @Slf4j
@@ -92,8 +92,4 @@ public class RegisterEventService implements SipSignalHandler {
 
     }
 
-
-    public void messageInfo(RequestEventExt requestEventExt) {
-        this.sipSenderService.sendOKMessage(requestEventExt);
-    }
 }

@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class MessageEventSignal implements SipSignalHandler{
+@SipSignal("MESSAGE")
+public class MessageEventService implements SipSignalHandler{
     @Override
     public void processMessage(RequestEventExt evtExt) {
 
