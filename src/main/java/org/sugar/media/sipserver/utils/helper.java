@@ -1,4 +1,4 @@
-package org.sugar.media.component.sipserver;
+package org.sugar.media.sipserver.utils;
 
 import gov.nist.javax.sip.clientauthutils.DigestServerAuthenticationHelper;
 import gov.nist.javax.sip.header.ims.AuthorizationHeaderIms;

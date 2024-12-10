@@ -1,10 +1,11 @@
-package org.sugar.media.component.sipserver;
+package org.sugar.media.sipserver;
 
 import gov.nist.javax.sip.RequestEventExt;
-import gov.nist.javax.sip.stack.MessageProcessor;
+import gov.nist.javax.sip.ResponseEventExt;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.sugar.media.sipserver.signal.SipSignalProcessor;
 
 import javax.sip.*;
 import javax.sip.message.Response;
@@ -24,8 +25,11 @@ import javax.sip.message.Response;
 public class SipEventListener implements SipListener {
 
 
+    /**
+     * 策略模式
+     */
     @Resource
-    private AuthEventService authEventService;
+    private SipSignalProcessor sipSignalProcessor;
 
     /**
      * 收到设备的请求
@@ -38,26 +42,8 @@ public class SipEventListener implements SipListener {
     public void processRequest(RequestEvent requestEvent) {
         RequestEventExt evtExt = (RequestEventExt) requestEvent;
 //      evtExt.getServerTransaction().;
-        // 获取信令
-        String method = evtExt.getRequest().getMethod();
 
-        switch (method) {
-            // 注册信令
-            case "REGISTER" -> {
-                this.authEventService.registerMessage(evtExt);
-            }
-            // 消息信令
-            case "MESSAGE" -> {
-
-
-            }
-            // BYE 信令
-            case "BYE" -> {
-
-
-            }
-        }
-
+        this.sipSignalProcessor.processRequest(evtExt);
 
     }
 
@@ -71,10 +57,12 @@ public class SipEventListener implements SipListener {
      */
     @Override
     public void processResponse(ResponseEvent responseEvent) {
+        ResponseEventExt response1 = (ResponseEventExt) responseEvent.getResponse();
+
         log.info("收到摄像机服务响应");
         Response response = responseEvent.getResponse();
         int status = response.getStatusCode();
-        if( (status >= 200) && (status < 300) ) { //Success!
+        if ((status >= 200) && (status < 300)) { //Success!
             log.info("sent-----success");
             return;
         }
@@ -90,7 +78,7 @@ public class SipEventListener implements SipListener {
 
     @Override
     public void processIOException(IOExceptionEvent ioExceptionEvent) {
-        log.warn("sip IO异常,{}",ioExceptionEvent.getHost());
+        log.warn("sip IO异常,{}", ioExceptionEvent.getHost());
     }
 
     @Override

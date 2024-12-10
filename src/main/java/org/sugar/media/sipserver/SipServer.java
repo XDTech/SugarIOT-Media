@@ -1,4 +1,4 @@
-package org.sugar.media.component.sipserver;
+package org.sugar.media.sipserver;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -45,12 +45,14 @@ public class SipServer implements CommandLineRunner {
             sipStack = sipFactory.createSipStack(properties);
 
             // 创建监听器
-            ListeningPoint lp = sipStack.createListeningPoint("0.0.0.0", 5060, ListeningPoint.UDP);
+            ListeningPoint lp = sipStack.createListeningPoint("192.168.31.65", 5060, ListeningPoint.UDP);
             udpSipProvider = sipStack.createSipProvider(lp);
             udpSipProvider.addSipListener(sipEventListener);
-
             sipStack.start();
-           log.info("SIP Server started on port 5060...");
+
+            String ipAddress = udpSipProvider.getListeningPoint(ListeningPoint.UDP).getIPAddress();
+
+            log.info("SIP Server started on {} port 5060...", ipAddress);
         } catch (Exception e) {
             e.printStackTrace();
         }

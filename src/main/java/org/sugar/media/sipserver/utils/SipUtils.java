@@ -1,4 +1,4 @@
-package org.sugar.media.component.sipserver;
+package org.sugar.media.sipserver.utils;
 
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
