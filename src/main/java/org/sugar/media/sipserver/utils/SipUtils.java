@@ -1,13 +1,19 @@
 package org.sugar.media.sipserver.utils;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.Console;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.XmlUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.sugar.media.beans.hooks.zlm.AddressBean;
+import org.w3c.dom.Document;
 
 import javax.sip.header.FromHeader;
+import javax.xml.xpath.XPathConstants;
 
 /**
  * Date:2024/12/09 20:23:47
@@ -49,6 +55,27 @@ public class SipUtils {
 
 
         return uri.getUser();
+    }
+
+
+    public String getCmdType(String xmlContent) {
+
+
+        Document document = XmlUtil.parseXml(xmlContent);
+
+        String cmdType = "";
+
+        // 保活消息  [Keepalive]
+        Object keepalive = XmlUtil.getByXPath("//Notify/CmdType", document, XPathConstants.STRING);
+
+        if (ObjectUtil.isNotEmpty(keepalive)) return Convert.toStr(keepalive);
+
+        // 事件消息 比如 [catalog]
+        Object Catalog = XmlUtil.getByXPath("//Response/CmdType", document, XPathConstants.STRING);
+
+        if (ObjectUtil.isNotEmpty(Catalog)) return Convert.toStr(Catalog);
+
+        return cmdType;
     }
 
 }

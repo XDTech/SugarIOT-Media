@@ -1,4 +1,4 @@
-package org.sugar.media.sipserver.signal;
+package org.sugar.media.sipserver.strategy.signal;
 
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
@@ -6,13 +6,12 @@ import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.message.SIPRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.sugar.media.sipserver.sender.SipSenderService;
+import org.sugar.media.sipserver.utils.SipConfUtils;
 import org.sugar.media.sipserver.utils.SipUtils;
 import org.sugar.media.sipserver.utils.helper;
 
-import javax.sip.ListeningPoint;
 import javax.sip.SipProvider;
 import javax.sip.header.AuthorizationHeader;
 
@@ -29,8 +28,8 @@ import javax.sip.header.AuthorizationHeader;
 public class RegisterEventService implements SipSignalHandler {
 
 
-    @Value("${sip.pwd}")
-    private String pwd;
+    @Resource
+    private SipConfUtils sipConfUtils;
 
 
     @Resource
@@ -59,7 +58,7 @@ public class RegisterEventService implements SipSignalHandler {
 
             // sip收到设备的认证回复，在这里鉴权
             String deviceId = this.sipUtils.getDeviceId(request);
-            boolean verify = new helper().doAuthenticatePassword(request, pwd);
+            boolean verify = new helper().doAuthenticatePassword(request, sipConfUtils.getPwd());
 
             if (!verify) {
                 log.warn("{}设备验证失败", deviceId);
@@ -78,9 +77,9 @@ public class RegisterEventService implements SipSignalHandler {
                 log.warn("{}设备注销", deviceId);
             } else {
                 log.info("{}设备上线", deviceId);
-                SipProvider source = (SipProvider) requestEventExt.getSource();
-                ListeningPoint[] listeningPoints = source.getListeningPoints();
-                log.info("{}设备上线", listeningPoints[0].getIPAddress());
+              SipProvider source = (SipProvider) requestEventExt.getSource();
+//                ListeningPoint[] listeningPoints = source.getListeningPoints();
+                log.info("{}设备上线", request.getViaHost());
 
                 this.sipSenderService.sendDeviceInfoRequest(source, requestEventExt);
             }

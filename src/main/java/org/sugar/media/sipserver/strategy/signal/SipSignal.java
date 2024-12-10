@@ -1,4 +1,4 @@
-package org.sugar.media.sipserver.signal;
+package org.sugar.media.sipserver.strategy.signal;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

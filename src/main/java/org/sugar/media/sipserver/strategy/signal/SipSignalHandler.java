@@ -1,4 +1,4 @@
-package org.sugar.media.sipserver.signal;
+package org.sugar.media.sipserver.strategy.signal;
 
 import gov.nist.javax.sip.RequestEventExt;
 

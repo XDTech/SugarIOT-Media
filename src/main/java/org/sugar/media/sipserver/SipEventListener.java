@@ -5,7 +5,7 @@ import gov.nist.javax.sip.ResponseEventExt;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.sugar.media.sipserver.signal.SipSignalProcessor;
+import org.sugar.media.sipserver.strategy.signal.SipSignalProcessor;
 
 import javax.sip.*;
 import javax.sip.message.Response;
