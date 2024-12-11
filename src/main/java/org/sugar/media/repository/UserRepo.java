@@ -15,5 +15,5 @@ import org.springframework.stereotype.Repository;
 public interface UserRepo extends JpaRepository<UserModel, Long>, JpaSpecificationExecutor<UserModel> {
 
 
-    UserModel findAllByUsernameAndZid(String username,Long zid);
+    UserModel findAllByUsernameAndTenantId(String username,Long tenantId);
 }

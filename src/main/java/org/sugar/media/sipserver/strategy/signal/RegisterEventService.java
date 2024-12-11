@@ -19,7 +19,7 @@ import javax.sip.header.AuthorizationHeader;
 /**
  * Date:2024/12/09 11:01:14
  * Author：Tobin
- * Description: 28181  处理message消息
+ * Description: 28181  处理注册消息
  */
 
 @Slf4j
@@ -77,11 +77,11 @@ public class RegisterEventService implements SipSignalHandler {
                 log.warn("{}设备注销", deviceId);
             } else {
                 log.info("{}设备上线", deviceId);
-              SipProvider source = (SipProvider) requestEventExt.getSource();
+                SipProvider source = (SipProvider) requestEventExt.getSource();
 //                ListeningPoint[] listeningPoints = source.getListeningPoints();
                 log.info("{}设备上线", request.getViaHost());
 
-                this.sipSenderService.sendDeviceInfoRequest(source);
+                this.sipSenderService.sendDeviceInfoRequest();
             }
 
 

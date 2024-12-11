@@ -3,6 +3,7 @@ package org.sugar.media.sipserver.utils;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.XmlUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
@@ -78,14 +79,14 @@ public class SipUtils {
         return cmdType;
     }
 
-    public  String getNewTag(){
+    public String getNewTag() {
         return String.valueOf(System.currentTimeMillis());
     }
 
 
-//    public static  String getNewViaTag() {
-//        return "z9hG4bK" + RandomStringUtils.randomNumeric(10);
-//    }
+    public static String getNewViaTag() {
+        return "z9hG4bK" + RandomUtil.randomNumbers(10);
+    }
 
 
 }

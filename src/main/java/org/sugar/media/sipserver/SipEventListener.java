@@ -1,7 +1,9 @@
 package org.sugar.media.sipserver;
 
+import cn.hutool.core.lang.Console;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.ResponseEventExt;
+import gov.nist.javax.sip.message.SIPMessage;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -43,6 +45,10 @@ public class SipEventListener implements SipListener {
         RequestEventExt evtExt = (RequestEventExt) requestEvent;
 //      evtExt.getServerTransaction().;
 
+        SIPMessage sipMessage = (SIPMessage) evtExt.getRequest();
+        Console.log("======================");
+        System.out.println("Full SIP Message: \n" + sipMessage.toString());
+        Console.log("======================");
         this.sipSignalProcessor.processRequest(evtExt);
 
     }

@@ -57,8 +57,8 @@ public class ZlmNodeService {
     }
 
 
-    public List<NodeModel> getNodeList(Long zid) {
-        return this.nodeRepo.findAllByZidAndTypesOrderByIdDesc(zid, MediaServerEnum.zlm);
+    public List<NodeModel> getNodeList() {
+        return this.nodeRepo.findAllByTypesOrderByIdDesc(MediaServerEnum.zlm);
     }
 
     @Transactional

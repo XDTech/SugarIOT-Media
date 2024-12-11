@@ -1,4 +1,4 @@
-package org.sugar.media.model.gb;
+package org.sugar.media.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -12,26 +12,24 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.util.Date;
 
 /**
- * Date:2024/12/10 11:37:54
+ * Date:2024/12/11 15:53:49
  * Author：Tobin
- * Description: 存储国标设备信息
+ * Description: 租户信息表
  */
+
 @Data
 @Entity
-@Table(name = "m_gb_device", schema = "public", indexes = {@Index(name = "idx_device_tenantId", columnList = "tenantId")}) // 1.表名 2.模式
+@Table(name = "m_tenant", schema = "public", indexes = {@Index(name = "idx_code", columnList = "code")}) // 1.表名 2.模式
 @DynamicInsert
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 忽略  lazy 层级/为空 时候的引用
-public class DeviceModel {
+public class TenantModel {
 
-    // ==========基础字段========
     @Id
     @GeneratedValue(generator = "snowFlakeId")
     @GenericGenerator(name = "snowFlakeId", strategy = "org.sugar.media.utils.SnowflakeId")
     @Column(name = "id")
     private Long id;
 
-    @NotNull
-    private Long tenantId;// 租户id
 
     @CreationTimestamp
     private Date createdAt;
@@ -40,5 +38,11 @@ public class DeviceModel {
     private Date updatedAt;
 
 
-    // ===========end===========
+    /**
+     * 租户编码
+     */
+    @Column(unique = true)
+    private Integer code;
+
+
 }

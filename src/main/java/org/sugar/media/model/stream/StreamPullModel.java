@@ -23,7 +23,7 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "m_stream_pull", schema = "public", indexes = {@Index(name = "idx_pull_zid", columnList = "zid")}) // 1.表名 2.模式
+@Table(name = "m_stream_pull", schema = "public", indexes = {@Index(name = "idx_pull_zid", columnList = "tenantId")}) // 1.表名 2.模式
 @DynamicInsert
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 忽略  lazy 层级/为空 时候的引用
 public class StreamPullModel {
@@ -34,7 +34,7 @@ public class StreamPullModel {
     private Long id;
 
     @NotNull
-    private Long zid;// 租户id
+    private Long tenantId;// 租户id
 
     @CreationTimestamp
     private Date createdAt;

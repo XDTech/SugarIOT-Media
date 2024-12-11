@@ -93,14 +93,14 @@ public class UserController {
 
         StaticLog.info("{}",userBean.toString());
 
-        Long zid = this.userSecurity.getCurrentAdminUser().getZid();
-        UserModel user = this.mUserService.getUser(userBean.getUsername(), zid);
+        Long tenantId = this.userSecurity.getCurrentAdminUser().getTenantId();
+        UserModel user = this.mUserService.getUser(userBean.getUsername(), tenantId);
         if (user != null) {
             return ResponseEntity.ok(ResponseBean.fail("用户已存在"));
         }
         UserModel newUser = new UserModel();
 
-        newUser.setZid(zid);
+        newUser.setTenantId(tenantId);
 
 
         BeanUtil.copyProperties(userBean, newUser);

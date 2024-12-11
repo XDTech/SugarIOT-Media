@@ -106,7 +106,7 @@ public class SipSenderService {
     }
 
 
-    public void sendDeviceInfoRequest(SipProvider sipProvider) {
+    public void sendDeviceInfoRequest() {
         try {
 
             MessageFactory message = this.createMessageFactory();
@@ -161,13 +161,13 @@ public class SipSenderService {
                 CSeqHeader cSeqHeader = SipFactory.getInstance().createHeaderFactory().createCSeqHeader(1L, Request.MESSAGE);
 
 
-                Request request = SipFactory.getInstance().createMessageFactory().createRequest(requestURI, Request.MESSAGE, sipProvider.getNewCallId(), cSeqHeader, fromHeader, toHeader, viaHeaders, maxForwards);
+                Request request = SipFactory.getInstance().createMessageFactory().createRequest(requestURI, Request.MESSAGE, SipServer.udpSipProvider().getNewCallId(), cSeqHeader, fromHeader, toHeader, viaHeaders, maxForwards);
 
 
                 request.addHeader(catalog);
                 request.addHeader(userAgentHeader);
                 request.setContent(xmlContent, contentTypeHeader);
-                sipProvider.sendRequest(request);
+                SipServer.udpSipProvider().sendRequest(request);
 
             }
 
@@ -236,7 +236,7 @@ public class SipSenderService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            log.info("创建ServerTransaction失败");
+            log.info("创建MessageFactory失败");
             return null;
         }
     }

@@ -141,8 +141,8 @@ public class ZlmHookController {
 
 
         JWT parseToken = JWTUtil.parseToken(authentication.get("sign"));
-        Object zid = parseToken.getPayload("zid");
-        if (ObjectUtil.isEmpty(zid)) return ResponseBean.fail();
+        Object tenantId = parseToken.getPayload("tenantId");
+        if (ObjectUtil.isEmpty(tenantId)) return ResponseBean.fail();
 
 
         Console.log("{}====鉴权耗时", timer.intervalRestart());
@@ -159,7 +159,7 @@ public class ZlmHookController {
 
         Console.log("{}====节点耗时", timer.intervalRestart());
 
-        StreamPullModel streamPullModel = this.streamPullService.onlyStream(Convert.toLong(zid), body.getApp(), body.getStream());
+        StreamPullModel streamPullModel = this.streamPullService.onlyStream(Convert.toLong(tenantId), body.getApp(), body.getStream());
 
         if (ObjectUtil.isEmpty(streamPullModel)) return ResponseBean.fail();
 
@@ -206,14 +206,23 @@ public class ZlmHookController {
         Map<String, Object> map = new HashMap<>();
         StaticLog.info("{}", body);
 
-
+        Map<String, String> authentication = this.authentication(body.getParams());
+        if (MapUtil.isEmpty(authentication)) {
+            map.put("code", 0);
+            map.put("close", false);
+            return map;
+        }
         // 重置拉流代理
         /// 查询是哪个node
 
         ThreadUtil.execute(() -> {
             Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(body.getMediaServerId()));
             if (node.isPresent()) {
-                StreamPullModel streamPullModel = this.streamPullService.onlyStream(node.get().getZid(), body.getApp(), body.getStream());
+
+                JWT parseToken = JWTUtil.parseToken(authentication.get("sign"));
+                Object tenantId = parseToken.getPayload("tenantId");
+
+                StreamPullModel streamPullModel = this.streamPullService.onlyStream(Convert.toLong(tenantId), body.getApp(), body.getStream());
                 if (ObjectUtil.isNotEmpty(streamPullModel)) {
                     this.streamPullService.resetStream(streamPullModel);
                 }
@@ -231,6 +240,7 @@ public class ZlmHookController {
 
     /**
      * 流量统计事件
+     *
      * @param data
      * @return
      */

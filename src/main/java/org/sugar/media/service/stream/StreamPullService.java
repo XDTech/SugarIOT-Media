@@ -56,8 +56,8 @@ public class StreamPullService {
     private MediaCacheService mediaCacheService;
 
 
-    public StreamPullModel onlyStream(Long zid, String app, String stream) {
-        return this.streamPullRepo.findAllByZidAndAppAndStream(zid, app, stream);
+    public StreamPullModel onlyStream(Long tenantId, String app, String stream) {
+        return this.streamPullRepo.findAllByTenantIdAndAppAndStream(tenantId, app, stream);
     }
 
     @Transactional
@@ -257,7 +257,7 @@ public class StreamPullService {
     }
 
     // 分页查询
-    public Page<StreamPullModel> getMStreamPullPageList(Integer pi, Integer ps, String name, Long zid) {
+    public Page<StreamPullModel> getMStreamPullPageList(Integer pi, Integer ps, String name, Long tenantId) {
         // Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         PageRequest pageRequest = PageRequest.of(pi - 1, ps);
         Specification<StreamPullModel> specification = (Root<StreamPullModel> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
@@ -268,8 +268,8 @@ public class StreamPullService {
             if (!StrUtil.isEmpty(name)) {
                 predicatesList.add(cb.like(root.get("name"), "%" + name + "%"));
             }
-            if (zid != null) {
-                predicatesList.add(cb.equal(root.get("zid"), zid));
+            if (tenantId != null) {
+                predicatesList.add(cb.equal(root.get("tenantId"), tenantId));
             }
             // --------------------------------------------
             // 模糊查询

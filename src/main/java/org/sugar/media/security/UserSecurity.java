@@ -31,8 +31,8 @@ public class UserSecurity {
 
     }
 
-    public Long getCurrentZid() {
-      return this.getCurrentAdminUser().getZid();
+    public Long getCurrentTenantId() {
+      return this.getCurrentAdminUser().getTenantId();
 
     }
 

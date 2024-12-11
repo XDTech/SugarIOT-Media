@@ -27,7 +27,7 @@ public class MessageEventService implements SipSignalHandler {
 
     @Override
     public void processMessage(RequestEventExt evtExt) {
-        Console.log("调用Message Event");
+
 
         try {
             String xmlContent = new String(evtExt.getRequest().getRawContent());
@@ -35,7 +35,7 @@ public class MessageEventService implements SipSignalHandler {
 
             String cmdType = this.sipUtils.getCmdType(xmlContent);
 
-            Console.log("event:{}", cmdType);
+
 
             this.sipCmdProcessor.processCmdType(cmdType, evtExt);
         } catch (Exception e) {

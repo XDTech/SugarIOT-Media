@@ -17,7 +17,7 @@ import java.util.List;
 @Repository
 public interface NodeRepo extends JpaRepository<NodeModel, Long>, JpaSpecificationExecutor<NodeModel> {
 
-    List<NodeModel> findAllByZidAndTypesOrderByIdDesc(Long zid, MediaServerEnum types);
+    List<NodeModel> findAllByTypesOrderByIdDesc( MediaServerEnum types);
     List<NodeModel> findAllByIdIn(List<Long> ids);
 
 

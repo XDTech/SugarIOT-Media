@@ -78,7 +78,7 @@ public class StreamPullController {
     public ResponseEntity<?> getMStreamPullPageList(@RequestParam Integer pi, @RequestParam Integer ps, @RequestParam(required = false) String name) {
 
 
-        Page<StreamPullModel> mStreamPullList = this.mStreamPullService.getMStreamPullPageList(pi, ps, name, this.userSecurity.getCurrentZid());
+        Page<StreamPullModel> mStreamPullList = this.mStreamPullService.getMStreamPullPageList(pi, ps, name, this.userSecurity.getCurrentTenantId());
 
         List<StreamPullBean> streamPullBeans = BeanConverterUtil.convertList(mStreamPullList.getContent(), StreamPullBean.class);
 
@@ -139,7 +139,7 @@ public class StreamPullController {
     public ResponseEntity<?> createMStreamPull(@RequestBody @Validated StreamPullVal mStreamPullBean) {
 
 
-        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentZid(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
+        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentTenantId(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
 
 
         if (ObjectUtil.isNotEmpty(streamPullModel)) {
@@ -149,7 +149,7 @@ public class StreamPullController {
         StreamPullModel mStreamPull = new StreamPullModel();
         BeanUtil.copyProperties(mStreamPullBean, mStreamPull);
 
-        mStreamPull.setZid(this.userSecurity.getCurrentZid());
+        mStreamPull.setTenantId(this.userSecurity.getCurrentTenantId());
 
         CommonBean commonBean = this.mStreamPullService.autoPullStream(mStreamPull);
 
@@ -175,7 +175,7 @@ public class StreamPullController {
 
         // 判断是否存在
 
-        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentZid(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
+        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentTenantId(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
 
 
         if (ObjectUtil.isNotEmpty(streamPullModel) && !streamPullModel.getId().equals(mStreamPullBean.getId())) {

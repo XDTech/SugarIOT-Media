@@ -57,7 +57,6 @@ public class ZlmNodeController {
         NodeModel nodeModel = new NodeModel();
         BeanUtil.copyProperties(nodeVal, nodeModel);
         nodeModel.setTypes(MediaServerEnum.zlm);
-        nodeModel.setZid(this.userSecurity.getCurrentAdminUser().getZid());
 
 
         this.zlmNodeService.createMediaAsync(nodeModel);
@@ -171,7 +170,7 @@ public class ZlmNodeController {
     @GetMapping("/list")
     public ResponseEntity<?> getNodeList() {
 
-        List<NodeModel> nodeList = this.zlmNodeService.getNodeList(this.userSecurity.getCurrentAdminUser().getZid());
+        List<NodeModel> nodeList = this.zlmNodeService.getNodeList();
 
         List<NodeBean> list = BeanConverterUtil.convertList(nodeList, NodeBean.class);
 

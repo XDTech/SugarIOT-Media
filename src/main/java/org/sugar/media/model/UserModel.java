@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.annotations.*;
+import org.sugar.media.enums.RoleEnum;
 import org.sugar.media.enums.UserStatusEnum;
 
 
@@ -15,10 +16,10 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "m_user", schema = "public", uniqueConstraints = @UniqueConstraint(name = "unique_username_zid_status", columnNames = {"username", "zid","status"}))
+@Table(name = "m_user", schema = "public", uniqueConstraints = @UniqueConstraint(name = "unique_username_tenantId_status", columnNames = {"username", "tenantId", "status"}))
 // 1.表名 2.模式
-@SQLDelete(sql = "update \"m_user\"  set status = 'deleted' where id = ?")
-@Where(clause = "status != 'deleted'")
+//@SQLDelete(sql = "update \"m_user\"  set status = 'deleted' where id = ?")
+//@Where(clause = "status != 'deleted'")
 @DynamicInsert
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 忽略  lazy 层级/为空 时候的引用
 public class UserModel {
@@ -58,7 +59,11 @@ public class UserModel {
     private UserStatusEnum status = UserStatusEnum.normal;// 状态
 
     @NotNull
-    private Long zid;
+    @Enumerated(EnumType.STRING)
+    private RoleEnum role;// 角色
+
+
+    private Long tenantId;// 为空是平台管理员
 
 
     @CreationTimestamp
