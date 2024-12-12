@@ -2,6 +2,7 @@ package org.sugar.media.model.gb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,7 +19,8 @@ import java.util.Date;
  */
 @Data
 @Entity
-@Table(name = "m_gb_device", schema = "public", indexes = {@Index(name = "idx_device_tenantId", columnList = "tenantId")}) // 1.表名 2.模式
+@Table(name = "m_gb_device", schema = "public", indexes = {@Index(name = "idx_device_tenantId", columnList = "tenantId")})
+// 1.表名 2.模式
 @DynamicInsert
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 忽略  lazy 层级/为空 时候的引用
 public class DeviceModel {
@@ -41,4 +43,15 @@ public class DeviceModel {
 
 
     // ===========end===========
+
+
+    @NotBlank
+    private String name; // 设备名称
+
+
+    @NotBlank
+    private String deviceId;// 设备id 规则:[租户编码]+0000+7位流水号生成
+
+
+    private String pwd; //国标设备验证id 为空采用系统密码
 }

@@ -39,7 +39,8 @@ public class TenantModel {
 
 
     /**
-     * 租户编码
+     * 租户编码 6位识别码 顺序码
+     * eg:100000,100001
      */
     @Column(unique = true)
     private Integer code;

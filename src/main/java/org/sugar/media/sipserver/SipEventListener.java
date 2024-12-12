@@ -45,10 +45,10 @@ public class SipEventListener implements SipListener {
         RequestEventExt evtExt = (RequestEventExt) requestEvent;
 //      evtExt.getServerTransaction().;
 
-        SIPMessage sipMessage = (SIPMessage) evtExt.getRequest();
-        Console.log("======================");
-        System.out.println("Full SIP Message: \n" + sipMessage.toString());
-        Console.log("======================");
+   //     SIPMessage sipMessage = (SIPMessage) evtExt.getRequest();
+//        Console.log("======================");
+//        System.out.println("Full SIP Message: \n" + sipMessage.toString());
+//        Console.log("======================");
         this.sipSignalProcessor.processRequest(evtExt);
 
     }

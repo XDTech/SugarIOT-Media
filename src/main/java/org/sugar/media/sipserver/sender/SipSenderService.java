@@ -93,7 +93,7 @@ public class SipSenderService {
 
                 Response response = message.createResponse(Response.FORBIDDEN, request);
 
-                response.setReasonPhrase("password error");
+                response.setReasonPhrase("register error");
                 SipServer.udpSipProvider().sendResponse(response);
 
             }
@@ -240,7 +240,6 @@ public class SipSenderService {
             return null;
         }
     }
-
 
 
 }
