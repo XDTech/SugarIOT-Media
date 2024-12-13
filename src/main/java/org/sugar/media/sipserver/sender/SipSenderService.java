@@ -91,7 +91,7 @@ public class SipSenderService {
             }
             if (ObjectUtil.isNotNull(message)) {
 
-                Response response = message.createResponse(Response.FORBIDDEN, request);
+                Response response = message.createResponse(Response.UNAUTHORIZED, request);
 
                 response.setReasonPhrase("register error");
                 SipServer.udpSipProvider().sendResponse(response);
@@ -106,86 +106,15 @@ public class SipSenderService {
     }
 
 
-    public void sendDeviceInfoRequest() {
-        try {
-
-            MessageFactory message = this.createMessageFactory();
-
-            if (ObjectUtil.isNotNull(message)) {
-
-                // 构建 SIP 请求行
-                AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
-                MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
-                HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
-                ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("Application", "MANSCDP+xml");
-
-                SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI("34020000001110000004", "192.168.31.28");
-
-                EventHeader catalog = headerFactory.createEventHeader("Catalog");
-
-                List<String> objects = new ArrayList<>();
-
-                objects.add("sugar");
-
-                UserAgentHeader userAgentHeader = headerFactory.createUserAgentHeader(objects);
-
-                // to
-                SipURI toSipURI = SipFactory.getInstance().createAddressFactory().createSipURI("34020000001110000004", "192.168.31.28");
-                Address toAddress = SipFactory.getInstance().createAddressFactory().createAddress(toSipURI);
-                ToHeader toHeader = SipFactory.getInstance().createHeaderFactory().createToHeader(toAddress, null);
-
-
-                // via
-                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-                ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader("192.168.31.65", 5060, "UDP", "2");
-                viaHeader.setRPort();  // 使用 RPort 标志，告知对方设备回送到消息的实际来源地址
-                viaHeaders.add(viaHeader);
-                // from
-                SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI("34020000002000000001", "192.168.31.65");
-                Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
-                FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, "3");
-
-
-                String xmlContent = """
-                        <?xml version="1.0"?>
-                        <Query>
-                            <CmdType>Catalog</CmdType>
-                            <SN>1</SN>
-                            <DeviceID>34020000001110000004</DeviceID>
-                        </Query>
-                        """;
-                // 构建 MESSAGE 请求
-                // Forwards
-                MaxForwardsHeader maxForwards = SipFactory.getInstance().createHeaderFactory().createMaxForwardsHeader(70);
-                // ceq
-                CSeqHeader cSeqHeader = SipFactory.getInstance().createHeaderFactory().createCSeqHeader(1L, Request.MESSAGE);
-
-
-                Request request = SipFactory.getInstance().createMessageFactory().createRequest(requestURI, Request.MESSAGE, SipServer.udpSipProvider().getNewCallId(), cSeqHeader, fromHeader, toHeader, viaHeaders, maxForwards);
-
-
-                request.addHeader(catalog);
-                request.addHeader(userAgentHeader);
-                request.setContent(xmlContent, contentTypeHeader);
-                SipServer.udpSipProvider().sendRequest(request);
-
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info("发送消息失败");
-        }
-
-    }
 
     public void sendOKMessage(RequestEventExt requestEventExt) {
 
-        this.sendMessage(requestEventExt, Response.OK);
+        this.sendResponseMessage(requestEventExt, Response.OK);
 
     }
 
 
-    public void sendMessage(RequestEventExt requestEventExt, int status) {
+    public void sendResponseMessage(RequestEventExt requestEventExt, int status) {
         try {
             SIPRequest request = (SIPRequest) requestEventExt.getRequest();
             // ServerTransaction serverTransaction = this.createServerTransaction(requestEventExt, request);

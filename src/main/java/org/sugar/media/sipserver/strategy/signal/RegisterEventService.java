@@ -9,6 +9,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.sugar.media.beans.gb.DeviceBean;
+import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.sipserver.utils.SipCacheService;
 import org.sugar.media.sipserver.utils.SipConfUtils;
@@ -34,6 +35,9 @@ public class RegisterEventService implements SipSignalHandler {
     @Resource
     private SipConfUtils sipConfUtils;
 
+
+    @Resource
+    private SipRequestSender sipRequestSender;
 
     @Resource
     private SipSenderService sipSenderService;
@@ -117,7 +121,13 @@ public class RegisterEventService implements SipSignalHandler {
 
                 log.info(authTemplate, tip, "设备上线成功", deviceId, request.getViaHost(), request.getViaPort());
 
-                this.sipSenderService.sendDeviceInfoRequest();
+                DeviceBean deviceBean = new DeviceBean();
+                deviceBean.setHost(request.getViaHost());
+                deviceBean.setPort(request.getViaPort());
+                deviceBean.setTransport(this.sipUtils.getTransportProtocol(request));
+                deviceBean.setDeviceId(this.sipUtils.getDeviceId(request));
+                Console.log("解析设备的bean{}", deviceBean.toString());
+                this.sipRequestSender.sendDeviceInfo(deviceBean);
             }
 
 

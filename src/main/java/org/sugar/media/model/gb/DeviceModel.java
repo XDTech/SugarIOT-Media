@@ -53,5 +53,22 @@ public class DeviceModel {
     private String deviceId;// 设备id 规则:[租户编码]+0000+7位流水号生成
 
 
+    private String transport;   // UDP TCP
+
     private String pwd; //国标设备验证id 为空采用系统密码
+
+
+    private String host;
+
+    private Integer port;
+
+    private String deviceName; //设备名称
+
+    private String manufacturer;// 厂商
+
+    private String firmware;
+
+    private String model;// 设备型号
+
+    private Integer channel;//通道数
 }

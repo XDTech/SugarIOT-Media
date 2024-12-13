@@ -44,10 +44,8 @@ public class SipServer implements CommandLineRunner {
             properties.setProperty("javax.sip.STACK_NAME", "SIPServer");
             properties.setProperty("javax.sip.PATH_NAME", "gov.nist");
 
-            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "sip_debug.log");
-            properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "sip_server.log");
 
-// 接收所有notify请求，即使没有订阅
+          // 接收所有notify请求，即使没有订阅
             properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true");
             properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
             properties.setProperty("gov.nist.javax.sip.CANCEL_CLIENT_TRANSACTION_CHECKED", "true");

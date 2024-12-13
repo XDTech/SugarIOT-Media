@@ -12,7 +12,7 @@ import org.sugar.media.sipserver.utils.SipUtils;
 /**
  * Date:2024/12/10 13:46:20
  * Author：Tobin
- * Description: 保活事件回调
+ * Description: 保活事件回调 30s默认
  */
 
 
@@ -29,12 +29,12 @@ public class KeepaliveEventService implements SipCmdHandler {
 
     @Override
     public void processMessage(RequestEventExt evtExt) {
-        log.info("调用保活事件");
+/*        log.info("调用保活事件");
 
         String deviceId = this.sipUtils.getDeviceId((SIPRequest) evtExt.getRequest());
-        Console.log("[保活事件] 设备：{}", deviceId);
+        Console.log("[保活事件] 设备：{}", deviceId);*/
 
 
-        this.sipSenderService.sendOKMessage(evtExt);
+        this.sipSenderService.sendAuthErrorMsg(evtExt);
     }
 }

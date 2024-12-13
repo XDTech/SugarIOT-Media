@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.sugar.media.sipserver.strategy.signal.SipSignalProcessor;
 
 import javax.sip.*;
+import javax.sip.header.CSeqHeader;
 import javax.sip.message.Response;
 
 /**
@@ -42,14 +43,18 @@ public class SipEventListener implements SipListener {
      */
     @Override
     public void processRequest(RequestEvent requestEvent) {
-        RequestEventExt evtExt = (RequestEventExt) requestEvent;
+        try {
+            log.warn("处理：{}", requestEvent.getRequest().getMethod());
+            RequestEventExt evtExt = (RequestEventExt) requestEvent;
 //      evtExt.getServerTransaction().;
 
-   //     SIPMessage sipMessage = (SIPMessage) evtExt.getRequest();
-//        Console.log("======================");
-//        System.out.println("Full SIP Message: \n" + sipMessage.toString());
-//        Console.log("======================");
-        this.sipSignalProcessor.processRequest(evtExt);
+            SIPMessage sipMessage = (SIPMessage) evtExt.getRequest();
+
+            this.sipSignalProcessor.processRequest(evtExt);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -63,16 +68,29 @@ public class SipEventListener implements SipListener {
      */
     @Override
     public void processResponse(ResponseEvent responseEvent) {
-        ResponseEventExt response1 = (ResponseEventExt) responseEvent.getResponse();
+        try {
+            log.info("收到摄像机服务响应");
+            Response response = responseEvent.getResponse();
+            int status = response.getStatusCode();
+            // Success
+            if (((status >= Response.OK) && (status < Response.MULTIPLE_CHOICES)) || status == Response.UNAUTHORIZED) {
+                CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
+                String method = cseqHeader.getMethod();
+                log.info("response method:" + method);
+            } else if ((status >= Response.TRYING) && (status < Response.OK)) {
+                // 增加其它无需回复的响应，如101、180等
+                log.info("status:" + status);
+            } else {
+                log.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase());
+                if (responseEvent.getDialog() != null) {
+                    responseEvent.getDialog().delete();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
 
-        log.info("收到摄像机服务响应");
-        Response response = responseEvent.getResponse();
-        int status = response.getStatusCode();
-        if ((status >= 200) && (status < 300)) { //Success!
-            log.info("sent-----success");
-            return;
         }
-        log.info("Previous message not sent: " + status);
+
     }
 
     @Override
@@ -97,6 +115,7 @@ public class SipEventListener implements SipListener {
 
     @Override
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
-        log.info("sip:事务中断");
+
+        log.info("sip:事务中断:{}", dialogTerminatedEvent.getDialog().getDialogId());
     }
 }

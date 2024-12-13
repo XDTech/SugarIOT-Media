@@ -20,4 +20,6 @@ public class SipConfUtils {
     private String pwd;
     private String id;
     private String ip;
+
+    private long expires;
 }

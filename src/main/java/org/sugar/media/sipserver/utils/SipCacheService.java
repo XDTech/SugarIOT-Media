@@ -46,4 +46,16 @@ public class SipCacheService {
     }
 
 
+    // 使用 Redis 操作
+    public Long getNextCSeqFromRedis(String deviceId) {
+        String key = "device:" + deviceId + ":cseq";
+
+        // 如果键不存在，设置初始值
+        if (Boolean.FALSE.equals(stringRedisTemplate.hasKey(key))) {
+            stringRedisTemplate.opsForValue().set(key, "1");
+            return 1L;
+        }
+
+        return stringRedisTemplate.opsForValue().increment(key);
+    }
 }
