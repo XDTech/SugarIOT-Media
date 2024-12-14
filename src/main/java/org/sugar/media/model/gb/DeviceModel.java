@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.sugar.media.enums.MediaServerEnum;
+import org.sugar.media.enums.StatusEnum;
 
 import java.util.Date;
 
@@ -71,4 +73,10 @@ public class DeviceModel {
     private String model;// 设备型号
 
     private Integer channel;//通道数
+
+
+//    @NotNull
+//    @Enumerated(EnumType.STRING)
+//    @Column(columnDefinition = "varchar(20) default 'offline'")
+//    private StatusEnum status = StatusEnum.offline;// 状态
 }

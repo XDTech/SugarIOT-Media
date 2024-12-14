@@ -21,7 +21,7 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-public class SipServer implements CommandLineRunner {
+public class SipServer  {
 
 
     private SipFactory sipFactory;
@@ -36,8 +36,7 @@ public class SipServer implements CommandLineRunner {
     @Resource
     private SipEventListener sipEventListener;
 
-    @Override
-    public void run(String... args) {
+    public void run() {
         try {
             // 配置 SIP 属性
             Properties properties = new Properties();

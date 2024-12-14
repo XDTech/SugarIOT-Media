@@ -9,6 +9,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.sugar.media.beans.gb.DeviceBean;
+import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.sipserver.utils.SipCacheService;
@@ -121,6 +122,7 @@ public class RegisterEventService implements SipSignalHandler {
 
                 log.info(authTemplate, tip, "设备上线成功", deviceId, request.getViaHost(), request.getViaPort());
 
+                this.sipCacheService.setDeviceStatus(deviceId, StatusEnum.online.getStatus());
                 DeviceBean deviceBean = new DeviceBean();
                 deviceBean.setHost(request.getViaHost());
                 deviceBean.setPort(request.getViaPort());

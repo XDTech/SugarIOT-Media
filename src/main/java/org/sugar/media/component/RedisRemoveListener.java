@@ -1,9 +1,13 @@
-package org.sugar.media.config;
+package org.sugar.media.component;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
+import lombok.Data;
 import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.sugar.media.beans.SocketMsgBean;
@@ -23,44 +27,38 @@ import java.util.Optional;
  * Description:
  */
 @Component
-public class RedisKeyExpirationListener extends KeyExpirationEventMessageListener {
-
+@Data
+public class RedisRemoveListener implements MessageListener {
 
     @Resource
     private ZlmNodeService zlmNodeService;
 
-
-    public RedisKeyExpirationListener(RedisMessageListenerContainer listenerContainer) {
-        super(listenerContainer);
-        // TODO Auto-generated constructor stub
-    }
+    //监听主题
+    private final PatternTopic topic = new PatternTopic("__keyevent@*__:del");
 
     /**
-     * 针对redis数据失效事件，进行数据处理
-     *
-     * @param message
-     * @param pattern
+     * @param message 消息
+     * @param pattern 主题
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        // message.toString()可以获取失效的key
-        String expiredKey = message.toString();
-        System.out.println(expiredKey + "=-===");
-        System.out.println(message.getBody().toString() + "=-===");
-        if (expiredKey.startsWith(MediaCacheService.REDIS_KEY_PREFIX)) {
+        String topic = new String(pattern);
+        String msg = new String(message.getBody());
+        System.out.println("收到key的删除，消息主题是：" + topic + ",消息内容是：" + msg);
+        if (msg.startsWith(MediaCacheService.REDIS_KEY_PREFIX)) {
 
-            String[] split = expiredKey.split(MediaCacheService.REDIS_KEY_PREFIX);
+            String[] split = msg.split(MediaCacheService.REDIS_KEY_PREFIX);
 
             String mediaId = split[1];
-            LeastConnectionUtil.removeServerList(mediaId);
 
+            LeastConnectionUtil.removeServerList(mediaId);
             Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(mediaId));
+            StaticLog.info("{}", node.isPresent());
             node.ifPresent(nodeModel -> WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOffline, new Date(), nodeModel.getName())));
 
 
         }
-
-
     }
+
 
 }

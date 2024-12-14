@@ -62,7 +62,7 @@ public class DeviceInfoEventService implements SipCmdHandler {
         // 获取设备信息后，应该每次都要更新设备信息
         DeviceModel device = this.deviceService.getDevice(deviceId);
 
-        if (ObjectUtil.isEmpty(device)) {
+        if (ObjectUtil.isNull(device)) {
             device = new DeviceModel();
         }
 
@@ -80,9 +80,7 @@ public class DeviceInfoEventService implements SipCmdHandler {
         this.sipSenderService.sendOKMessage(evtExt);
 
 
-
         this.sipRequestSender.sendCatalog(sipDevice);
-
 
 
     }
