@@ -10,8 +10,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
 import org.sugar.media.enums.ResponseEnum;
+import org.sugar.media.enums.RoleEnum;
+import org.sugar.media.model.TenantModel;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.security.UserSecurity;
+import org.sugar.media.service.TenantService;
 import org.sugar.media.service.UserService;
 import org.sugar.media.beans.UserBean;
 import org.sugar.media.beans.ResponseBean;
@@ -46,6 +49,10 @@ public class UserController {
 
     @Resource
     private UserSecurity userSecurity;
+
+    @Resource
+    private TenantService tenantService;
+
 
     private final SecurityUtils securityUtils = new SecurityUtils();
 
@@ -115,7 +122,7 @@ public class UserController {
         String pwd = this.securityUtils.shaEncode(newUser.getPassword() + salt);
 
         newUser.setPassword(pwd);
-
+        newUser.setRole(RoleEnum.tenant_admin);
         UserModel userPojo = this.mUserService.createMUser(newUser);
         // 序列化返回
         UserBean newAminUserBean = new UserBean();
@@ -173,7 +180,18 @@ public class UserController {
         UserModel currentAdminUser = this.userSecurity.getCurrentAdminUser();
 
 
-        return ResponseEntity.ok(ResponseBean.success(currentAdminUser));
+        UserBean userBean=new UserBean();
+
+        BeanUtil.copyProperties(currentAdminUser,userBean);
+
+
+        Optional<TenantModel> tenant = this.tenantService.getTenant(userBean.getTenantId());
+
+        if(tenant.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+        userBean.setTenantCode(tenant.get().getCode());
+
+        return ResponseEntity.ok(ResponseBean.success(userBean));
     }
 
 }

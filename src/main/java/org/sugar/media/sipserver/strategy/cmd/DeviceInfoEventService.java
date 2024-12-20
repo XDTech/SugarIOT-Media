@@ -80,7 +80,7 @@ public class DeviceInfoEventService implements SipCmdHandler {
         this.sipSenderService.sendOKMessage(evtExt);
 
 
-        this.sipRequestSender.sendCatalog(sipDevice);
+        this.sipRequestSender.sendCatalog(this.sipCacheService.getSipDevice(deviceId));
 
 
     }

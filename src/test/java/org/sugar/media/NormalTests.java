@@ -1,5 +1,7 @@
 package org.sugar.media;
 
+import cn.hutool.core.lang.Console;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.jwt.JWT;
@@ -23,8 +25,12 @@ public class NormalTests {
 
     @Test
     void normalTest(){
-        final JWTSigner signer = JWTSignerUtil.hs256("13".getBytes());
-        JWT jwt = JWT.create().setSigner(signer);
+
+        String format = StrUtil.format("{}0000{}", 1, 1);
+        Console.log(format);
+
+//        final JWTSigner signer = JWTSignerUtil.hs256("13".getBytes());
+//        JWT jwt = JWT.create().setSigner(signer);
 
 
     }

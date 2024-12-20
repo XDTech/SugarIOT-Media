@@ -1,6 +1,7 @@
 package org.sugar.media.sipserver.strategy.signal;
 
 import cn.hutool.core.lang.Console;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import gov.nist.javax.sip.RequestEventExt;
@@ -8,8 +9,11 @@ import gov.nist.javax.sip.message.SIPRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.gb.DeviceBean;
+import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.sipserver.utils.SipCacheService;
@@ -19,6 +23,7 @@ import org.sugar.media.sipserver.utils.helper;
 
 import javax.sip.SipProvider;
 import javax.sip.header.AuthorizationHeader;
+import java.util.Date;
 
 
 /**
@@ -122,7 +127,17 @@ public class RegisterEventService implements SipSignalHandler {
 
                 log.info(authTemplate, tip, "设备上线成功", deviceId, request.getViaHost(), request.getViaPort());
 
+                boolean online = this.sipCacheService.isOnline(deviceId);
+
                 this.sipCacheService.setDeviceStatus(deviceId, StatusEnum.online.getStatus());
+                // todo:发送ws消息
+                if (!online) {
+                    ThreadUtil.execute(() -> {
+                        WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOnline, new Date(), sipDevice.getName()));
+                    });
+                }
+
+
                 DeviceBean deviceBean = new DeviceBean();
                 deviceBean.setHost(request.getViaHost());
                 deviceBean.setPort(request.getViaPort());
@@ -130,6 +145,8 @@ public class RegisterEventService implements SipSignalHandler {
                 deviceBean.setDeviceId(this.sipUtils.getDeviceId(request));
                 Console.log("解析设备的bean{}", deviceBean.toString());
                 this.sipRequestSender.sendDeviceInfo(deviceBean);
+
+
             }
 
 

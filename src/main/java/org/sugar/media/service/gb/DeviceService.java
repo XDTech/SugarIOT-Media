@@ -1,17 +1,27 @@
 package org.sugar.media.service.gb;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
+import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.repository.gb.DeviceRepo;
 import org.sugar.media.sipserver.utils.SipCacheService;
 import org.sugar.media.utils.BeanConverterUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.sugar.media.sipserver.utils.SipCacheService.*;
@@ -57,6 +67,41 @@ public class DeviceService {
     }
 
 
+    // 分页查询
+    public Page<DeviceModel> getDevicePageList(Integer pi, Integer ps, String name, Long tenantId) {
+        // Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        PageRequest pageRequest = PageRequest.of(pi - 1, ps);
+        Specification<DeviceModel> specification = (Root<DeviceModel> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+
+            // 用于暂时存放查询条件的集合
+            List<Predicate> predicatesList = new ArrayList<>();
+
+            if (!StrUtil.isEmpty(name)) {
+                predicatesList.add(cb.like(root.get("name"), "%" + name + "%"));
+            }
+            if (tenantId != null) {
+                predicatesList.add(cb.equal(root.get("tenantId"), tenantId));
+            }
+            // --------------------------------------------
+            // 模糊查询
+            /**
+             if (!StrUtil.isEmpty(username)) {
+             predicatesList.add(cb.like(root.get("username"), "%" + username + "%"));
+             }
+             if (!StrUtil.isEmpty(status)) {
+             predicatesList.add(cb.equal(root.get("status"), UserStatusEnum.valueOf(status)));
+             }
+             **/
+            Predicate[] p = new Predicate[predicatesList.size()];
+            query.where(predicatesList.toArray(p));
+            query.orderBy(cb.desc(root.get("createdAt")));
+            return query.getGroupRestriction();
+
+        };
+        return this.deviceRepo.findAll(specification, pageRequest);
+
+    }
+
     public void write2cache() {
 
 
@@ -79,7 +124,6 @@ public class DeviceService {
             this.sipCacheService.setSipDevice(bean.getDeviceId(), bean);
 
             // 保活写入缓存
-            StaticLog.warn("状态：{}", StatusEnum.offline.getStatus());
             this.sipCacheService.setDeviceStatus(bean.getDeviceId(), StatusEnum.offline.getStatus());
         }
 

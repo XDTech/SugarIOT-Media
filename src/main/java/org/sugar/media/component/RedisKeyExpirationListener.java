@@ -1,6 +1,7 @@
 package org.sugar.media.component;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.ObjectUtil;
 import jakarta.annotation.Resource;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
@@ -70,9 +71,14 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
         // 国标设备保活过期
         if (expiredKey.startsWith(SipCacheService.sip_device_keepalive_PREFIX)) {
 
-            String[] split = expiredKey.split(MediaCacheService.REDIS_KEY_PREFIX);
+            String[] split = expiredKey.split(SipCacheService.sip_device_keepalive_PREFIX);
 
             String deviceId = split[1];
+
+            DeviceModel device = this.deviceService.getDevice(deviceId);
+            if(ObjectUtil.isNotEmpty(device)){
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), device.getName()));
+            }
 
 
 

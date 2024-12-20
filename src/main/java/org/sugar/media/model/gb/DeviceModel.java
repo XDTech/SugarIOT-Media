@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.sugar.media.enums.DeviceTypeEnum;
 import org.sugar.media.enums.MediaServerEnum;
 import org.sugar.media.enums.StatusEnum;
 
@@ -48,7 +49,12 @@ public class DeviceModel {
 
 
     @NotBlank
-    private String name; // 设备名称
+    private String name; // 名称
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(20)")
+    private DeviceTypeEnum deviceType; // 设备类型
 
 
     @NotBlank

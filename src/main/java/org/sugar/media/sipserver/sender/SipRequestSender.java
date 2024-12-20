@@ -47,9 +47,9 @@ public class SipRequestSender {
         SipProvider sipProvider = SipServer.udpSipProvider();
         CallIdHeader newCallId = sipProvider.getNewCallId();
 
-        Request catalog = this.sipRequestService.createDeviceInfo(deviceBean, newCallId);
+        Request deviceInfo = this.sipRequestService.createDeviceInfo(deviceBean, newCallId);
 
-        sipProvider.sendRequest(catalog);
+        sipProvider.sendRequest(deviceInfo);
 
     }
 
