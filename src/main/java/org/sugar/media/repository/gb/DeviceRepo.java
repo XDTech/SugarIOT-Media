@@ -16,4 +16,6 @@ import org.sugar.media.model.node.NodeModel;
 public interface DeviceRepo extends JpaRepository<DeviceModel, Long>, JpaSpecificationExecutor<DeviceModel> {
 
     DeviceModel findAllByDeviceId(String deviceId);
+
+
 }

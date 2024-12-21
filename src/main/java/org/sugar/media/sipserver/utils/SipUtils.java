@@ -13,14 +13,20 @@ import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.sugar.media.beans.hooks.zlm.AddressBean;
+import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import javax.sip.header.FromHeader;
 import javax.sip.header.ViaHeader;
 import javax.xml.xpath.XPathConstants;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Date:2024/12/09 20:23:47
@@ -109,7 +115,7 @@ public class SipUtils {
     }
 
     public String getNewTag() {
-        return String.valueOf(System.currentTimeMillis()+RandomUtil.randomNumbers(6));
+        return String.valueOf(System.currentTimeMillis() + RandomUtil.randomNumbers(6));
     }
 
 
@@ -137,4 +143,54 @@ public class SipUtils {
         return "UNKNOWN"; // 如果无法解析
     }
 
+    // 解析catalog
+
+    public List<DeviceChannelModel> parseCatalog(String xml, Long deviceId, Long tenantId) {
+
+        List<DeviceChannelModel> channelModelList = new ArrayList<>();
+        // 使用 Hutool 解析 XML
+        Document document = XmlUtil.parseXml(xml);
+
+        // 获取根节点
+        Element root = XmlUtil.getRootElement(document);
+
+        // 获取 CmdType
+        String cmdType = XmlUtil.elementText(root, "CmdType");
+        System.out.println("CmdType: " + cmdType);
+
+
+        // 获取 SumNum
+        String sumNum = XmlUtil.elementText(root, "SumNum");
+        System.out.println("SumNum: " + sumNum);
+
+        // 解析 DeviceList 中的 Item 节点
+        Element deviceList = XmlUtil.getElement(root, "DeviceList");
+        List<Element> item = XmlUtil.getElements(deviceList, "Item");
+
+
+        for (Element element : item) {
+
+            DeviceChannelModel deviceChannelModel = new DeviceChannelModel();
+            deviceChannelModel.setDeviceId(deviceId);
+            deviceChannelModel.setTenantId(tenantId);
+            deviceChannelModel.setChannelCode(XmlUtil.elementText(element, "DeviceID"));
+            deviceChannelModel.setChannelName(XmlUtil.elementText(element, "Name"));
+            deviceChannelModel.setManufacturer(XmlUtil.elementText(element, "Manufacturer"));
+            deviceChannelModel.setModel(XmlUtil.elementText(element, "Model"));
+            deviceChannelModel.setOwner(XmlUtil.elementText(element, "Owner"));
+            deviceChannelModel.setCivilCode(XmlUtil.elementText(element, "CivilCode"));
+            deviceChannelModel.setAddress(XmlUtil.elementText(element, "Address"));
+            deviceChannelModel.setParental(Convert.toInt(XmlUtil.elementText(element, "Parental")));
+            deviceChannelModel.setParentId(XmlUtil.elementText(element, "ParentID"));
+            deviceChannelModel.setSafetyWay(Convert.toInt(XmlUtil.elementText(element, "SafetyWay")));
+            deviceChannelModel.setRegisterWay(Convert.toInt(XmlUtil.elementText(element, "RegisterWay")));
+            deviceChannelModel.setSecrecy(Convert.toInt(XmlUtil.elementText(element, "Secrecy")));
+            deviceChannelModel.setStatus(XmlUtil.elementText(element, "Status")
+                    .equalsIgnoreCase("ON") ? StatusEnum.online : StatusEnum.offline);
+            channelModelList.add(deviceChannelModel);
+
+        }
+        return  channelModelList;
+
+    }
 }

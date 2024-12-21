@@ -65,7 +65,8 @@ public class SipSenderService {
                     request.getToHeader().setTag(this.sipUtils.getNewTag());
                 }
                 WWWAuthenticateHeader authHeader = SipFactory.getInstance().createHeaderFactory().createWWWAuthenticateHeader("Digest");
-                authHeader.setParameter("realm", "example.com");
+
+                authHeader.setParameter("realm", "sugar.media.com");
                 authHeader.setParameter("nonce", "some_nonce_value");
                 response.setHeader(authHeader);
                 SipServer.udpSipProvider().sendResponse(response);
