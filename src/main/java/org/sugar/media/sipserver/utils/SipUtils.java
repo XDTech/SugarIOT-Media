@@ -23,10 +23,8 @@ import org.w3c.dom.NodeList;
 import javax.sip.header.FromHeader;
 import javax.sip.header.ViaHeader;
 import javax.xml.xpath.XPathConstants;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.Charset;
+import java.util.*;
 
 /**
  * Date:2024/12/09 20:23:47
@@ -187,10 +185,18 @@ public class SipUtils {
             deviceChannelModel.setSecrecy(Convert.toInt(XmlUtil.elementText(element, "Secrecy")));
             deviceChannelModel.setStatus(XmlUtil.elementText(element, "Status")
                     .equalsIgnoreCase("ON") ? StatusEnum.online : StatusEnum.offline);
+
+            deviceChannelModel.setSyncTime(new Date());
             channelModelList.add(deviceChannelModel);
 
         }
         return  channelModelList;
+
+    }
+
+
+    public String getXmlContent(SIPRequest request){
+        return new String(request.getRawContent(), Charset.forName("GB2312"));
 
     }
 }

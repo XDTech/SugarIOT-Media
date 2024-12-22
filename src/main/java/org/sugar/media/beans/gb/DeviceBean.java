@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.sugar.media.enums.DeviceTypeEnum;
 
+import java.util.Date;
+
 /**
  * Date:2024/12/12 11:05:14
  * Author：Tobin
@@ -45,4 +47,6 @@ public class DeviceBean {
     private String model;// 设备型号
 
     private Integer channel;//通道数
+
+    private Date syncTime;
 }

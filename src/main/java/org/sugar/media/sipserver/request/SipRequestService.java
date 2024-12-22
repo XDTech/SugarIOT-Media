@@ -41,7 +41,7 @@ public class SipRequestService {
     @Autowired
     private SipConfUtils sipConfUtils;
 
-    private String catalogTemplate = """
+    private final String catalogTemplate = """
             <?xml version="1.0"?>
             <Query>
                 <CmdType>Catalog</CmdType>

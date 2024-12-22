@@ -41,6 +41,12 @@ public class SipCacheService {
 
         stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(deviceBean));
     }
+    public void delSipDevice(String deviceId) {
+
+
+        String key = SIP_DEVICE_KEY + deviceId;
+        stringRedisTemplate.delete(key);
+    }
 
     // 获取媒体状态
     public DeviceBean getSipDevice(String deviceId) {
@@ -96,6 +102,7 @@ public class SipCacheService {
         String key = sip_device_keepalive_PREFIX + deviceId;
         return stringRedisTemplate.opsForValue().get(key);
     }
+
 
     // 删除和过期都能触发设备的重新认证
     public void deleteDevice(String deviceId) {

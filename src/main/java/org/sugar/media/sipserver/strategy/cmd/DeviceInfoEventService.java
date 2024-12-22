@@ -18,6 +18,7 @@ import org.sugar.media.sipserver.utils.SipCacheService;
 import org.sugar.media.sipserver.utils.SipUtils;
 
 import javax.sip.message.Request;
+import java.util.Date;
 
 /**
  * Date:2024/12/10 13:46:20
@@ -66,20 +67,20 @@ public class DeviceInfoEventService implements SipCmdHandler {
             device = new DeviceModel();
         }
 
-        String xmlContent = new String(request.getRawContent());
+        String xmlContent =this.sipUtils.getXmlContent(request);
 
         // 存储设备发过来的信息
         device.setHost(request.getViaHost());
         device.setPort(request.getViaPort());
         device.setTransport(this.sipUtils.getTransportProtocol(request));
-
+        device.setSyncTime(new Date());
 
         this.sipUtils.getDeviceInfo(xmlContent, device);
-
         this.deviceService.createDevice(device);
+        // 给设备发送200消息
         this.sipSenderService.sendOKMessage(evtExt);
 
-
+        // 发完之后，要发送catalog消息 获取设备目录
         this.sipRequestSender.sendCatalog(this.sipCacheService.getSipDevice(deviceId));
 
 

@@ -32,11 +32,7 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
 
 
     @Resource
-    private ZlmNodeService zlmNodeService;
-
-    @Resource
-    private DeviceService deviceService;
-
+    private RedisKeyService redisKeyService;
 
     public RedisKeyExpirationListener(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
@@ -57,30 +53,16 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
         System.out.println(message.getBody().toString() + "=-===");
         if (expiredKey.startsWith(MediaCacheService.REDIS_KEY_PREFIX)) {
 
-            String[] split = expiredKey.split(MediaCacheService.REDIS_KEY_PREFIX);
 
-            String mediaId = split[1];
-            LeastConnectionUtil.removeServerList(mediaId);
-
-            Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(mediaId));
-            node.ifPresent(nodeModel -> WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOffline, new Date(), nodeModel.getName())));
-
+            this.redisKeyService.mediaKeyPrefix(expiredKey);
 
         }
 
         // 国标设备保活过期
         if (expiredKey.startsWith(SipCacheService.sip_device_keepalive_PREFIX)) {
 
-            String[] split = expiredKey.split(SipCacheService.sip_device_keepalive_PREFIX);
 
-            String deviceId = split[1];
-
-            DeviceModel device = this.deviceService.getDevice(deviceId);
-            if(ObjectUtil.isNotEmpty(device)){
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), device.getName()));
-            }
-
-
+            this.redisKeyService.sipKeyPrefix(expiredKey);
 
         }
 

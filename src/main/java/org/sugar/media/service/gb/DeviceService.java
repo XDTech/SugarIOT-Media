@@ -23,6 +23,7 @@ import org.sugar.media.utils.BeanConverterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.sugar.media.sipserver.utils.SipCacheService.*;
 
@@ -37,6 +38,9 @@ public class DeviceService {
 
     @Resource
     private DeviceRepo deviceRepo;
+
+    @Resource
+    private ChannelService channelService;
 
     @Resource
     private SipCacheService sipCacheService;
@@ -57,14 +61,33 @@ public class DeviceService {
     }
 
 
+
+
+    @Transactional
+    public void deleteDevice(DeviceModel deviceModel){
+
+        // 首先移除缓存
+        this.sipCacheService.deleteDevice(deviceModel.getDeviceId());
+        this.sipCacheService.delSipDevice(deviceModel.getDeviceId());
+        this.channelService.deleteAll(deviceModel.getId());
+        this.deviceRepo.delete(deviceModel);
+    }
+
+
     @Transactional
     public void updateDevice(DeviceModel deviceModel) {
         this.deviceRepo.save(deviceModel);
     }
 
-    public DeviceModel getDevice(String deviceId) {
-        return this.deviceRepo.findAllByDeviceId(deviceId);
+    public DeviceModel getDevice(String deviceCode) {
+        return this.deviceRepo.findAllByDeviceId(deviceCode);
     }
+
+
+    public Optional<DeviceModel> getDevice(Long deviceId) {
+        return this.deviceRepo.findById(deviceId);
+    }
+
 
 
     // 分页查询

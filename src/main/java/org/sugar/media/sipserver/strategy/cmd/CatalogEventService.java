@@ -19,6 +19,9 @@ import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.sipserver.utils.SipCacheService;
 import org.sugar.media.sipserver.utils.SipUtils;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -79,11 +82,11 @@ public class CatalogEventService implements SipCmdHandler {
         }
 
         // 查询设备通道
-        // TODO:  1.因为需要维护通道，此处先把原有的通道都删除
+        // TODO: 1.因为需要维护通道，此处先把原有的通道都删除
         this.channelService.deleteAll(device.getId());
 
         // TODO:然后把解析出来的数据都存到数据库中
-        String xmlContent = new String(request.getRawContent());
+        String xmlContent = this.sipUtils.getXmlContent(request);
         List<DeviceChannelModel> channelModels = this.sipUtils.parseCatalog(xmlContent, device.getId(), device.getTenantId());
 
 
@@ -95,7 +98,5 @@ public class CatalogEventService implements SipCmdHandler {
 
         this.sipRequestSender.sendCatalogSubscribe(sipDevice);
 
-
-        // this.sipRequestSender.sendCancelCatalogSubscribe(sipDevice);
     }
 }

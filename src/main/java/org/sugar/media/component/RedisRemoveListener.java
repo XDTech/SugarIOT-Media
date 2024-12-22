@@ -35,10 +35,7 @@ import java.util.Optional;
 public class RedisRemoveListener implements MessageListener {
 
     @Resource
-    private ZlmNodeService zlmNodeService;
-
-    @Resource
-    private DeviceService deviceService;
+    private RedisKeyService redisKeyService;
     //监听主题
     private final PatternTopic topic = new PatternTopic("__keyevent@*__:del");
 
@@ -48,37 +45,22 @@ public class RedisRemoveListener implements MessageListener {
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        String topic = new String(pattern);
-        String msg = new String(message.getBody());
-        System.out.println("收到key的删除，消息主题是：" + topic + ",消息内容是：" + msg);
-        if (msg.startsWith(MediaCacheService.REDIS_KEY_PREFIX)) {
+        String expiredKey = message.toString();
+        if (expiredKey.startsWith(MediaCacheService.REDIS_KEY_PREFIX)) {
 
-            String[] split = msg.split(MediaCacheService.REDIS_KEY_PREFIX);
 
-            String mediaId = split[1];
-
-            LeastConnectionUtil.removeServerList(mediaId);
-            Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(mediaId));
-            StaticLog.info("{}", node.isPresent());
-            node.ifPresent(nodeModel -> WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOffline, new Date(), nodeModel.getName())));
-
+            this.redisKeyService.mediaKeyPrefix(expiredKey);
 
         }
+
         // 国标设备保活过期
-        if (msg.startsWith(SipCacheService.sip_device_keepalive_PREFIX)) {
-
-            String[] split = msg.split(SipCacheService.sip_device_keepalive_PREFIX);
-
-            String deviceId = split[1];
-
-            DeviceModel device = this.deviceService.getDevice(deviceId);
-            if(ObjectUtil.isNotEmpty(device)){
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), device.getName()));
-            }
+        if (expiredKey.startsWith(SipCacheService.sip_device_keepalive_PREFIX)) {
 
 
+            this.redisKeyService.sipKeyPrefix(expiredKey);
 
         }
+
     }
 
 

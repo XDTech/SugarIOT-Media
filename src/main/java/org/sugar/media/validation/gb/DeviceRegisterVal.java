@@ -1,10 +1,13 @@
 package org.sugar.media.validation.gb;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.groups.Default;
 import lombok.Data;
 import org.sugar.media.enums.DeviceTypeEnum;
 import org.sugar.media.enums.PlayerTypeEnum;
+import org.sugar.media.validation.stream.StreamPullVal;
 import org.sugar.media.validation.validator.EnumValidatorInterface;
 
 /**
@@ -15,6 +18,10 @@ import org.sugar.media.validation.validator.EnumValidatorInterface;
 
 @Data
 public class DeviceRegisterVal {
+
+
+    @NotNull(message = "id can not be null", groups = StreamPullVal.Update.class)
+    private Long id;
 
     @NotBlank(message = "device name not null")
     private String deviceName; // 设备名称
@@ -29,4 +36,8 @@ public class DeviceRegisterVal {
     private  String deviceType;
 
     private String pwd; //国标设备验证id 为空采用系统密码
+
+    public interface Update extends Default {
+
+    }
 }

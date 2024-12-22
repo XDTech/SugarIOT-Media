@@ -80,6 +80,8 @@ public class DeviceModel {
 
     private Integer channel;//通道数
 
+    private Date syncTime;
+
 
 //    @NotNull
 //    @Enumerated(EnumType.STRING)

@@ -1,5 +1,6 @@
 package org.sugar.media.controller.gb;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
@@ -11,20 +12,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
 import org.sugar.media.beans.stream.StreamPullBean;
 import org.sugar.media.enums.DeviceTypeEnum;
+import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.security.UserSecurity;
+import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.gb.DeviceService;
+import org.sugar.media.sipserver.request.SipRequestService;
+import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.utils.SipCacheService;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.validation.gb.DeviceRegisterVal;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,6 +56,9 @@ public class DeviceController {
     @Resource
     private SipCacheService sipCacheService;
 
+    @Resource
+    private SipRequestSender sipRequestSender;
+
     @GetMapping("/page/list")
     public ResponseEntity<?> getDevicePageList(@RequestParam Integer pi, @RequestParam Integer ps, @RequestParam(required = false) String name) {
 
@@ -63,6 +73,15 @@ public class DeviceController {
         })).toList();
 
         return ResponseEntity.ok(ResponseBean.success(devicePageList.getTotalElements(), deviceBeans));
+
+    }
+
+    @GetMapping("/{deviceId}")
+    public ResponseEntity<?> getDevice(@PathVariable Long deviceId) {
+
+        Optional<DeviceModel> device = this.deviceService.getDevice(deviceId);
+
+        return device.<ResponseEntity<?>>map(deviceModel -> ResponseEntity.ok(ResponseBean.success(deviceModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail()));
 
     }
 
@@ -97,5 +116,87 @@ public class DeviceController {
 
     }
 
+    @PutMapping("/register")
+    public ResponseEntity<?> updateDevice(@RequestBody @Validated(DeviceRegisterVal.Update.class) DeviceRegisterVal deviceRegisterVal) {
+
+        Integer tenantCode = this.userSecurity.getCurrentTenantCode();
+        String code = StrUtil.format("{}0000{}", tenantCode, deviceRegisterVal.getDeviceId());
+
+        Optional<DeviceModel> deviceModel = this.deviceService.getDevice(deviceRegisterVal.getId());
+
+        if (deviceModel.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+        // 查询国标设备是否存在
+        DeviceModel device = this.deviceService.getDevice(code);
+
+        if (ObjectUtil.isNotEmpty(device) && !device.getId().equals(deviceModel.get().getId())) {
+            return ResponseEntity.ok(ResponseBean.fail("国标编码已存在"));
+        }
+
+
+        // 如果是修改了sip id 先把之前的踢下线
+        if (!code.equals(deviceModel.get().getDeviceId())) {
+            if (this.sipCacheService.isOnline(deviceModel.get().getDeviceId())) {
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getDeviceName()));
+            }
+            this.sipCacheService.delSipDevice(deviceModel.get().getDeviceId());
+            this.sipCacheService.deleteDevice(deviceModel.get().getDeviceId());
+
+        }
+
+
+        deviceModel.get().setName(deviceRegisterVal.getDeviceName());
+        deviceModel.get().setPwd(deviceRegisterVal.getPwd());
+        deviceModel.get().setDeviceId(code);
+        deviceModel.get().setDeviceType(DeviceTypeEnum.valueOf(deviceRegisterVal.getDeviceType()));
+        this.deviceService.createDevice(deviceModel.get());
+
+        return ResponseEntity.ok(ResponseBean.success());
+
+    }
+
+
+    /**
+     * 重新同步 device catalog
+     *
+     * @param deviceId
+     * @return
+     */
+    @GetMapping("/sync/info/catalog/{deviceId}")
+    public ResponseEntity<?> syncCatalog(@PathVariable Long deviceId) {
+
+
+        Optional<DeviceModel> device = this.deviceService.getDevice(deviceId);
+
+        if (device.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+        if (!this.sipCacheService.isOnline(device.get().getDeviceId())) {
+            return ResponseEntity.ok(ResponseBean.fail("国标设备不在线"));
+        }
+
+        DeviceBean deviceBean = new DeviceBean();
+        BeanUtil.copyProperties(device.get(), deviceBean);
+        this.sipRequestSender.sendDeviceInfo(deviceBean);
+
+        return ResponseEntity.ok(ResponseBean.success());
+
+    }
+
+
+    @DeleteMapping("/{deviceId}")
+    public ResponseEntity<?> deleteDevice(@PathVariable Long deviceId) {
+
+
+        Optional<DeviceModel> device = this.deviceService.getDevice(deviceId);
+
+        if (device.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+        this.deviceService.deleteDevice(device.get());
+
+
+        return ResponseEntity.ok(ResponseBean.success());
+
+
+    }
 
 }
