@@ -7,6 +7,9 @@ import gov.nist.javax.sip.message.SIPMessage;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.sugar.media.sipserver.response.ProcessInviteResponse;
+import org.sugar.media.sipserver.sender.SipRequestSender;
+import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.sipserver.strategy.signal.SipSignalProcessor;
 
 import javax.sip.*;
@@ -33,6 +36,18 @@ public class SipEventListener implements SipListener {
      */
     @Resource
     private SipSignalProcessor sipSignalProcessor;
+
+
+    @Resource
+    private SipSenderService sipSenderService;
+
+    @Resource
+    private SipRequestSender sipRequestSender;
+
+
+    @Resource
+    private ProcessInviteResponse processInviteResponse;
+
 
     /**
      * 收到设备的请求
@@ -77,6 +92,16 @@ public class SipEventListener implements SipListener {
                 CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
                 String method = cseqHeader.getMethod();
                 log.info("response method:" + method);
+                if (method.equals("INVITE")) {
+                    // 回复ack
+
+                    this.processInviteResponse.ProcessEvent(responseEvent);
+
+
+
+                }
+
+
             } else if ((status >= Response.TRYING) && (status < Response.OK)) {
                 // 增加其它无需回复的响应，如101、180等
                 log.info("status:" + status);
@@ -118,4 +143,6 @@ public class SipEventListener implements SipListener {
 
         log.info("sip:事务中断:{}", dialogTerminatedEvent.getDialog().getDialogId());
     }
+
+
 }

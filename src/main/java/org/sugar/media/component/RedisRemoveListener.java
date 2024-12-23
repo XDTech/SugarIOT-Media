@@ -1,29 +1,13 @@
 package org.sugar.media.component;
 
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import lombok.Data;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.PatternTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
-import org.sugar.media.beans.SocketMsgBean;
-import org.sugar.media.enums.SocketMsgEnum;
-import org.sugar.media.model.gb.DeviceModel;
-import org.sugar.media.model.node.NodeModel;
-import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.MediaCacheService;
-import org.sugar.media.service.gb.DeviceService;
-import org.sugar.media.service.node.ZlmNodeService;
-import org.sugar.media.sipserver.utils.SipCacheService;
-import org.sugar.media.utils.LeastConnectionUtil;
-
-import java.util.Date;
-import java.util.Optional;
+import org.sugar.media.sipserver.manager.SipCacheService;
 
 /**
  * Date:2024/11/20 13:36:21

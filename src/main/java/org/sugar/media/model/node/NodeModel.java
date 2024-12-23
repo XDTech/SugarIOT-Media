@@ -92,4 +92,8 @@ public class NodeModel {
     @Column(columnDefinition = "int4 default 554")
     private Integer rtspPort;
 
+
+    // rtp
+    @Column(columnDefinition = "int4 default 10000")
+    private Integer rtpPort;
 }

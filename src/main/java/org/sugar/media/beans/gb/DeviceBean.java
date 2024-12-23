@@ -29,6 +29,10 @@ public class DeviceBean {
     private String deviceType; // 设备类型
     private Long nodeId;// 采用哪个节点播放
 
+    private String nodeHost;
+
+    private Integer nodePort;
+
     private String host;// 设备ip
 
     private Integer port;// 设备端口

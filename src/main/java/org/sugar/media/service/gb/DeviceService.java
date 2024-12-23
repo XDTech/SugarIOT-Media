@@ -2,7 +2,6 @@ package org.sugar.media.service.gb;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -16,16 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
-import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.repository.gb.DeviceRepo;
-import org.sugar.media.sipserver.utils.SipCacheService;
+import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.utils.BeanConverterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.sugar.media.sipserver.utils.SipCacheService.*;
+import static org.sugar.media.sipserver.manager.SipCacheService.*;
 
 /**
  * Date:2024/12/13 10:53:08

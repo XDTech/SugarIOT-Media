@@ -13,11 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.sugar.media.sipserver.SipServer;
+import org.sugar.media.sipserver.request.SipRequestService;
 import org.sugar.media.sipserver.utils.SipUtils;
 
-import javax.sip.ServerTransaction;
-import javax.sip.SipFactory;
-import javax.sip.SipProvider;
+import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
@@ -42,6 +41,9 @@ public class SipSenderService {
 
     @Resource
     private SipUtils sipUtils;
+
+    @Resource
+    private SipRequestService sipRequestService;
 
 
     /**
@@ -107,7 +109,6 @@ public class SipSenderService {
     }
 
 
-
     public void sendOKMessage(RequestEventExt requestEventExt) {
 
         this.sendResponseMessage(requestEventExt, Response.OK);
@@ -118,6 +119,8 @@ public class SipSenderService {
     public void sendResponseMessage(RequestEventExt requestEventExt, int status) {
         try {
             SIPRequest request = (SIPRequest) requestEventExt.getRequest();
+
+
             // ServerTransaction serverTransaction = this.createServerTransaction(requestEventExt, request);
             MessageFactory message = this.createMessageFactory();
 
@@ -167,6 +170,85 @@ public class SipSenderService {
         } catch (Exception e) {
             e.printStackTrace();
             log.info("创建MessageFactory失败");
+            return null;
+        }
+    }
+
+
+    public void sendAck(ResponseEvent responseEvent) {
+        try {
+            // 获取响应中的必要头部
+            Response response = responseEvent.getResponse();
+            CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
+            ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
+            FromHeader fromHeader = (FromHeader) response.getHeader(FromHeader.NAME);
+            CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
+
+            // 创建ACK请求
+            Request ackRequest = responseEvent.getDialog().createAck(cseqHeader.getSeqNumber());
+
+            // 设置ACK请求头部信息
+            ackRequest.setHeader(cseqHeader);
+            ackRequest.setHeader(toHeader);
+            ackRequest.setHeader(fromHeader);
+            ackRequest.setHeader(callIdHeader);
+
+            // 发送ACK请求
+            responseEvent.getDialog().sendAck(ackRequest);
+
+            log.info("已发送ACK请求");
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("发送ACK失败：" + e.getMessage());
+        }
+    }
+
+
+
+    @SneakyThrows
+    public void sendByeOkMsg(RequestEventExt requestEventExt) {
+        try {
+            SIPRequest request = (SIPRequest) requestEventExt.getRequest();
+            CSeqHeader cseqHeader = (CSeqHeader) request.getHeader(CSeqHeader.NAME);
+            ToHeader toHeader = (ToHeader) request.getHeader(ToHeader.NAME);
+            FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
+            CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+
+
+            Dialog dialog = requestEventExt.getDialog();
+            Request requestDialog = dialog.createRequest(Request.BYE);
+            requestDialog.setHeader(cseqHeader);
+            requestDialog.setHeader(toHeader);
+            requestDialog.setHeader(fromHeader);
+            requestDialog.setHeader(callIdHeader);
+
+            Response response = SipFactory.getInstance().createMessageFactory().createResponse(Response.OK, request);
+
+            dialog.sendReliableProvisionalResponse(response);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.info("发送认证消息失败");
+        }
+    }
+
+
+
+
+
+
+    private ServerTransaction createServerTransaction(RequestEventExt requestEventExt, SIPRequest request) {
+        try {
+            SipProvider source = (SipProvider) requestEventExt.getSource();
+            ServerTransaction serverTransaction = requestEventExt.getServerTransaction();
+            if (serverTransaction == null) {
+                serverTransaction = source.getNewServerTransaction(request);
+            }
+            return serverTransaction;
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.info("创建ServerTransaction失败");
             return null;
         }
     }

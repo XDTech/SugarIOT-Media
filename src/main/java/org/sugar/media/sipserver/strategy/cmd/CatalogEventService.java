@@ -7,7 +7,6 @@ import gov.nist.javax.sip.message.SIPRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.support.TaskUtils;
 import org.springframework.stereotype.Component;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.model.gb.DeviceChannelModel;
@@ -16,12 +15,9 @@ import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
-import org.sugar.media.sipserver.utils.SipCacheService;
+import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.utils.SipUtils;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import java.util.List;
 
 /**

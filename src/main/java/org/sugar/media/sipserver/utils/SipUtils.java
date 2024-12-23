@@ -199,4 +199,9 @@ public class SipUtils {
         return new String(request.getRawContent(), Charset.forName("GB2312"));
 
     }
+
+    public String getXmlContent(byte[] rawContent){
+        return new String(rawContent, Charset.forName("GB2312"));
+
+    }
 }

@@ -1,16 +1,25 @@
 package org.sugar.media.sipserver.sender;
 
+import cn.hutool.core.lang.Console;
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
+import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.sipserver.SipServer;
+import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.request.SipRequestService;
 
-import javax.sip.SipProvider;
+import javax.sip.*;
+import javax.sip.address.URI;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
+import javax.sip.message.Response;
 
 /**
  * Date:2024/12/12 15:12:31
@@ -25,6 +34,11 @@ public class SipRequestSender {
 
     @Autowired
     private SipRequestService sipRequestService;
+
+
+
+    @Resource
+    private SsrcManager ssrcManager;
 
     // 发送catalog
 
@@ -66,7 +80,6 @@ public class SipRequestSender {
         log.info("发送{}，订阅", deviceBean.getDeviceId());
 
 
-
     }
 
     @SneakyThrows
@@ -80,9 +93,45 @@ public class SipRequestSender {
         log.info("发送取消{}，订阅", deviceBean.getDeviceId());
 
 
+    }
+
+
+    @SneakyThrows
+    public void sendInvite(DeviceBean deviceBean, ChannelBean channelBean, String ssrc) {
+
+        SipProvider sipProvider = SipServer.udpSipProvider();
+        CallIdHeader newCallId = sipProvider.getNewCallId();
+        Request invite = this.sipRequestService.createInvite(deviceBean, channelBean, newCallId, ssrc);
+
+        sipProvider.sendRequest(invite);
 
     }
 
 
-    // 发送invite
+    @SneakyThrows
+    public void sendBye(SsrcInfoBean ssrcInfoBean) {
+        try {
+
+            Dialog dialog = ssrcInfoBean.getDialog();
+
+            Request byeRequest = dialog.createRequest(Request.BYE);
+            Console.log(byeRequest.toString());
+            ClientTransaction clientTransaction = SipServer.udpSipProvider().getNewClientTransaction(byeRequest);
+            dialog.sendRequest(clientTransaction);
+
+
+            // 清除缓存
+
+            this.ssrcManager.releaseSsrc(ssrcInfoBean.getSsrc(), ssrcInfoBean.getChannelCode());
+
+
+            Console.log("发送bye");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
+
+    }
 }

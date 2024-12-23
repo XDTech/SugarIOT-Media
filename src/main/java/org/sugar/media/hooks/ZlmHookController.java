@@ -7,6 +7,7 @@ import cn.hutool.core.lang.Console;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import cn.hutool.jwt.JWTValidator;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
+import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.hooks.zlm.FlowReportBean;
 import org.sugar.media.beans.hooks.zlm.OnPlayBean;
@@ -29,6 +31,10 @@ import org.sugar.media.service.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.service.stream.StreamPullService;
+import org.sugar.media.sipserver.manager.SsrcManager;
+import org.sugar.media.sipserver.request.SipRequestService;
+import org.sugar.media.sipserver.sender.SipRequestSender;
+import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.JwtUtils;
 
@@ -59,6 +65,12 @@ public class ZlmHookController {
 
     @Resource
     private StreamPullService streamPullService;
+
+    @Resource
+    private SsrcManager ssrcManager;
+
+    @Resource
+    private SipRequestSender sipRequestSender;
 
 
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -119,7 +131,10 @@ public class ZlmHookController {
     @PostMapping("/on_play")
     public ResponseBean onPlay(@RequestBody OnPlayBean body) {
 
-        StaticLog.info("{}", body.toString());
+        StaticLog.info("{}", "播放鉴权hook");
+        if (body.getApp().equals("rtp")) {
+            return ResponseBean.success();
+        }
         Map<String, String> authentication = this.authentication(body.getParams());
         if (MapUtil.isEmpty(authentication)) return ResponseBean.fail();
 
@@ -204,7 +219,38 @@ public class ZlmHookController {
     @PostMapping("/stream/none/reader")
     public Map<String, Object> on_stream_none_reader(@RequestBody OnPlayBean body) {
         Map<String, Object> map = new HashMap<>();
-        StaticLog.info("{}", body);
+        StaticLog.info("{}。{}", "触发无人观看事件", body);
+
+        if (body.getApp().equals("rtp")) {
+
+
+            String hexString = body.getStream(); // 16进制字符串
+            // 转换为10进制字符串
+            String ssrc = Convert.toStr(Long.parseLong(hexString, 16));
+            System.out.println("十六进制：" + hexString);
+
+            if (ssrc.length() != 10) {
+                ssrc = "0" + ssrc;
+            }
+            // 通过ssrc 查找
+            SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrc(ssrc);
+
+            if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
+
+                Console.log(ssrcInfoBean.toString());
+
+                this.sipRequestSender.sendBye(ssrcInfoBean);
+
+
+            }
+
+
+            map.put("code", 0);
+            map.put("close", true);
+
+            // 给设备发送bye消息
+            return map;
+        }
 
         Map<String, String> authentication = this.authentication(body.getParams());
         if (MapUtil.isEmpty(authentication)) {

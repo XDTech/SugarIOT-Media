@@ -16,12 +16,11 @@ import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
-import org.sugar.media.sipserver.utils.SipCacheService;
+import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.utils.SipConfUtils;
 import org.sugar.media.sipserver.utils.SipUtils;
 import org.sugar.media.sipserver.utils.helper;
 
-import javax.sip.SipProvider;
 import javax.sip.header.AuthorizationHeader;
 import java.util.Date;
 

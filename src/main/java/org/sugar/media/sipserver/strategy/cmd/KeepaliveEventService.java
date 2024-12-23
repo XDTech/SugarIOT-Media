@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.sipserver.sender.SipSenderService;
-import org.sugar.media.sipserver.utils.SipCacheService;
+import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.utils.SipUtils;
 
 /**
@@ -46,7 +46,7 @@ public class KeepaliveEventService implements SipCmdHandler {
             // 离线返回401
             this.sipSenderService.sendAuthErrorMsg(evtExt);
         } else {
-            Console.log("[保活事件] 设备在线更新缓存：{}", deviceId);
+        //    Console.log("[保活事件] 设备在线更新缓存：{}", deviceId);
             // 在线返回200
             this.sipCacheService.setDeviceStatus(deviceId, StatusEnum.online.getStatus());
             this.sipSenderService.sendOKMessage(evtExt);

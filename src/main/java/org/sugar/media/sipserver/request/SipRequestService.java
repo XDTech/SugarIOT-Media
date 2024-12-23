@@ -1,12 +1,17 @@
 package org.sugar.media.sipserver.request;
 
 import cn.hutool.core.util.StrUtil;
+import gov.nist.javax.sip.message.SIPRequest;
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
-import org.sugar.media.sipserver.utils.SipCacheService;
+import org.sugar.media.beans.gb.SsrcInfoBean;
+import org.sugar.media.sipserver.manager.SipCacheService;
+import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.utils.SipConfUtils;
 import org.sugar.media.sipserver.utils.SipUtils;
 
@@ -40,6 +45,10 @@ public class SipRequestService {
 
     @Autowired
     private SipConfUtils sipConfUtils;
+
+
+
+
 
     private final String catalogTemplate = """
             <?xml version="1.0"?>
@@ -108,6 +117,7 @@ public class SipRequestService {
 
 
     }
+
     @SneakyThrows
     public Request cancelCatalogSubscribe(DeviceBean device, CallIdHeader callIdHeader) {
 
@@ -119,8 +129,71 @@ public class SipRequestService {
         request.addHeader(expiresHeader);
 
 
-
         return request;
+
+
+    }
+
+//    @SneakyThrows
+//    public Request createBye(InviteSessionBean inviteSessionBean) {
+//
+//
+//        DeviceBean deviceBean = new DeviceBean();
+//
+//        deviceBean.setHost(inviteSessionBean.getDeviceHost());
+//        deviceBean.setPort(inviteSessionBean.getDevicePort());
+//        deviceBean.setDeviceId(inviteSessionBean.getChannelId());
+//        deviceBean.setTransport(inviteSessionBean.getChannelId());
+//
+//        CallIdHeader callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(inviteSessionBean.getCallId());
+//        ArrayList<ViaHeader> viaHeaders = createViaHeaders(deviceBean, false);
+//
+//        SIPRequest request = (SIPRequest) this.createBase(deviceBean, Request.BYE, null, inviteSessionBean.getFromTag(), inviteSessionBean.getToTag(), callIdHeader);
+//
+//        request.setVia(viaHeaders);
+//
+//        return request;
+//    }
+
+
+    @SneakyThrows
+    public Request createInvite(DeviceBean device, ChannelBean channelBean, CallIdHeader callIdHeader, String ssrc) {
+
+        try {
+
+
+            device.setDeviceId(channelBean.getChannelCode()); // 此处把通道id当成设备id使用
+
+            Request request = this.createBase(device, Request.INVITE, null, this.sipUtils.getNewTag(), null, callIdHeader);
+
+
+            // subject格式 媒体流发送者ID（通道id）:发送方媒体流序列号,媒体流接收者ID（sip域）:接收方媒体流序列号
+            //  String ssrc = ssrcManager.createPlaySsrc(ssrcInfoBean);
+            String subject = StrUtil.format("{}:{},{}:{}", channelBean.getChannelCode(), ssrc, this.sipConfUtils.getId(), 0);
+            SubjectHeader subjectHeader = SipFactory.getInstance().createHeaderFactory().createSubjectHeader(subject);
+            request.addHeader(subjectHeader);
+            String sdp = StrUtil.format("""
+                    v=0
+                    o={} 0 0 IN IP4 {}
+                    s=Play
+                    u={}:0
+                    c=IN IP4 {}
+                    t=0 0
+                    m=video {} RTP/AVP 96
+                    a=recvonly
+                    a=rtpmap:96 PS/90000
+                    y={}
+                    """, this.sipConfUtils.getId(), device.getNodeHost(), channelBean.getChannelCode(), device.getNodeHost(), device.getNodePort(), ssrc);
+
+            ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
+            request.setContent(sdp, contentTypeHeader);
+
+
+            return request;
+
+        } catch (Exception e) {
+            return null;
+        }
 
 
     }
@@ -140,7 +213,7 @@ public class SipRequestService {
      */
     private Request createBase(DeviceBean device, String method, String content, String fromTag, String toTag, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
         SipURI requestURI = createRequestURI(device);
-        ArrayList<ViaHeader> viaHeaders = createViaHeaders(device);
+        ArrayList<ViaHeader> viaHeaders = createViaHeaders(device, true);
         FromHeader fromHeader = createFromHeader(fromTag);
         ContactHeader contact = createContact(fromHeader.getAddress());
 
@@ -150,6 +223,8 @@ public class SipRequestService {
         UserAgentHeader userAgent = this.createUserAgent();
 
         Request request = SipFactory.getInstance().createMessageFactory().createRequest(requestURI, method, callIdHeader, cSeqHeader, fromHeader, toHeader, viaHeaders, maxForwards);
+
+
         request.setHeader(contact);
 
 
@@ -168,13 +243,15 @@ public class SipRequestService {
         return SipFactory.getInstance().createAddressFactory().createSipURI(device.getDeviceId(), device.getHost() + ":" + device.getPort());
     }
 
-    private ArrayList<ViaHeader> createViaHeaders(DeviceBean device) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+    private ArrayList<ViaHeader> createViaHeaders(DeviceBean device, boolean rPort) throws ParseException, InvalidArgumentException, PeerUnavailableException {
         ArrayList<ViaHeader> viaHeaders = new ArrayList<>();
 
 
         String branch = this.sipUtils.getNewViaBranch();
         ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(sipConfUtils.getIp(), sipConfUtils.getPort(), device.getTransport(), branch);
-        viaHeader.setRPort();
+        if (rPort) {
+            viaHeader.setRPort();
+        }
         viaHeaders.add(viaHeader);
         return viaHeaders;
     }

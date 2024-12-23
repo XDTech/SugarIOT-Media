@@ -7,6 +7,7 @@ import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.repository.gb.ChannelRepo;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Date:2024/12/21 11:41:54
@@ -24,6 +25,13 @@ public class ChannelService {
     public List<DeviceChannelModel> getDeviceChannelList(Long deviceId) {
 
         return this.channelRepo.findByDeviceId(deviceId);
+
+
+    }
+
+    public Optional<DeviceChannelModel> getChannel(Long channelId) {
+
+        return this.channelRepo.findById(channelId);
 
 
     }

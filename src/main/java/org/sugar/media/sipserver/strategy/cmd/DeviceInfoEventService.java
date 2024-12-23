@@ -1,7 +1,5 @@
 package org.sugar.media.sipserver.strategy.cmd;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -14,10 +12,9 @@ import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
-import org.sugar.media.sipserver.utils.SipCacheService;
+import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.utils.SipUtils;
 
-import javax.sip.message.Request;
 import java.util.Date;
 
 /**

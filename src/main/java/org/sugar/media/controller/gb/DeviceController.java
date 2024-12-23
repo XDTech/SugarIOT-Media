@@ -1,11 +1,8 @@
 package org.sugar.media.controller.gb;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -14,27 +11,21 @@ import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.gb.DeviceBean;
-import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
-import org.sugar.media.beans.stream.StreamPullBean;
 import org.sugar.media.enums.DeviceTypeEnum;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
-import org.sugar.media.model.node.NodeModel;
-import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.gb.DeviceService;
-import org.sugar.media.sipserver.request.SipRequestService;
 import org.sugar.media.sipserver.sender.SipRequestSender;
-import org.sugar.media.sipserver.utils.SipCacheService;
+import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.validation.gb.DeviceRegisterVal;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Date:2024/12/14 17:24:17
@@ -139,7 +130,6 @@ public class DeviceController {
             if (this.sipCacheService.isOnline(deviceModel.get().getDeviceId())) {
                 WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getDeviceName()));
             }
-            this.sipCacheService.delSipDevice(deviceModel.get().getDeviceId());
             this.sipCacheService.deleteDevice(deviceModel.get().getDeviceId());
 
         }
