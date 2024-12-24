@@ -102,7 +102,7 @@ public class ChannelService {
         if (channelCode.length() != 20) {
             return false;
         }
-        // 判断前6位租户编码是否想通
+        // 判断前6位租户编码是否相同
         String tenant = channelCode.substring(0, 6);
         if (!tenantCode.equals(tenant)) {
             return false;
