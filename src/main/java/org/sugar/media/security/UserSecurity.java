@@ -3,13 +3,12 @@ package org.sugar.media.security;
 
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.convert.Convert;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.sugar.media.model.TenantModel;
 import org.sugar.media.model.UserModel;
-import org.sugar.media.service.TenantService;
+import org.sugar.media.service.tenant.TenantService;
 
 import java.util.Optional;
 

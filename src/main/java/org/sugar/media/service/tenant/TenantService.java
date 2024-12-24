@@ -1,4 +1,4 @@
-package org.sugar.media.service;
+package org.sugar.media.service.tenant;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

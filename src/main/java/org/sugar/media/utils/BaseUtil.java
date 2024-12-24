@@ -1,7 +1,13 @@
 package org.sugar.media.utils;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.HexUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,5 +38,31 @@ public class BaseUtil {
         return parameterMap;
     }
 
+    // 123 to A1A2
+    public static String ssrc2hex(String hexStr) {
+
+        // 将十进制字符串转换为整数
+        long decimal = Long.parseLong(hexStr);
+
+        // 将整数转换为十六进制字符串
+        String ssrc= Long.toHexString(decimal).toUpperCase();
+
+        if (ssrc.length() != 8) {
+            ssrc = "0" + ssrc;
+        }
+        return ssrc;
+    }
+
+    // A1A2 to 123
+    public static String hex2ssrc(String hexString) {
+        // 转换为10进制字符串
+      String ssrc=   Convert.toStr(Long.parseLong(hexString, 16));
+
+        if (ssrc.length() != 10) {
+            ssrc = "0" + ssrc;
+        }
+        return ssrc;
+
+    }
 }
 

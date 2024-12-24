@@ -9,7 +9,7 @@ import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.server.WebSocketServer;
-import org.sugar.media.service.MediaCacheService;
+import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.sipserver.manager.SipCacheService;

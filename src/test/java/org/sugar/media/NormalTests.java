@@ -11,6 +11,7 @@ import cn.hutool.jwt.signers.JWTSignerUtil;
 import cn.hutool.log.StaticLog;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.sugar.media.utils.BaseUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -28,6 +29,17 @@ import java.util.Map;
 public class NormalTests {
 
 
+    @Test
+    void test(){
+
+        String s = BaseUtil.ssrc2hex("200008772");
+        Console.log(s);
+
+         s = BaseUtil.hex2ssrc("0BEBE444");
+
+        Console.log(s);
+
+    }
     @Test
     void normalTest(){
         String xml = """

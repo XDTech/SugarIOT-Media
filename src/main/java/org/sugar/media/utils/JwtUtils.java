@@ -30,11 +30,7 @@ public class JwtUtils {
         JWT jwt = JWT.create().setKey(key.getBytes()).setExpiresAt(dateTime);
 
 
-        payload.forEach((key, value) -> {
-            System.out.println("Key: " + key + ", Value: " + value);
-
-            jwt.setPayload(key, value);
-        });
+        payload.forEach(jwt::setPayload);
 
         token = jwt.sign();
 

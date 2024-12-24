@@ -1,4 +1,4 @@
-package org.sugar.media.service;
+package org.sugar.media.service.user;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;

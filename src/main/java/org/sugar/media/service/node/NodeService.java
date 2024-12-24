@@ -36,6 +36,7 @@ public class NodeService {
 
         return this.nodeRepo.findAllByIdIn(ids);
     }
+
     public List<NodeModel> getNodeAll() {
 
         return this.nodeRepo.findAll();
@@ -74,8 +75,8 @@ public class NodeService {
      */
     public Map<String, List<String>> createZlmUrl(StreamPullModel streamPullModel, NodeModel nodeModel) {
 
-        Map<String,Object> tokenMap=new HashMap<>();
-        tokenMap.put("tenantId",streamPullModel.getTenantId());
+        Map<String, Object> tokenMap = new HashMap<>();
+        tokenMap.put("streamId", streamPullModel.getId());
         String token = JwtUtils.createToken(tokenMap);
         Map<String, List<String>> map = new HashMap<>();
         String appStream = StrUtil.format("{}/{}", streamPullModel.getApp(), streamPullModel.getStream());
@@ -85,46 +86,18 @@ public class NodeService {
 
         // rtmp url (ws/wss/http/https .flv)
         if (streamPullModel.isEnableRtmp()) {
-            String ws = StrUtil.format("ws://{}/{}.live.flv?sign={}", host, appStream,token);
-            String wss = StrUtil.format("wss://{}/{}.live.flv?sign={}", sslHost, appStream,token);
-            String http = StrUtil.format("http://{}/{}.live.flv?sign={}", host, appStream,token);
-            String https = StrUtil.format("https://{}/{}.live.flv?sign={}", sslHost, appStream,token);
-
-            List<String> list = new ArrayList<>();
-            list.add(ws);
-            list.add(wss);
-            list.add(http);
-            list.add(https);
-            map.put("RtmpMediaSource", list);
+            this.addRtmpMediaSource(map, host, sslHost, appStream, token);
         }
 
         // ts url (ws/wss/http/https .ts)
         if (streamPullModel.isEnableTs()) {
-            String ws = StrUtil.format("ws://{}/{}.live.ts?sign={}", host, appStream,token);
-            String wss = StrUtil.format("wss://{}/{}.live.ts?sign={}", sslHost, appStream,token);
-            String http = StrUtil.format("http://{}/{}.live.ts?sign={}", host, appStream,token);
-            String https = StrUtil.format("https://{}/{}.live.ts?sign={}", sslHost, appStream,token);
-
-
-            List<String> list = new ArrayList<>();
-            list.add(ws);
-            list.add(wss);
-            list.add(http);
-            list.add(https);
-            map.put("TSMediaSource", list);
+            this.addTsMediaSource(map, host, sslHost, appStream, token);
         }
         // hls (ts fmp4)
 
         if (streamPullModel.isEnableHls()) {
 
-            String http = StrUtil.format("http://{}/{}/hls.m3u8?sign={}", host, appStream,token);
-            String https = StrUtil.format("https://{}/{}/hls.m3u8?sign={}", sslHost, appStream,token);
-
-            List<String> list = new ArrayList<>();
-
-            list.add(http);
-            list.add(https);
-            map.put("HlsMediaSource", list);
+            this.addHlsMediaSource(map, host, sslHost, appStream, token);
 
         }
 
@@ -132,22 +105,47 @@ public class NodeService {
         if (streamPullModel.isEnableFmp4()) {
 
 
-            String ws = StrUtil.format("ws://{}/{}.live.mp4?sign={}&s=1", host, appStream,token);
-            String wss = StrUtil.format("wss://{}/{}.live.mp4?sign={}", sslHost, appStream,token);
-            String http = StrUtil.format("http://{}/{}.live.mp4?sign={}", host, appStream,token);
-            String https = StrUtil.format("https://{}/{}.live.mp4?sign={}", sslHost, appStream,token);
-
-            List<String> list = new ArrayList<>();
-            list.add(ws);
-            list.add(wss);
-            list.add(http);
-            list.add(https);
-            map.put("FMP4MediaSource", list);
-
+            this.addFmp4MediaSource(map, host, sslHost, appStream, token);
         }
         return map;
 
 
     }
+
+
+    public void addRtmpMediaSource(Map<String, List<String>> map, String host, String sslHost, String appStream, String token) {
+        List<String> list = new ArrayList<>();
+        list.add(StrUtil.format("ws://{}/{}.live.flv?sign={}", host, appStream, token));
+        list.add(StrUtil.format("wss://{}/{}.live.flv?sign={}", sslHost, appStream, token));
+        list.add(StrUtil.format("http://{}/{}.live.flv?sign={}", host, appStream, token));
+        list.add(StrUtil.format("https://{}/{}.live.flv?sign={}", sslHost, appStream, token));
+        map.put("RtmpMediaSource", list);
+    }
+
+    public void addTsMediaSource(Map<String, List<String>> map, String host, String sslHost, String appStream, String token) {
+        List<String> list = new ArrayList<>();
+        list.add(StrUtil.format("ws://{}/{}.live.ts?sign={}", host, appStream, token));
+        list.add(StrUtil.format("wss://{}/{}.live.ts?sign={}", sslHost, appStream, token));
+        list.add(StrUtil.format("http://{}/{}.live.ts?sign={}", host, appStream, token));
+        list.add(StrUtil.format("https://{}/{}.live.ts?sign={}", sslHost, appStream, token));
+        map.put("TSMediaSource", list);
+    }
+
+    public void addHlsMediaSource(Map<String, List<String>> map, String host, String sslHost, String appStream, String token) {
+        List<String> list = new ArrayList<>();
+        list.add(StrUtil.format("http://{}/{}/hls.m3u8?sign={}", host, appStream, token));
+        list.add(StrUtil.format("https://{}/{}/hls.m3u8?sign={}", sslHost, appStream, token));
+        map.put("HlsMediaSource", list);
+    }
+
+    public void addFmp4MediaSource(Map<String, List<String>> map, String host, String sslHost, String appStream, String token) {
+        List<String> list = new ArrayList<>();
+        list.add(StrUtil.format("ws://{}/{}.live.mp4?sign={}&s=1", host, appStream, token));
+        list.add(StrUtil.format("wss://{}/{}.live.mp4?sign={}", sslHost, appStream, token));
+        list.add(StrUtil.format("http://{}/{}.live.mp4?sign={}", host, appStream, token));
+        list.add(StrUtil.format("https://{}/{}.live.mp4?sign={}", sslHost, appStream, token));
+        map.put("FMP4MediaSource", list);
+    }
+
 
 }

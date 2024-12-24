@@ -7,13 +7,10 @@ import cn.hutool.core.lang.Console;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
-import cn.hutool.jwt.JWTValidator;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
@@ -26,15 +23,12 @@ import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.server.WebSocketServer;
-import org.sugar.media.service.MediaCacheService;
-import org.sugar.media.service.ZlmApiService;
-import org.sugar.media.service.node.NodeService;
+import org.sugar.media.service.media.MediaCacheService;
+import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.service.stream.StreamPullService;
 import org.sugar.media.sipserver.manager.SsrcManager;
-import org.sugar.media.sipserver.request.SipRequestService;
 import org.sugar.media.sipserver.sender.SipRequestSender;
-import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.JwtUtils;
 
@@ -42,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Date:2024/11/13 18:08:41
@@ -132,9 +125,9 @@ public class ZlmHookController {
     public ResponseBean onPlay(@RequestBody OnPlayBean body) {
 
         StaticLog.info("{}", "播放鉴权hook");
-        if (body.getApp().equals("rtp")) {
-            return ResponseBean.success();
-        }
+//        if (body.getApp().equals("rtp")) {
+//            return ResponseBean.success();
+//        }
         Map<String, String> authentication = this.authentication(body.getParams());
         if (MapUtil.isEmpty(authentication)) return ResponseBean.fail();
 
@@ -156,8 +149,8 @@ public class ZlmHookController {
 
 
         JWT parseToken = JWTUtil.parseToken(authentication.get("sign"));
-        Object tenantId = parseToken.getPayload("tenantId");
-        if (ObjectUtil.isEmpty(tenantId)) return ResponseBean.fail();
+        Object streamId = parseToken.getPayload("streamId");
+        if (ObjectUtil.isEmpty(streamId)) return ResponseBean.fail();
 
 
         Console.log("{}====鉴权耗时", timer.intervalRestart());
@@ -174,22 +167,25 @@ public class ZlmHookController {
 
         Console.log("{}====节点耗时", timer.intervalRestart());
 
-        StreamPullModel streamPullModel = this.streamPullService.onlyStream(Convert.toLong(tenantId), body.getApp(), body.getStream());
 
-        if (ObjectUtil.isEmpty(streamPullModel)) return ResponseBean.fail();
+        Optional<StreamPullModel> streamPullModel = this.streamPullService.getMStreamPull(Convert.toLong(streamId));
+
+        if (streamPullModel.isEmpty()) {
+           return ResponseBean.fail();
+        }
 
 
         Console.log("{}====stream耗时", timer.intervalRestart());
         // 拉流
 
-        CommonBean commonBean = this.zlmApiService.addStreamProxy(streamPullModel, node.get());
+        CommonBean commonBean = this.zlmApiService.addStreamProxy(streamPullModel.get(), node.get());
 
         Console.log("{}====拉流耗时", timer.intervalRestart());
 
         if (commonBean.getCode().equals(0)) {
             // 在此处更新节点
-            streamPullModel.setStreamKey(Convert.toStr(commonBean.getData().get("key")));
-            this.streamPullService.updateMStreamPull(streamPullModel);
+            streamPullModel.get().setStreamKey(Convert.toStr(commonBean.getData().get("key")));
+            this.streamPullService.updateMStreamPull(streamPullModel.get());
 
         }
         return ResponseBean.createResponseBean(commonBean.getCode(), commonBean.getMsg());
@@ -221,17 +217,15 @@ public class ZlmHookController {
         Map<String, Object> map = new HashMap<>();
         StaticLog.info("{}。{}", "触发无人观看事件", body);
 
-        if (body.getApp().equals("rtp")) {
 
+
+
+        if (body.getApp().equals("rtp")) {
 
             String hexString = body.getStream(); // 16进制字符串
             // 转换为10进制字符串
-            String ssrc = Convert.toStr(Long.parseLong(hexString, 16));
-            System.out.println("十六进制：" + hexString);
+            String ssrc = BaseUtil.hex2ssrc(hexString);
 
-            if (ssrc.length() != 10) {
-                ssrc = "0" + ssrc;
-            }
             // 通过ssrc 查找
             SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrc(ssrc);
 
@@ -266,12 +260,10 @@ public class ZlmHookController {
             if (node.isPresent()) {
 
                 JWT parseToken = JWTUtil.parseToken(authentication.get("sign"));
-                Object tenantId = parseToken.getPayload("tenantId");
+                Object streamId = parseToken.getPayload("streamId");
 
-                StreamPullModel streamPullModel = this.streamPullService.onlyStream(Convert.toLong(tenantId), body.getApp(), body.getStream());
-                if (ObjectUtil.isNotEmpty(streamPullModel)) {
-                    this.streamPullService.resetStream(streamPullModel);
-                }
+                Optional<StreamPullModel> streamPullModel = this.streamPullService.getMStreamPull(Convert.toLong(streamId));
+                streamPullModel.ifPresent(pullModel -> this.streamPullService.resetStream(pullModel));
             }
         });
 

@@ -5,7 +5,7 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
-import org.sugar.media.service.MediaCacheService;
+import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.sipserver.manager.SipCacheService;
 
 /**

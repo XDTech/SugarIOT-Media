@@ -1,21 +1,15 @@
 package org.sugar.media.controller;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
 import org.sugar.media.enums.ResponseEnum;
 import org.sugar.media.enums.RoleEnum;
 import org.sugar.media.model.TenantModel;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.security.UserSecurity;
-import org.sugar.media.service.TenantService;
-import org.sugar.media.service.UserService;
+import org.sugar.media.service.tenant.TenantService;
+import org.sugar.media.service.user.UserService;
 import org.sugar.media.beans.UserBean;
 import org.sugar.media.beans.ResponseBean;
 import org.springframework.data.domain.Page;
@@ -27,9 +21,7 @@ import cn.hutool.core.bean.BeanUtil;
 import org.sugar.media.utils.SecurityUtils;
 import org.sugar.media.validation.UserVal;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * (UserModel)表控制层

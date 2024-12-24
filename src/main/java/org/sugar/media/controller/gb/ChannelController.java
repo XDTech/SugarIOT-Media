@@ -29,6 +29,7 @@ import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
+import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.utils.LeastConnectionUtil;
 
@@ -68,7 +69,6 @@ public class ChannelController {
     private LoadBalanceService loadBalanceService;
 
 
-
     @GetMapping("/list/{deviceId}")
     public ResponseEntity<?> getDevice(@PathVariable Long deviceId) {
 
@@ -93,25 +93,34 @@ public class ChannelController {
 
         if (channel.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
 
-        if(channel.get().getStatus().equals(StatusEnum.offline)){
+        if (channel.get().getStatus().equals(StatusEnum.offline)) {
             return ResponseEntity.ok(ResponseBean.fail("通道离线"));
         }
 
         Optional<DeviceModel> device = this.deviceService.getDevice(channel.get().getDeviceId());
         if (device.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
 
-        if(!this.sipCacheService.isOnline(device.get().getDeviceId())){
+        if (!this.sipCacheService.isOnline(device.get().getDeviceId())) {
             return ResponseEntity.ok(ResponseBean.fail("设备离线"));
         }
-        // 查找是否已经存在
+
 
         //
         SsrcInfoBean ssrcByCode = this.ssrcManager.getSsrcByCode(channel.get().getChannelCode());
 
         if (ObjectUtil.isNotEmpty(ssrcByCode)) {
-            Console.log("该设备存在ssrc:{}",ssrcByCode);
-            return ResponseEntity.ok(ResponseBean.success(ssrcByCode.getSsrc()));
+            Console.log("该设备存在ssrc:{}", ssrcByCode);
+
+            Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
+            return node.map(nodeModel ->
+                    ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, BaseUtil.ssrc2hex(ssrcByCode.getSsrc())))))
+                    .orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
+
         }
+        NodeModel node = this.loadBalanceService.executeBalance();
+
+
+        if (ObjectUtil.isEmpty(node)) return ResponseEntity.ok(ResponseBean.fail("暂无可用播放节点"));
 
         DeviceBean deviceBean = new DeviceBean();
         BeanUtil.copyProperties(device.get(), deviceBean);
@@ -120,13 +129,6 @@ public class ChannelController {
         ChannelBean channelBean = new ChannelBean();
 
         BeanUtil.copyProperties(channel.get(), channelBean);
-
-
-        NodeModel node = this.loadBalanceService.executeBalance();
-
-
-        if (ObjectUtil.isEmpty(node)) return ResponseEntity.ok(ResponseBean.fail("暂无可用播放节点"));
-
 
 
         deviceBean.setNodeHost(node.getIp());
@@ -143,10 +145,11 @@ public class ChannelController {
 
         String playSsrc = this.ssrcManager.createPlaySsrc(ssrcInfoBean);
         ssrcInfoBean.setSsrc(playSsrc);
+
         this.sipRequestSender.sendInvite(deviceBean, channelBean, playSsrc);
 
 
-        return ResponseEntity.ok(ResponseBean.success(playSsrc));
+        return ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(node, BaseUtil.ssrc2hex(playSsrc))));
 
     }
 

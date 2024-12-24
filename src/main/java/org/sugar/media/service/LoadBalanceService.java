@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.node.NodeService;
 import org.sugar.media.utils.LeastConnectionUtil;
 

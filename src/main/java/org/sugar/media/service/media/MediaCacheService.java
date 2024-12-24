@@ -1,4 +1,4 @@
-package org.sugar.media.service;
+package org.sugar.media.service.media;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;

@@ -2,24 +2,18 @@ package org.sugar.media.controller;
 
 
 import cn.dev33.satoken.stp.SaTokenInfo;
-import cn.dev33.satoken.stp.StpUtil;
 import jakarta.annotation.Resource;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.sugar.media.beans.ResponseBean;
-import org.sugar.media.enums.ResponseEnum;
 import org.sugar.media.enums.UserStatusEnum;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.security.UserSecurity;
-import org.sugar.media.service.UserService;
+import org.sugar.media.service.user.UserService;
 import org.sugar.media.utils.SecurityUtils;
 
 @RestController
