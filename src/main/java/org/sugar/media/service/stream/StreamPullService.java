@@ -23,6 +23,7 @@ import org.sugar.media.enums.PlayerTypeEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.repository.stream.StreamPullRepo;
+import org.sugar.media.service.LoadBalanceService;
 import org.sugar.media.service.MediaCacheService;
 import org.sugar.media.service.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
@@ -54,6 +55,9 @@ public class StreamPullService {
 
     @Resource
     private MediaCacheService mediaCacheService;
+
+    @Resource
+    private LoadBalanceService loadBalanceService;
 
 
     public StreamPullModel onlyStream(Long tenantId, String app, String stream) {
@@ -100,28 +104,6 @@ public class StreamPullService {
     }
 
 
-    // 执行负载均衡，返回合适的node
-    private NodeModel executeBalance() {
-
-        String serverId = LeastConnectionUtil.leastConnections();
-
-        if (StrUtil.isBlank(serverId)) return null;
-
-        //
-        Long mediaId = Convert.toLong(serverId);
-        Optional<NodeModel> node = this.nodeService.getNode(mediaId);
-
-        if (node.isEmpty()) return null;
-
-        boolean online = this.mediaCacheService.isOnline(mediaId);
-        if (!online) return null;
-
-        Console.log("执行负载均衡策略{}", node.get().toString());
-
-        return node.get();
-
-
-    }
 
 
     /**
@@ -143,7 +125,7 @@ public class StreamPullService {
 
             if (mStreamPull.getNodeId() == null) {
 
-                NodeModel nodeModel = this.executeBalance();
+                NodeModel nodeModel = this.loadBalanceService.executeBalance();
                 // 把node id存下来
                 if (ObjectUtil.isNotNull(nodeModel)) {
 
@@ -158,7 +140,7 @@ public class StreamPullService {
                 boolean online = this.mediaCacheService.isOnline(mStreamPull.getNodeId());
 
                 if (!online) {
-                    NodeModel nodeModel = this.executeBalance();
+                    NodeModel nodeModel = this.loadBalanceService.executeBalance();
 
                     // 把node id存下来
                     if (ObjectUtil.isNotNull(nodeModel)) {

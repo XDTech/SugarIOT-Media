@@ -21,6 +21,7 @@ import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.service.LoadBalanceService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.service.node.NodeService;
@@ -62,6 +63,10 @@ public class ChannelController {
 
     @Resource
     private SipCacheService sipCacheService;
+
+    @Resource
+    private LoadBalanceService loadBalanceService;
+
 
 
     @GetMapping("/list/{deviceId}")
@@ -117,23 +122,23 @@ public class ChannelController {
         BeanUtil.copyProperties(channel.get(), channelBean);
 
 
-        String serverId = LeastConnectionUtil.leastConnections();
+        NodeModel node = this.loadBalanceService.executeBalance();
 
-        if (StrUtil.isBlank(serverId)) return ResponseEntity.ok(ResponseBean.fail("暂无可用播放节点"));
 
-        Optional<NodeModel> node = this.nodeService.getNode(Convert.toLong(serverId));
-        if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("暂无可用播放节点"));
+        if (ObjectUtil.isEmpty(node)) return ResponseEntity.ok(ResponseBean.fail("暂无可用播放节点"));
 
-        deviceBean.setNodeHost(node.get().getIp());
-        deviceBean.setNodePort(node.get().getRtpPort());
-        deviceBean.setNodeId(node.get().getId());
+
+
+        deviceBean.setNodeHost(node.getIp());
+        deviceBean.setNodePort(node.getRtpPort());
+        deviceBean.setNodeId(node.getId());
 
         SsrcInfoBean ssrcInfoBean = new SsrcInfoBean();
         ssrcInfoBean.setDeviceCode(device.get().getDeviceId());
         ssrcInfoBean.setChannelCode(channelBean.getChannelCode());
         ssrcInfoBean.setDeviceHost(device.get().getHost());
         ssrcInfoBean.setDevicePort(device.get().getPort());
-        ssrcInfoBean.setNodeId(node.get().getId());
+        ssrcInfoBean.setNodeId(node.getId());
         ssrcInfoBean.setTransport(device.get().getTransport());
 
         String playSsrc = this.ssrcManager.createPlaySsrc(ssrcInfoBean);
