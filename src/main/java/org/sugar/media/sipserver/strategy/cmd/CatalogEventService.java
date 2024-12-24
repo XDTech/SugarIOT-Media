@@ -80,10 +80,10 @@ public class CatalogEventService implements SipCmdHandler {
         // 查询设备通道
         // TODO: 1.因为需要维护通道，此处先把原有的通道都删除
         this.channelService.deleteAll(device.getId());
-
         // TODO:然后把解析出来的数据都存到数据库中
         String xmlContent = this.sipUtils.getXmlContent(request);
-        List<DeviceChannelModel> channelModels = this.sipUtils.parseCatalog(xmlContent, device.getId(), device.getTenantId());
+        String tenantCode=device.getDeviceId().substring(0,6);
+        List<DeviceChannelModel> channelModels = this.sipUtils.parseCatalog(xmlContent, device.getId(), device.getTenantId(),tenantCode);
 
 
         this.channelService.createChannel(channelModels);

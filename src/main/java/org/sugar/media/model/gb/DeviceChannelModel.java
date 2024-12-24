@@ -50,6 +50,7 @@ public class DeviceChannelModel {
     @NotBlank
     private String channelCode;
 
+    // 格式为 租户编码（6位）+0000+132+7为流水号
     private String channelName;           // 通道名称
     private String manufacturer;   // 设备制造商
     private String model;          // 设备类型

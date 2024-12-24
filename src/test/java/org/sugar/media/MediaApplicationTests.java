@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.node.NodeService;
 
@@ -27,13 +28,19 @@ class MediaApplicationTests {
 
 
     @Resource
+    private ChannelService channelService;
+
+    @Resource
     private MediaCacheService mediaCacheService;
 
     @Test
     void contextLoads() {
 
-        String test = SecureUtil.sha1("test");
-        StaticLog.info("{}", test);
+
+        this.channelService.checkChannelCode("100001","10000100001320000008");
+
+//        String test = SecureUtil.sha1("test");
+//        StaticLog.info("{}", test);
 
 
         //  this.zlmApiService.getApiList("http://192.168.1.6", "JDG6XqSrvtzLTWw54xgQW8yEO6WjLrqO");

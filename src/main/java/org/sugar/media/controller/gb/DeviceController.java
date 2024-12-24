@@ -86,7 +86,7 @@ public class DeviceController {
     public ResponseEntity<?> registerDevice(@RequestBody @Validated DeviceRegisterVal deviceRegisterVal) {
 
         Integer tenantCode = this.userSecurity.getCurrentTenantCode();
-        String code = StrUtil.format("{}0000{}", tenantCode, deviceRegisterVal.getDeviceId());
+        String code = this.deviceService.createDeviceCode(tenantCode,deviceRegisterVal.getDeviceId());
         // 查询国标设备是否存在
         DeviceModel device = this.deviceService.getDevice(code);
 
@@ -96,7 +96,7 @@ public class DeviceController {
 
         DeviceModel deviceModel = new DeviceModel();
 
-        deviceModel.setName(deviceRegisterVal.getDeviceName());
+        deviceModel.setName(deviceRegisterVal.getName());
         deviceModel.setPwd(deviceRegisterVal.getPwd());
         deviceModel.setDeviceId(code);
         deviceModel.setDeviceType(DeviceTypeEnum.valueOf(deviceRegisterVal.getDeviceType()));
@@ -111,7 +111,7 @@ public class DeviceController {
     public ResponseEntity<?> updateDevice(@RequestBody @Validated(DeviceRegisterVal.Update.class) DeviceRegisterVal deviceRegisterVal) {
 
         Integer tenantCode = this.userSecurity.getCurrentTenantCode();
-        String code = StrUtil.format("{}0000{}", tenantCode, deviceRegisterVal.getDeviceId());
+        String code =this.deviceService.createDeviceCode(tenantCode,deviceRegisterVal.getDeviceId());
 
         Optional<DeviceModel> deviceModel = this.deviceService.getDevice(deviceRegisterVal.getId());
 
@@ -128,14 +128,14 @@ public class DeviceController {
         // 如果是修改了sip id 先把之前的踢下线
         if (!code.equals(deviceModel.get().getDeviceId())) {
             if (this.sipCacheService.isOnline(deviceModel.get().getDeviceId())) {
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getDeviceName()));
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getName()));
             }
             this.sipCacheService.deleteDevice(deviceModel.get().getDeviceId());
 
         }
 
 
-        deviceModel.get().setName(deviceRegisterVal.getDeviceName());
+        deviceModel.get().setName(deviceRegisterVal.getName());
         deviceModel.get().setPwd(deviceRegisterVal.getPwd());
         deviceModel.get().setDeviceId(code);
         deviceModel.get().setDeviceType(DeviceTypeEnum.valueOf(deviceRegisterVal.getDeviceType()));

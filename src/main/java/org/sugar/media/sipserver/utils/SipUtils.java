@@ -10,12 +10,14 @@ import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.ViaList;
 import gov.nist.javax.sip.message.SIPRequest;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.sugar.media.beans.hooks.zlm.AddressBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
+import org.sugar.media.service.gb.ChannelService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -36,6 +38,9 @@ import java.util.*;
 @Service
 public class SipUtils {
 
+
+    @Resource
+    private ChannelService channelService;
 
     /**
      * 获取远端地址
@@ -143,7 +148,7 @@ public class SipUtils {
 
     // 解析catalog
 
-    public List<DeviceChannelModel> parseCatalog(String xml, Long deviceId, Long tenantId) {
+    public List<DeviceChannelModel> parseCatalog(String xml, Long deviceId, Long tenantId, String tenantCode) {
 
         List<DeviceChannelModel> channelModelList = new ArrayList<>();
         // 使用 Hutool 解析 XML
@@ -171,6 +176,16 @@ public class SipUtils {
             DeviceChannelModel deviceChannelModel = new DeviceChannelModel();
             deviceChannelModel.setDeviceId(deviceId);
             deviceChannelModel.setTenantId(tenantId);
+            String channelCode = XmlUtil.elementText(element, "DeviceID");
+            // 判断通道号是否合法
+            boolean checked = this.channelService.checkChannelCode(tenantCode, channelCode);
+
+
+            if (!checked) {
+                log.warn("[通道ID不合法]:{},租户id：{}", channelCode, tenantCode);
+                continue;
+            }
+
             deviceChannelModel.setChannelCode(XmlUtil.elementText(element, "DeviceID"));
             deviceChannelModel.setChannelName(XmlUtil.elementText(element, "Name"));
             deviceChannelModel.setManufacturer(XmlUtil.elementText(element, "Manufacturer"));
@@ -183,24 +198,23 @@ public class SipUtils {
             deviceChannelModel.setSafetyWay(Convert.toInt(XmlUtil.elementText(element, "SafetyWay")));
             deviceChannelModel.setRegisterWay(Convert.toInt(XmlUtil.elementText(element, "RegisterWay")));
             deviceChannelModel.setSecrecy(Convert.toInt(XmlUtil.elementText(element, "Secrecy")));
-            deviceChannelModel.setStatus(XmlUtil.elementText(element, "Status")
-                    .equalsIgnoreCase("ON") ? StatusEnum.online : StatusEnum.offline);
+            deviceChannelModel.setStatus(XmlUtil.elementText(element, "Status").equalsIgnoreCase("ON") ? StatusEnum.online : StatusEnum.offline);
 
             deviceChannelModel.setSyncTime(new Date());
             channelModelList.add(deviceChannelModel);
 
         }
-        return  channelModelList;
+        return channelModelList;
 
     }
 
 
-    public String getXmlContent(SIPRequest request){
+    public String getXmlContent(SIPRequest request) {
         return new String(request.getRawContent(), Charset.forName("GB2312"));
 
     }
 
-    public String getXmlContent(byte[] rawContent){
+    public String getXmlContent(byte[] rawContent) {
         return new String(rawContent, Charset.forName("GB2312"));
 
     }

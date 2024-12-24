@@ -150,4 +150,14 @@ public class DeviceService {
 
 
     }
+
+    /**
+     * 6位租户编码+0000+7位流水号
+     * @param tenantCode
+     * @param deviceId
+     * @return
+     */
+    public String createDeviceCode(Integer tenantCode,String deviceId){
+       return StrUtil.format("{}0000{}", tenantCode, deviceId);
+    }
 }

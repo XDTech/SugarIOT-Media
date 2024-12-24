@@ -24,7 +24,7 @@ public class DeviceRegisterVal {
     private Long id;
 
     @NotBlank(message = "device name not null")
-    private String deviceName; // 设备名称
+    private String name; // 设备名称
 
 
     @NotBlank(message = "device id not null")
