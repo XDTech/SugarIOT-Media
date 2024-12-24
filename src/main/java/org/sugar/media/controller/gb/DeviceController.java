@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
+import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.enums.DeviceTypeEnum;
 import org.sugar.media.enums.SocketMsgEnum;
@@ -17,6 +18,7 @@ import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.server.WebSocketServer;
+import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.manager.SipCacheService;
@@ -42,6 +44,9 @@ public class DeviceController {
     private DeviceService deviceService;
 
     @Resource
+    private ChannelService channelService;
+
+    @Resource
     private UserSecurity userSecurity;
 
     @Resource
@@ -61,6 +66,11 @@ public class DeviceController {
 
         deviceBeans = deviceBeans.stream().peek((deviceBean -> {
             deviceBean.setStatus(this.sipCacheService.isOnline(deviceBean.getDeviceId()) ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
+
+            int size = this.channelService.getDeviceChannelList(deviceBean.getId()).size();
+            deviceBean.setChannel(size);
+
+
         })).toList();
 
         return ResponseEntity.ok(ResponseBean.success(devicePageList.getTotalElements(), deviceBeans));
