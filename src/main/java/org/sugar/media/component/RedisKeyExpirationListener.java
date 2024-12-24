@@ -52,6 +52,15 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
 
         }
 
+        // ssrc 过期
+
+        if (expiredKey.startsWith(SipCacheService.SIP_SSRC_KEY)) {
+
+
+            this.redisKeyService.sipSsrcKeyPrefix(expiredKey);
+
+        }
+
 
     }
 

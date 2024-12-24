@@ -1,8 +1,10 @@
 package org.sugar.media.component;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.enums.SocketMsgEnum;
@@ -13,6 +15,7 @@ import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.sipserver.manager.SipCacheService;
+import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.utils.LeastConnectionUtil;
 
 import java.util.Date;
@@ -24,6 +27,7 @@ import java.util.Optional;
  * Description:
  */
 
+@Slf4j
 @Service
 public class RedisKeyService {
 
@@ -35,6 +39,10 @@ public class RedisKeyService {
 
     @Resource
     private SipCacheService sipCacheService;
+
+    @Resource
+    private SsrcManager ssrcManager;
+
 
     // media key 过期或者删除
     public void mediaKeyPrefix(String expiredKey) {
@@ -55,9 +63,21 @@ public class RedisKeyService {
 
         DeviceModel device = this.deviceService.getDevice(deviceId);
 
-        if(ObjectUtil.isNotEmpty(device)&& this.sipCacheService.isOnline(deviceId)){
+        if (ObjectUtil.isNotEmpty(device) && this.sipCacheService.isOnline(deviceId)) {
             WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), device.getName()));
         }
+
+    }
+
+    // 国标设备ssrc过期监听
+
+    public void sipSsrcKeyPrefix(String expiredKey) {
+        String[] split = expiredKey.split(SipCacheService.SIP_SSRC_KEY);
+
+        String ssrc = split[1];
+
+        log.warn("[ssrc过期未使用]:{}", ssrc);
+        this.ssrcManager.releaseSsrc(ssrc);
 
     }
 }

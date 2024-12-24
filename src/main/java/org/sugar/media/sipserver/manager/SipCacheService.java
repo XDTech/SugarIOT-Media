@@ -6,6 +6,7 @@ import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Service;
 import org.sugar.media.beans.gb.DeviceBean;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  * Description: 缓存sip需要的数据
  */
 
+@Slf4j
 @Service
 public class SipCacheService {
 
@@ -41,6 +43,7 @@ public class SipCacheService {
 
         stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(deviceBean));
     }
+
     public void delSipDevice(String deviceId) {
 
 
@@ -138,5 +141,29 @@ public class SipCacheService {
             stringRedisTemplate.delete(keysToDelete); // 批量删除匹配的键
         }
     }
+
+
+    // ===== ssrc====
+    /**
+     * 监测ssrc过期，用于释放ssrc
+     * 每个ssrc 有10s 存活期，如果再次期间没有被使用，则利用过期回调释放
+     * ssrc 格式为 ssrc:channelCode
+     */
+    public static String SIP_SSRC_KEY = "sip_ssrc:"; // ssrc key
+
+    private static final long SIP_SSRC_TIMEOUT = 10; // 系统默认60s保活
+
+    public void setSsrc(String ssrc, String channelCode) {
+        String key = SIP_SSRC_KEY + ssrc;
+        stringRedisTemplate.opsForValue().set(key, channelCode, SIP_SSRC_TIMEOUT, TimeUnit.SECONDS);
+    }
+
+    public void deleteSsrc(String ssrc) {
+        String key = SIP_SSRC_KEY + ssrc;
+        stringRedisTemplate.delete(key);
+
+        log.warn("[ssrc使用]:{}", ssrc);
+    }
+
 
 }

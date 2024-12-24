@@ -26,6 +26,9 @@ public class SsrcManager {
     @Resource
     private SipConfUtils sipConfUtils;
 
+    @Resource
+    private SipCacheService sipCacheService;
+
     private ConcurrentHashMap<String, SsrcInfoBean> ssrcMap = new ConcurrentHashMap<>();
 
 
@@ -33,20 +36,22 @@ public class SsrcManager {
     private ConcurrentHashMap<String, String> channelMap = new ConcurrentHashMap<>();
 
     public String createPlaySsrc(SsrcInfoBean ssrcInfoBean) {
-        Console.log(ssrcInfoBean.getChannelCode(),"=====");
+        Console.log(ssrcInfoBean.getChannelCode(), "=====");
         String ssrc = StrUtil.format("0{}{}", this.getDomain(), this.getRandomNumber());
         this.ssrcMap.put(ssrc, ssrcInfoBean);
         this.channelMap.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean.getChannelCode());
+
+        this.sipCacheService.setSsrc(ssrc, ssrcInfoBean.getChannelCode());
         return ssrc;
     }
 
-    public void updateSsrc(String ssrc,SsrcInfoBean ssrcInfoBean) {
+    public void updateSsrc(String ssrc, SsrcInfoBean ssrcInfoBean) {
 
 
         this.ssrcMap.put(ssrc, ssrcInfoBean);
-        Console.log(ssrcInfoBean.getChannelCode(),"++++");
+        Console.log(ssrcInfoBean.getChannelCode(), "++++");
         this.channelMap.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean.getSsrc());
-
+        this.sipCacheService.deleteSsrc(ssrc);
     }
 
 
@@ -55,13 +60,21 @@ public class SsrcManager {
         String ssrc = StrUtil.format("1{}{}", this.getDomain(), this.getRandomNumber());
         this.ssrcMap.put(ssrc, ssrcInfoBean);
         this.channelMap.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean.getSsrc());
+        this.sipCacheService.setSsrc(ssrc, ssrcInfoBean.getChannelCode());
         return ssrc;
     }
 
-    public void releaseSsrc(String ssrc,String channelCode) {
-        Console.log(ssrc,channelCode,"=====_++");
+    public void releaseSsrc(String ssrc, String channelCode) {
+        Console.log(ssrc, channelCode, "=====_++");
         this.ssrcMap.remove(ssrc);
         this.channelMap.remove(channelCode);
+    }
+
+    public void releaseSsrc(String ssrc) {
+        this.ssrcMap.remove(ssrc);
+
+        channelMap.entrySet().removeIf(entry -> entry.getValue().equals(ssrc));
+
     }
 
     public boolean containsSsrc(String ssrc) {
