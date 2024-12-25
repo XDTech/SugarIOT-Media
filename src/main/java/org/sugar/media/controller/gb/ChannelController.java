@@ -7,12 +7,10 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
@@ -21,6 +19,7 @@ import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.LoadBalanceService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
@@ -34,7 +33,9 @@ import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.utils.LeastConnectionUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Date:2024/12/14 17:24:17
@@ -69,6 +70,10 @@ public class ChannelController {
     private LoadBalanceService loadBalanceService;
 
 
+    @Resource
+    private UserSecurity userSecurity;
+
+
     @GetMapping("/list/{deviceId}")
     public ResponseEntity<?> getDevice(@PathVariable Long deviceId) {
 
@@ -79,6 +84,34 @@ public class ChannelController {
 
     }
 
+
+    @GetMapping("/page/list")
+    public ResponseEntity<?> getChannelPageList(@RequestParam Integer pi, @RequestParam Integer ps, @RequestParam(required = false) String name) {
+
+
+        Page<DeviceChannelModel> channelPageList = this.channelService.getChannelPageList(pi, ps, name, this.userSecurity.getCurrentTenantId());
+
+
+        List<DeviceModel> deviceList = this.deviceService.getDeviceList(this.userSecurity.getCurrentTenantId());
+
+        Map<Long, DeviceModel> modelMap = deviceList.stream().collect(Collectors.toMap(DeviceModel::getId, d -> d));
+
+
+        List<ChannelBean> channelBeans = BeanConverterUtil.convertList(channelPageList.getContent(), ChannelBean.class);
+
+
+        channelBeans=  channelBeans.stream().peek(c->{
+            DeviceModel deviceModel = modelMap.get(c.getDeviceId());
+            if(ObjectUtil.isNotEmpty(deviceModel)){
+                c.setDeviceName(deviceModel.getDeviceName());
+                c.setDeviceCode(deviceModel.getDeviceId());
+            }
+
+        }).toList();
+
+        return ResponseEntity.ok(ResponseBean.success(channelPageList.getTotalElements(), channelBeans));
+
+    }
 
     /**
      * 返回播放地址
@@ -91,7 +124,7 @@ public class ChannelController {
 
         Optional<DeviceChannelModel> channel = this.channelService.getChannel(channelId);
 
-        if (channel.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+        if (channel.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("通道不存在"));
 
         if (channel.get().getStatus().equals(StatusEnum.offline)) {
             return ResponseEntity.ok(ResponseBean.fail("通道离线"));
@@ -112,9 +145,7 @@ public class ChannelController {
             Console.log("该设备存在ssrc:{}", ssrcByCode);
 
             Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
-            return node.map(nodeModel ->
-                    ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, BaseUtil.ssrc2hex(ssrcByCode.getSsrc())))))
-                    .orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
+            return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, BaseUtil.ssrc2hex(ssrcByCode.getSsrc()))))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
 
         }
         NodeModel node = this.loadBalanceService.executeBalance();

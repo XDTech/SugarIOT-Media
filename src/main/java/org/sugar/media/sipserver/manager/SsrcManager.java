@@ -29,6 +29,7 @@ public class SsrcManager {
     @Resource
     private SipCacheService sipCacheService;
 
+    // ssrc bean
     private ConcurrentHashMap<String, SsrcInfoBean> ssrcMap = new ConcurrentHashMap<>();
 
 
@@ -76,6 +77,14 @@ public class SsrcManager {
         channelMap.entrySet().removeIf(entry -> entry.getValue().equals(ssrc));
 
     }
+
+    public void releaseSsrcByCode(String channelCode) {
+        ssrcMap.entrySet().removeIf(entry -> entry.getValue().getChannelCode().equals(channelCode));
+
+        this.channelMap.remove(channelCode);
+
+    }
+
 
     public boolean containsSsrc(String ssrc) {
         return this.ssrcMap.containsKey(ssrc);

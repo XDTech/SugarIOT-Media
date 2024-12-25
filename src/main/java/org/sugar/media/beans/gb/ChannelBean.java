@@ -28,6 +28,10 @@ public class ChannelBean {
 
     private Long deviceId;// 设备id
 
+    private String deviceCode;
+
+    private String deviceName;
+
     private Long tenantId;// 租户id
 
     private Date createdAt;
@@ -36,7 +40,7 @@ public class ChannelBean {
 
     private String channelCode;
 
-    private String channelName;           // 通道名称
+    private String channelName;     // 通道名称
     private String manufacturer;   // 设备制造商
     private String model;          // 设备类型
     private String owner;          // 设备所有者

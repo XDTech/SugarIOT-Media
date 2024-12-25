@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
 
+import java.util.List;
+
 /**
  * Date:2024/12/13 10:51:04
  * Author：Tobin
@@ -16,6 +18,7 @@ import org.sugar.media.model.node.NodeModel;
 public interface DeviceRepo extends JpaRepository<DeviceModel, Long>, JpaSpecificationExecutor<DeviceModel> {
 
     DeviceModel findAllByDeviceId(String deviceId);
+    List<DeviceModel> findAllByTenantId(Long tenantId);
 
 
 }

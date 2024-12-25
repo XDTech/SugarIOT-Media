@@ -36,7 +36,6 @@ public class SipRequestSender {
     private SipRequestService sipRequestService;
 
 
-
     @Resource
     private SsrcManager ssrcManager;
 
@@ -120,17 +119,15 @@ public class SipRequestSender {
             dialog.sendRequest(clientTransaction);
 
 
+            Console.log("发送bye");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
             // 清除缓存
 
             this.ssrcManager.releaseSsrc(ssrcInfoBean.getSsrc(), ssrcInfoBean.getChannelCode());
 
-
-            Console.log("发送bye");
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
-
 
 
     }

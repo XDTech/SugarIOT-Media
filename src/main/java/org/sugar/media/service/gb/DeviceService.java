@@ -14,9 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.repository.gb.DeviceRepo;
 import org.sugar.media.sipserver.manager.SipCacheService;
+import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.utils.BeanConverterUtil;
 
 import java.util.ArrayList;
@@ -43,6 +45,9 @@ public class DeviceService {
     @Resource
     private SipCacheService sipCacheService;
 
+    @Resource
+    private SsrcManager ssrcManager;
+
     public List<DeviceModel> getDeviceList() {
         return this.deviceRepo.findAll();
     }
@@ -59,10 +64,8 @@ public class DeviceService {
     }
 
 
-
-
     @Transactional
-    public void deleteDevice(DeviceModel deviceModel){
+    public void deleteDevice(DeviceModel deviceModel) {
 
         // 首先移除缓存
         this.sipCacheService.deleteDevice(deviceModel.getDeviceId());
@@ -80,12 +83,14 @@ public class DeviceService {
     public DeviceModel getDevice(String deviceCode) {
         return this.deviceRepo.findAllByDeviceId(deviceCode);
     }
+    public List<DeviceModel> getDeviceList(Long tenantId) {
+        return this.deviceRepo.findAllByTenantId(tenantId);
+    }
 
 
     public Optional<DeviceModel> getDevice(Long deviceId) {
         return this.deviceRepo.findById(deviceId);
     }
-
 
 
     // 分页查询
@@ -153,11 +158,12 @@ public class DeviceService {
 
     /**
      * 6位租户编码+0000+7位流水号
+     *
      * @param tenantCode
      * @param deviceId
      * @return
      */
-    public String createDeviceCode(Integer tenantCode,String deviceId){
-       return StrUtil.format("{}0000{}", tenantCode, deviceId);
+    public String createDeviceCode(Integer tenantCode, String deviceId) {
+        return StrUtil.format("{}0000{}", tenantCode, deviceId);
     }
 }
