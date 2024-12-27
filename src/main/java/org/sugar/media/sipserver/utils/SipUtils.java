@@ -148,7 +148,7 @@ public class SipUtils {
 
     // 解析catalog
 
-    public List<DeviceChannelModel> parseCatalog(String xml, Long deviceId, Long tenantId, String tenantCode) {
+    public List<DeviceChannelModel> parseCatalog(String xml, Long deviceId, Long tenantId, String tenantCode, List<DeviceChannelModel> modelList) {
 
         List<DeviceChannelModel> channelModelList = new ArrayList<>();
         // 使用 Hutool 解析 XML
@@ -173,9 +173,7 @@ public class SipUtils {
 
         for (Element element : item) {
 
-            DeviceChannelModel deviceChannelModel = new DeviceChannelModel();
-            deviceChannelModel.setDeviceId(deviceId);
-            deviceChannelModel.setTenantId(tenantId);
+
             String channelCode = XmlUtil.elementText(element, "DeviceID");
             // 判断通道号是否合法
             boolean checked = this.channelService.checkChannelCode(tenantCode, channelCode);
@@ -185,6 +183,18 @@ public class SipUtils {
                 log.warn("[通道ID不合法]:{},租户id：{}", channelCode, tenantCode);
                 continue;
             }
+
+            DeviceChannelModel deviceChannelModel = new DeviceChannelModel();
+            // 查询是否存在
+            Optional<DeviceChannelModel> result = modelList.stream().filter(device -> device.getChannelCode().equals(channelCode)).findFirst();
+
+            if (result.isPresent()) {
+                deviceChannelModel = result.get();
+            }
+
+
+            deviceChannelModel.setDeviceId(deviceId);
+            deviceChannelModel.setTenantId(tenantId);
 
             deviceChannelModel.setChannelCode(XmlUtil.elementText(element, "DeviceID"));
             deviceChannelModel.setChannelName(XmlUtil.elementText(element, "Name"));

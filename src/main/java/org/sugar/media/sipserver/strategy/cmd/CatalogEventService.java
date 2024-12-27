@@ -18,7 +18,11 @@ import org.sugar.media.sipserver.sender.SipSenderService;
 import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.utils.SipUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Date:2024/12/10 13:46:20
@@ -78,13 +82,21 @@ public class CatalogEventService implements SipCmdHandler {
         }
 
         // 查询设备通道
-        // TODO: 1.因为需要维护通道，此处先把原有的通道都删除
-        this.channelService.deleteAll(device.getId());
-        // TODO:然后把解析出来的数据都存到数据库中
-        String xmlContent = this.sipUtils.getXmlContent(request);
-        String tenantCode=device.getDeviceId().substring(0,6);
-        List<DeviceChannelModel> channelModels = this.sipUtils.parseCatalog(xmlContent, device.getId(), device.getTenantId(),tenantCode);
+        List<DeviceChannelModel> deviceChannelList = this.channelService.getDeviceChannelList(device.getId());
 
+        // :然后把解析出来的数据都存到数据库中
+        String xmlContent = this.sipUtils.getXmlContent(request);
+        String tenantCode = device.getDeviceId().substring(0, 6);
+        List<DeviceChannelModel> channelModels = this.sipUtils.parseCatalog(xmlContent, device.getId(), device.getTenantId(), tenantCode, deviceChannelList);
+
+
+        // 通过 code 字段去重，保留每个 code 的第一条记录
+        Map<String, DeviceChannelModel> uniqueByCode = channelModels.stream().collect(Collectors.toMap(DeviceChannelModel::getChannelCode,  // key 是 code 字段
+                channelModel -> channelModel,             // value 是 DeviceChannelModel 实例
+                (existing, replacement) -> existing // 如果有重复的 code，保留第一个出现的条目
+        ));
+
+        channelModels = new ArrayList<>(uniqueByCode.values());
 
         this.channelService.createChannel(channelModels);
 

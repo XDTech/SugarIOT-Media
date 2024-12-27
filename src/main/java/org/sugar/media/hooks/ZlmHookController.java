@@ -123,10 +123,12 @@ public class ZlmHookController {
     @PostMapping("/on_play")
     public ResponseBean onPlay(@RequestBody OnPlayBean body) {
 
-        StaticLog.info("{}", "播放鉴权hook");
+        StaticLog.info("{}：{}", "播放鉴权hook",body.toString());
 //        if (body.getApp().equals("rtp")) {
 //            return ResponseBean.success();
 //        }
+
+        if(body.getApp().equals("record")) return ResponseBean.success();
         Map<String, String> authentication = this.authentication(body.getParams());
         if (MapUtil.isEmpty(authentication)) return ResponseBean.fail();
 
@@ -136,7 +138,7 @@ public class ZlmHookController {
 
     @PostMapping("/stream/nof/found")
     public ResponseBean streamNotFound(@RequestBody OnPlayBean body) {
-
+        if(body.getApp().equals("record")) return ResponseBean.success();
         Console.log("{}===触发流未找到事件", body);
 
         // 再次鉴权
