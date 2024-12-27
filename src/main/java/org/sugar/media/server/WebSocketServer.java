@@ -21,7 +21,9 @@ import org.sugar.media.security.UserSecurity;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static jakarta.websocket.CloseReason.CloseCodes.CLOSED_ABNORMALLY;
@@ -46,10 +48,13 @@ public class WebSocketServer {
 
     private static UserSecurity userSecurity;
 
+    private static final Map<String, BlockingQueue<String>> sessionMessageQueues = new ConcurrentHashMap<>();
+
     @Autowired
     public void setDeviceListenerService(UserSecurity userSecurity) {
         WebSocketServer.userSecurity = userSecurity;
     }
+
 
     /**
      * 连接uid和连接会话
@@ -138,7 +143,7 @@ public class WebSocketServer {
         String toSid = "";
         //A给B发送消息，A要知道B的信息，发送消息的时候把B的信息携带过来
         StaticLog.info("服务端收到客户端消息 ==> fromSid = {}, toSid = {}, message = {}", uid, toSid, message);
-       // sendToOne(phone, message);
+        // sendToOne(phone, message);
     }
 
     /**
@@ -170,11 +175,35 @@ public class WebSocketServer {
     }
 
     public static void sendSystemMsg(SocketMsgBean message) {
-        // 遍历在线map集合
         onlineSessionClientMap.forEach((onlineSid, toSession) -> {
+            String jsonMessage = JSONUtil.toJsonStr(message);
 
-            toSession.getAsyncRemote().sendText(JSONUtil.toJsonStr(message));
+            // 获取或创建队列
+            sessionMessageQueues.computeIfAbsent(onlineSid, sid -> {
+                BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+                startQueueProcessor(onlineSid, toSession, queue);
+                return queue;
+            }).offer(jsonMessage);
         });
+    }
+
+    // 启动队列处理线程
+    private static void startQueueProcessor(String onlineSid, Session toSession, BlockingQueue<String> queue) {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    String message = queue.take(); // 从队列取出消息
+                    toSession.getAsyncRemote().sendText(message, result -> {
+                        if (!result.isOK()) {
+                            System.err.println("Failed to send message to session " + onlineSid);
+                            result.getException().printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     /**

@@ -130,7 +130,13 @@ public class ZlmApiService {
         builder.queryParam("hook.on_flow_report", host + "/zlm/on/flow/report");
 
 
+        // mp4 录制回调
 
+        builder.queryParam("hook.on_record_mp4", host + "/zlm/on_record_mp4");
+
+        // 推流鉴权
+
+        builder.queryParam("hook.on_publish", host + "/zlm/on_publish");
     }
 
     private void createBaseConfig(NodeModel nodeModel, UriComponentsBuilder builder) {

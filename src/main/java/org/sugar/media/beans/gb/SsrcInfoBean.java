@@ -32,5 +32,7 @@ public class SsrcInfoBean {
     private String toAddr;
     private String toTag;
 
+    private String streamId;
+
     private Dialog dialog;
 }

@@ -121,6 +121,7 @@ public class RegisterEventService implements SipSignalHandler {
             if (expires == 0) {
 
                 log.info(authTemplate, tip, "设备注销成功", deviceId, request.getViaHost(), request.getViaPort());
+                //TODO:把设备下所有的通道踢下线？
 
             } else {
 
@@ -129,7 +130,7 @@ public class RegisterEventService implements SipSignalHandler {
                 boolean online = this.sipCacheService.isOnline(deviceId);
 
                 this.sipCacheService.setDeviceStatus(deviceId, StatusEnum.online.getStatus());
-                // todo:发送ws消息
+                // :发送ws消息
                 if (!online) {
                     ThreadUtil.execute(() -> {
                         WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOnline, new Date(), sipDevice.getName()));

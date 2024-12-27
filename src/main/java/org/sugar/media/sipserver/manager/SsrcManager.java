@@ -29,84 +29,73 @@ public class SsrcManager {
     @Resource
     private SipCacheService sipCacheService;
 
-    // ssrc bean
-    private ConcurrentHashMap<String, SsrcInfoBean> ssrcMap = new ConcurrentHashMap<>();
+    // key:channelCode
+    private ConcurrentHashMap<String, SsrcInfoBean> ssrcMapByChannel = new ConcurrentHashMap<>();
 
-
-    // 通道code ssrc对照map
-    private ConcurrentHashMap<String, String> channelMap = new ConcurrentHashMap<>();
+    // 按 ssrc 索引的 map
+    private ConcurrentHashMap<String, SsrcInfoBean> ssrcMapBySsrc = new ConcurrentHashMap<>();
 
     public String createPlaySsrc(SsrcInfoBean ssrcInfoBean) {
         Console.log(ssrcInfoBean.getChannelCode(), "=====");
         String ssrc = StrUtil.format("0{}{}", this.getDomain(), this.getRandomNumber());
-        this.ssrcMap.put(ssrc, ssrcInfoBean);
-        this.channelMap.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean.getChannelCode());
 
+        ssrcInfoBean.setSsrc(ssrc);
+        ssrcMapByChannel.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean);
+        ssrcMapBySsrc.put(ssrc, ssrcInfoBean);
         this.sipCacheService.setSsrc(ssrc, ssrcInfoBean.getChannelCode());
         return ssrc;
     }
 
-    public void updateSsrc(String ssrc, SsrcInfoBean ssrcInfoBean) {
+    public void updateSsrc(String channelCode, SsrcInfoBean ssrcInfoBean) {
 
 
-        this.ssrcMap.put(ssrc, ssrcInfoBean);
-        Console.log(ssrcInfoBean.getChannelCode(), "++++");
-        this.channelMap.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean.getSsrc());
-        this.sipCacheService.deleteSsrc(ssrc);
+        this.ssrcMapByChannel.put(channelCode, ssrcInfoBean);
+        this.sipCacheService.deleteSsrc(channelCode);
     }
 
 
     public String createHistorySsrc(SsrcInfoBean ssrcInfoBean) {
 
         String ssrc = StrUtil.format("1{}{}", this.getDomain(), this.getRandomNumber());
-        this.ssrcMap.put(ssrc, ssrcInfoBean);
-        this.channelMap.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean.getSsrc());
+        ssrcMapByChannel.put(ssrcInfoBean.getChannelCode(), ssrcInfoBean);
+        ssrcMapBySsrc.put(ssrc, ssrcInfoBean);
         this.sipCacheService.setSsrc(ssrc, ssrcInfoBean.getChannelCode());
         return ssrc;
     }
 
     public void releaseSsrc(String ssrc, String channelCode) {
         Console.log(ssrc, channelCode, "=====_++");
-        this.ssrcMap.remove(ssrc);
-        this.channelMap.remove(channelCode);
+        this.ssrcMapBySsrc.remove(ssrc);
+        this.ssrcMapByChannel.remove(channelCode);
     }
 
     public void releaseSsrc(String ssrc) {
-        this.ssrcMap.remove(ssrc);
 
-        channelMap.entrySet().removeIf(entry -> entry.getValue().equals(ssrc));
+        if (!this.ssrcMapBySsrc.containsKey(ssrc)) return;
 
-    }
+        SsrcInfoBean ssrcInfoBean = this.ssrcMapBySsrc.get(ssrc);
+        this.releaseSsrc(ssrc, ssrcInfoBean.getChannelCode());
 
-    public void releaseSsrcByCode(String channelCode) {
-        ssrcMap.entrySet().removeIf(entry -> entry.getValue().getChannelCode().equals(channelCode));
-
-        this.channelMap.remove(channelCode);
 
     }
 
 
-    public boolean containsSsrc(String ssrc) {
-        return this.ssrcMap.containsKey(ssrc);
-    }
-
+    // 通过ssrc查找info
 
     public SsrcInfoBean getSsrc(String ssrc) {
-        if (!this.containsSsrc(ssrc)) return null;
 
-        return this.ssrcMap.get(ssrc);
+        if (!this.ssrcMapBySsrc.containsKey(ssrc)) return null;
+
+
+        return this.ssrcMapBySsrc.get(ssrc);
     }
 
     public SsrcInfoBean getSsrcByCode(String channelCode) {
 
-        if (!this.channelMap.containsKey(channelCode)) {
-            return null;
-        }
+        if (!this.ssrcMapByChannel.containsKey(channelCode)) return null;
 
 
-        // 包括就返回
-        return this.getSsrc(this.channelMap.get(channelCode));
-
+        return this.ssrcMapByChannel.get(channelCode);
     }
 
     private String getDomain() {
@@ -129,7 +118,7 @@ public class SsrcManager {
         while (true) {
             String ssrc = Convert.toStr(RandomUtil.randomInt(1000, 9999));
 
-            if (this.ssrcMap.containsKey(ssrc)) continue;
+            if (this.ssrcMapBySsrc.containsKey(ssrc)) continue;
 
             return ssrc;
 

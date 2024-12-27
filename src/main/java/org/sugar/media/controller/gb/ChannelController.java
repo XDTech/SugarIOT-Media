@@ -145,7 +145,7 @@ public class ChannelController {
             Console.log("该设备存在ssrc:{}", ssrcByCode);
 
             Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
-            return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, BaseUtil.ssrc2hex(ssrcByCode.getSsrc()))))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
+            return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, StrUtil.format("{}_{}",device.get().getDeviceId(),channel.get().getChannelCode()))))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
 
         }
         NodeModel node = this.loadBalanceService.executeBalance();
@@ -180,7 +180,7 @@ public class ChannelController {
         this.sipRequestSender.sendInvite(deviceBean, channelBean, playSsrc);
 
 
-        return ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(node, BaseUtil.ssrc2hex(playSsrc))));
+        return ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(node,StrUtil.format("{}_{}",device.get().getDeviceId(),channel.get().getChannelCode()))));
 
     }
 

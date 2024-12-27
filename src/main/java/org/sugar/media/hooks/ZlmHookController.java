@@ -7,6 +7,7 @@ import cn.hutool.core.lang.Console;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import cn.hutool.log.StaticLog;
@@ -15,9 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
-import org.sugar.media.beans.hooks.zlm.CommonBean;
-import org.sugar.media.beans.hooks.zlm.FlowReportBean;
-import org.sugar.media.beans.hooks.zlm.OnPlayBean;
+import org.sugar.media.beans.hooks.zlm.*;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
@@ -171,7 +170,7 @@ public class ZlmHookController {
         Optional<StreamPullModel> streamPullModel = this.streamPullService.getMStreamPull(Convert.toLong(streamId));
 
         if (streamPullModel.isEmpty()) {
-           return ResponseBean.fail();
+            return ResponseBean.fail();
         }
 
 
@@ -218,17 +217,14 @@ public class ZlmHookController {
         StaticLog.info("{}。{}", "触发无人观看事件", body);
 
 
-
-
         if (body.getApp().equals("rtp")) {
+            // TODO:校验stream_id
+            String hexString = body.getStream();
 
-            String hexString = body.getStream(); // 16进制字符串
-            // 转换为10进制字符串
-            String ssrc = BaseUtil.hex2ssrc(hexString);
 
             // 通过ssrc 查找
-            SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrc(ssrc);
-
+            SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrcByCode(hexString.split("_")[1]);
+            StaticLog.info("查找ssrc:{}", ssrcInfoBean);
             if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
 
                 Console.log(ssrcInfoBean.toString());
@@ -288,6 +284,63 @@ public class ZlmHookController {
 
         return ResponseBean.success();
     }
+
+
+    @PostMapping("/on_record_mp4")
+    public ResponseBean on_record_mp4(@RequestBody Map<String, Object> data) {
+
+        StaticLog.info("mp4录制回调{}", data);
+        return ResponseBean.success();
+    }
+
+
+    @PostMapping("/on_publish")
+    public PublishAckBean on_publish(@RequestBody PublishBean data) {
+
+        StaticLog.info("推流鉴权{}", data);
+
+        // 判断rtp
+        PublishAckBean publishAckBean = new PublishAckBean();
+
+        switch (data.getApp()) {
+            case "rtp" -> {
+                String ssrc = BaseUtil.hex2ssrc(data.getStream());
+                SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrc(ssrc);
+                if (ObjectUtil.isEmpty(ssrcInfoBean)) {
+                    publishAckBean.setCode(-1);
+                    publishAckBean.setMsg("auth error");
+                    break;
+                }
+
+                publishAckBean.setCode(0);
+                publishAckBean.setAddMuteAudio(true);
+                publishAckBean.setContinuePushMs(10000);
+                publishAckBean.setEnableAudio(true);
+                publishAckBean.setEnableFmp4(true);
+                publishAckBean.setEnableHls(false);
+                publishAckBean.setEnableHlsFmp4(false);
+                publishAckBean.setEnableMp4(true);
+                publishAckBean.setEnableRtmp(true);
+                publishAckBean.setEnableRtsp(true);
+                publishAckBean.setEnableTs(true);
+                publishAckBean.setModifyStamp(0);
+                publishAckBean.setMp4AsPlayer(false);
+                publishAckBean.setMp4MaxSecond(3600);
+            //    publishAckBean.setAutoClose(false);
+                publishAckBean.setStreamReplace(StrUtil.format("{}_{}", ssrcInfoBean.getDeviceCode(), ssrcInfoBean.getChannelCode()));
+
+            }
+
+
+            default -> {
+                publishAckBean.setCode(-1);
+                publishAckBean.setMsg("auth error");
+            }
+        }
+        StaticLog.info(publishAckBean.toString());
+        return publishAckBean;
+    }
+
 
     /**
      * 根据参数鉴权
