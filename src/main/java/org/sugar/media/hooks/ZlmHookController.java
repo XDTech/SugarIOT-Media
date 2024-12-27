@@ -1,5 +1,6 @@
 package org.sugar.media.hooks;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
@@ -19,13 +20,18 @@ import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.beans.hooks.zlm.*;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.model.TenantModel;
+import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.model.record.RecordModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.ZlmNodeService;
+import org.sugar.media.service.record.RecordService;
 import org.sugar.media.service.stream.StreamPullService;
+import org.sugar.media.service.tenant.TenantService;
 import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.utils.BaseUtil;
@@ -63,6 +69,12 @@ public class ZlmHookController {
 
     @Resource
     private SipRequestSender sipRequestSender;
+
+    @Resource
+    private TenantService tenantService;
+
+    @Resource
+    private RecordService recordService;
 
 
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -123,12 +135,12 @@ public class ZlmHookController {
     @PostMapping("/on_play")
     public ResponseBean onPlay(@RequestBody OnPlayBean body) {
 
-        StaticLog.info("{}：{}", "播放鉴权hook",body.toString());
+        StaticLog.info("{}：{}", "播放鉴权hook", body.toString());
 //        if (body.getApp().equals("rtp")) {
 //            return ResponseBean.success();
 //        }
 
-        if(body.getApp().equals("record")) return ResponseBean.success();
+        if (body.getApp().equals("record")) return ResponseBean.success();
         Map<String, String> authentication = this.authentication(body.getParams());
         if (MapUtil.isEmpty(authentication)) return ResponseBean.fail();
 
@@ -138,7 +150,7 @@ public class ZlmHookController {
 
     @PostMapping("/stream/nof/found")
     public ResponseBean streamNotFound(@RequestBody OnPlayBean body) {
-        if(body.getApp().equals("record")) return ResponseBean.success();
+        if (body.getApp().equals("record")) return ResponseBean.success();
         Console.log("{}===触发流未找到事件", body);
 
         // 再次鉴权
@@ -289,9 +301,33 @@ public class ZlmHookController {
 
 
     @PostMapping("/on_record_mp4")
-    public ResponseBean on_record_mp4(@RequestBody Map<String, Object> data) {
+    public ResponseBean on_record_mp4(@RequestBody HookRecordBean data) {
 
         StaticLog.info("mp4录制回调{}", data);
+
+        RecordModel recordModel = new RecordModel();
+
+        BeanUtil.copyProperties(data, recordModel);
+
+        // 解析tenant id
+
+        if (data.getApp().equals("rtp")) {
+            String deviceId = data.getStream().split("_")[0];
+
+            String tenantCode = deviceId.substring(0, 6);
+            TenantModel tenant = this.tenantService.getTenant(Convert.toInt(tenantCode));
+
+            if (ObjectUtil.isNotEmpty(tenant)) {
+                recordModel.setTenantId(tenant.getId());
+
+                this.recordService.createRecord(recordModel);
+
+            }
+
+
+        }
+
+
         return ResponseBean.success();
     }
 
@@ -328,7 +364,7 @@ public class ZlmHookController {
                 publishAckBean.setModifyStamp(0);
                 publishAckBean.setMp4AsPlayer(false);
                 publishAckBean.setMp4MaxSecond(3600);
-            //    publishAckBean.setAutoClose(false);
+                //    publishAckBean.setAutoClose(false);
                 publishAckBean.setStreamReplace(StrUtil.format("{}_{}", ssrcInfoBean.getDeviceCode(), ssrcInfoBean.getChannelCode()));
 
             }

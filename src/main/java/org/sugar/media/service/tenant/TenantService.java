@@ -20,9 +20,13 @@ public class TenantService {
     private TenantRepo tenantRepo;
 
 
-
-    public Optional<TenantModel> getTenant(Long id){
+    public Optional<TenantModel> getTenant(Long id) {
         return this.tenantRepo.findById(id);
+    }
+
+
+    public TenantModel getTenant(Integer tenantCode) {
+        return this.tenantRepo.findByCode(tenantCode);
     }
 
 }

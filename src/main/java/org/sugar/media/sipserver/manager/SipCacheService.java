@@ -151,7 +151,7 @@ public class SipCacheService {
      */
     public static String SIP_SSRC_KEY = "sip_ssrc:"; // ssrc key
 
-    private static final long SIP_SSRC_TIMEOUT = 10; // 系统默认60s保活
+    private static final long SIP_SSRC_TIMEOUT = 10; //
 
     public void setSsrc(String ssrc, String channelCode) {
         String key = SIP_SSRC_KEY + ssrc;

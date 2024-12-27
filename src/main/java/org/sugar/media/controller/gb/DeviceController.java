@@ -22,6 +22,7 @@ import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.manager.SipCacheService;
+import org.sugar.media.sipserver.utils.SipConfUtils;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.validation.gb.DeviceRegisterVal;
 
@@ -55,6 +56,9 @@ public class DeviceController {
     @Resource
     private SipRequestSender sipRequestSender;
 
+    @Resource
+    private SipConfUtils sipConfUtils;
+
     @GetMapping("/page/list")
     public ResponseEntity<?> getDevicePageList(@RequestParam Integer pi, @RequestParam Integer ps, @RequestParam(required = false) String name) {
 
@@ -82,8 +86,17 @@ public class DeviceController {
 
         Optional<DeviceModel> device = this.deviceService.getDevice(deviceId);
 
-        return device.<ResponseEntity<?>>map(deviceModel -> ResponseEntity.ok(ResponseBean.success(deviceModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail()));
+        if (device.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
 
+        DeviceBean deviceBean = new DeviceBean();
+
+        BeanUtil.copyProperties(device.get(), deviceBean);
+        deviceBean.setStatus(this.sipCacheService.isOnline(deviceBean.getDeviceId()) ? StatusEnum.online.getStatus() : StatusEnum.offline.getStatus());
+        int size = this.channelService.getDeviceChannelList(deviceBean.getId()).size();
+        deviceBean.setChannel(size);
+
+
+        return ResponseEntity.ok(ResponseBean.success(deviceBean));
     }
 
     /**
@@ -96,7 +109,7 @@ public class DeviceController {
     public ResponseEntity<?> registerDevice(@RequestBody @Validated DeviceRegisterVal deviceRegisterVal) {
 
         Integer tenantCode = this.userSecurity.getCurrentTenantCode();
-        String code = this.deviceService.createDeviceCode(tenantCode,deviceRegisterVal.getDeviceId());
+        String code = this.deviceService.createDeviceCode(tenantCode, deviceRegisterVal.getDeviceId());
         // 查询国标设备是否存在
         DeviceModel device = this.deviceService.getDevice(code);
 
@@ -121,7 +134,7 @@ public class DeviceController {
     public ResponseEntity<?> updateDevice(@RequestBody @Validated(DeviceRegisterVal.Update.class) DeviceRegisterVal deviceRegisterVal) {
 
         Integer tenantCode = this.userSecurity.getCurrentTenantCode();
-        String code =this.deviceService.createDeviceCode(tenantCode,deviceRegisterVal.getDeviceId());
+        String code = this.deviceService.createDeviceCode(tenantCode, deviceRegisterVal.getDeviceId());
 
         Optional<DeviceModel> deviceModel = this.deviceService.getDevice(deviceRegisterVal.getId());
 
@@ -196,6 +209,14 @@ public class DeviceController {
 
         return ResponseEntity.ok(ResponseBean.success());
 
+
+    }
+
+    // 国标的系统配置
+
+    @GetMapping("/system/config")
+    public ResponseEntity<?> systemConfig() {
+        return ResponseEntity.ok(ResponseBean.success(this.sipConfUtils));
 
     }
 

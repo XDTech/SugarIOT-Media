@@ -59,7 +59,7 @@ public class SipEventListener implements SipListener {
     @Override
     public void processRequest(RequestEvent requestEvent) {
         try {
-            log.warn("处理：{}", requestEvent.getRequest().getMethod());
+            //log.warn("处理：{}", requestEvent.getRequest().getMethod());
             RequestEventExt evtExt = (RequestEventExt) requestEvent;
 //      evtExt.getServerTransaction().;
 

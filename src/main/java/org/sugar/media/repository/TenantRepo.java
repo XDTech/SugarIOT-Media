@@ -12,4 +12,6 @@ import org.sugar.media.model.TenantModel;
 public interface TenantRepo  extends JpaRepository<TenantModel, Long>, JpaSpecificationExecutor<TenantModel> {
 
 
+    TenantModel findByCode(Integer code);
+
 }
