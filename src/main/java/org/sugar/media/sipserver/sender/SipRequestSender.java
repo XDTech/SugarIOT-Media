@@ -1,6 +1,8 @@
 package org.sugar.media.sipserver.sender;
 
 import cn.hutool.core.lang.Console;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -130,5 +132,18 @@ public class SipRequestSender {
         }
 
 
+    }
+
+    public void sendBye(String channelCode) {
+        // 通过ssrc 查找
+        SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrcByCode(channelCode);
+        if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
+
+            Console.log(ssrcInfoBean.toString());
+
+            this.sendBye(ssrcInfoBean);
+
+
+        }
     }
 }

@@ -237,17 +237,8 @@ public class ZlmHookController {
 
 
             // 通过ssrc 查找
-            SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrcByCode(hexString.split("_")[1]);
-            StaticLog.info("查找ssrc:{}", ssrcInfoBean);
-            if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
 
-                Console.log(ssrcInfoBean.toString());
-
-                this.sipRequestSender.sendBye(ssrcInfoBean);
-
-
-            }
-
+            this.sipRequestSender.sendBye(hexString.split("_")[1]);
 
             map.put("code", 0);
             map.put("close", true);
@@ -310,21 +301,26 @@ public class ZlmHookController {
         BeanUtil.copyProperties(data, recordModel);
 
         // 解析tenant id
-
+        String tenantCode = "0";
         if (data.getApp().equals("rtp")) {
             String deviceId = data.getStream().split("_")[0];
 
-            String tenantCode = deviceId.substring(0, 6);
-            TenantModel tenant = this.tenantService.getTenant(Convert.toInt(tenantCode));
-
-            if (ObjectUtil.isNotEmpty(tenant)) {
-                recordModel.setTenantId(tenant.getId());
-
-                this.recordService.createRecord(recordModel);
-
-            }
+            tenantCode = deviceId.substring(0, 6);
 
 
+        } else {
+            // 通过截取方式获取租户code
+            tenantCode = data.getFilePath().substring(data.getUrl().length() - 5).substring(0, 6);
+
+            recordModel.setUrl(tenantCode + "/" + recordModel.getUrl());
+        }
+
+
+        TenantModel tenant = this.tenantService.getTenant(Convert.toInt(tenantCode));
+
+        if (ObjectUtil.isNotEmpty(tenant)) {
+            recordModel.setTenantId(tenant.getId());
+            this.recordService.createRecord(recordModel);
         }
 
 

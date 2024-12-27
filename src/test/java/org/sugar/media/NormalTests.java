@@ -1,5 +1,6 @@
 package org.sugar.media;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
@@ -30,18 +31,37 @@ public class NormalTests {
 
 
     @Test
-    void test(){
+    void testUrl() {
+        Integer anInt = Convert.toInt("");
+        Console.log(anInt);
+
+        String s = "/root/zlm_v2/release/linux/Debug/www/100001/record/live/test/2024-12-28/00-33-51-0.mp4";
+        Console.log(s);
+
+
+        String a = "record/live/test/2024-12-28/00-33-51-0.mp4";
+
+        String substring = s.substring(a.length() - 5).substring(0, 6);
+
+        Console.log(substring, a.length(),a.length() - 5, s.length());
+
+
+    }
+
+    @Test
+    void test() {
 
         String s = BaseUtil.ssrc2hex("200008772");
         Console.log(s);
 
-         s = BaseUtil.hex2ssrc("0BEBE444");
+        s = BaseUtil.hex2ssrc("0BEBE444");
 
         Console.log(s);
 
     }
+
     @Test
-    void normalTest(){
+    void normalTest() {
         String xml = """
                 <Response>
                     <CmdType>Catalog</CmdType>

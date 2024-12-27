@@ -4,6 +4,7 @@ package org.sugar.media.service.media;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.StaticLog;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -15,13 +16,16 @@ import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.SyncEnum;
+import org.sugar.media.model.TenantModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
+import org.sugar.media.service.tenant.TenantService;
 import org.sugar.media.utils.BaseUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ZlmApiService {
@@ -37,6 +41,11 @@ public class ZlmApiService {
     @Value("${server.ip}")
     private String serverIp;
 
+
+    @Resource
+    private TenantService tenantService;
+
+    public static String savePathPrefix = "./www";
 
     // 创建一个新的zlm实例时，应当初始化该方法
 
@@ -238,12 +247,23 @@ public class ZlmApiService {
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/addStreamProxy");
 
+            Optional<TenantModel> tenant = this.tenantService.getTenant(pullModel.getTenantId());
+
+            if (tenant.isEmpty()) {
+                CommonBean commonBean = new CommonBean();
+                commonBean.setCode(-1);
+                commonBean.setMsg("tenant not found");
+                return commonBean;
+            }
+
             // add param
             builder.queryParam("secret", nodeModel.getSecret());
             builder.queryParam("vhost", pullModel.getVhost());
             builder.queryParam("app", pullModel.getApp());
             builder.queryParam("stream", pullModel.getStream());
             builder.queryParam("url", pullModel.getUrl());
+            builder.queryParam("mp4_save_path", this.getSavePath(tenant.get().getCode()));
+            builder.queryParam("hls_save_path", this.getSavePath(tenant.get().getCode()));
             builder.queryParam("timeout_sec", pullModel.getTimeoutSec());
             builder.queryParam("enable_rtsp", BaseUtil.convertBool(pullModel.isEnableRtsp()));
             builder.queryParam("enable_hls", BaseUtil.convertBool(pullModel.isEnableHls()));
@@ -261,7 +281,7 @@ public class ZlmApiService {
             } else if (pullModel.getAutoClose().equals(AutoCloseEnum.no)) {
                 builder.queryParam("auto_close", "0");
             }
-            StaticLog.info("{}",builder.toUriString());
+            StaticLog.info("{}", builder.toUriString());
             HttpEntity<?> entity = new HttpEntity<>(headers);
             ResponseEntity<CommonBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CommonBean.class);
 
@@ -313,7 +333,7 @@ public class ZlmApiService {
     /**
      * 获取拉流代理
      */
-    public StreamProxyInfoBean getStreamProxyInfo(String  streamkey, NodeModel nodeModel) {
+    public StreamProxyInfoBean getStreamProxyInfo(String streamkey, NodeModel nodeModel) {
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -339,6 +359,13 @@ public class ZlmApiService {
             return streamProxyInfoBean;
 
         }
+
+    }
+
+
+    public String getSavePath(Integer tenantCode) {
+
+        return StrUtil.format("{}/{}", savePathPrefix, tenantCode);
 
     }
 
