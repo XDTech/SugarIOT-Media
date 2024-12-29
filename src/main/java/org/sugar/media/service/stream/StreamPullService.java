@@ -54,8 +54,8 @@ public class StreamPullService {
     private LoadBalanceService loadBalanceService;
 
 
-    public StreamPullModel onlyStream(Long tenantId, String app, String stream) {
-        return this.streamPullRepo.findAllByTenantIdAndAppAndStream(tenantId, app, stream);
+    public StreamPullModel onlyStream(String tenantCode, String stream) {
+        return this.streamPullRepo.findAllByAppAndStream(tenantCode, stream);
     }
 
     @Transactional

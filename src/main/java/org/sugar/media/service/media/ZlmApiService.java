@@ -143,7 +143,7 @@ public class ZlmApiService {
 
         builder.queryParam("hook.on_record_mp4", host + "/zlm/on_record_mp4");
 
-        // 推流鉴权
+        // 推流鉴权（推到zlm的流）
 
         builder.queryParam("hook.on_publish", host + "/zlm/on_publish");
     }

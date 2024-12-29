@@ -15,5 +15,5 @@ import org.sugar.media.model.stream.StreamPullModel;
 public interface StreamPullRepo extends JpaRepository<StreamPullModel, Long>, JpaSpecificationExecutor<StreamPullModel> {
 
 
-    StreamPullModel findAllByTenantIdAndAppAndStream(Long tenantId,String app,String stream);
+    StreamPullModel findAllByAppAndStream(String app,String stream);
 }

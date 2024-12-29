@@ -132,11 +132,13 @@ public class StreamPullController {
     public ResponseEntity<?> createMStreamPull(@RequestBody @Validated StreamPullVal mStreamPullBean) {
 
 
-        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentTenantId(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
+        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(
+                Convert.toStr(this.userSecurity.getCurrentTenantCode())
+                , mStreamPullBean.getStream());
 
 
         if (ObjectUtil.isNotEmpty(streamPullModel)) {
-            return ResponseEntity.ok(ResponseBean.fail("App+Stream重复"));
+            return ResponseEntity.ok(ResponseBean.fail("Stream重复"));
         }
 
         StreamPullModel mStreamPull = new StreamPullModel();
@@ -168,11 +170,12 @@ public class StreamPullController {
 
         // 判断是否存在
 
-        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(this.userSecurity.getCurrentTenantId(), mStreamPullBean.getApp(), mStreamPullBean.getStream());
-
+        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(
+                Convert.toStr(this.userSecurity.getCurrentTenantCode())
+                , mStreamPullBean.getStream());
 
         if (ObjectUtil.isNotEmpty(streamPullModel) && !streamPullModel.getId().equals(mStreamPullBean.getId())) {
-            return ResponseEntity.ok(ResponseBean.fail("App+Stream重复"));
+            return ResponseEntity.ok(ResponseBean.fail("Stream重复"));
         }
 
         StreamPullModel mStreamPull = mStreamPullOptional.get();

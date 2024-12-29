@@ -247,12 +247,6 @@ public class ZlmHookController {
             return map;
         }
 
-        Map<String, String> authentication = this.authentication(body.getParams());
-        if (MapUtil.isEmpty(authentication)) {
-            map.put("code", 0);
-            map.put("close", false);
-            return map;
-        }
         // 重置拉流代理
         /// 查询是哪个node
 
@@ -260,11 +254,11 @@ public class ZlmHookController {
             Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(body.getMediaServerId()));
             if (node.isPresent()) {
 
-                JWT parseToken = JWTUtil.parseToken(authentication.get("sign"));
-                Object streamId = parseToken.getPayload("streamId");
+                StreamPullModel streamPullModel = this.streamPullService.onlyStream(body.getApp(), body.getStream());
 
-                Optional<StreamPullModel> streamPullModel = this.streamPullService.getMStreamPull(Convert.toLong(streamId));
-                streamPullModel.ifPresent(pullModel -> this.streamPullService.resetStream(pullModel));
+                if (ObjectUtil.isNotEmpty(streamPullModel)) {
+                    this.streamPullService.resetStream(streamPullModel);
+                }
             }
         });
 
@@ -357,7 +351,7 @@ public class ZlmHookController {
                 publishAckBean.setEnableRtmp(true);
                 publishAckBean.setEnableRtsp(true);
                 publishAckBean.setEnableTs(true);
-                publishAckBean.setModifyStamp(0);
+                publishAckBean.setModifyStamp(2);
                 publishAckBean.setMp4AsPlayer(false);
                 publishAckBean.setMp4MaxSecond(3600);
                 //    publishAckBean.setAutoClose(false);
