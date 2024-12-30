@@ -55,9 +55,10 @@ public class ProcessInviteResponse {
         int index = sdpContent.indexOf("y=");
         if (index != -1) {
             // 如果找到了 y= 字段，获取值
-            String ssrc = sdpContent.substring(index + 2).trim();
+            String ssrc = sdpContent.substring(index + 2,(index + 2)+11).trim();
 
             SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrc(ssrc);
+            Console.error(ssrcInfoBean,ssrc);
             if (ObjectUtil.isEmpty(ssrcInfoBean)) {
                 log.warn("[ssrc]:invite ssrc暂未生成:{}", ssrc);
                 return;

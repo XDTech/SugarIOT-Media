@@ -11,6 +11,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.sugar.media.beans.hooks.zlm.CloseStreamBean;
 import org.sugar.media.beans.hooks.zlm.CommonBean;
 import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
@@ -362,6 +363,38 @@ public class ZlmApiService {
 
     }
 
+
+
+
+    public CloseStreamBean closeSteam(String app, String stream, NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/close_streams");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            builder.queryParam("app", app);
+            builder.queryParam("stream", stream);
+            builder.queryParam("force", 1);
+
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<CloseStreamBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, CloseStreamBean.class);
+
+            return exchange.getBody();
+
+        } catch (Exception e) {
+
+            CloseStreamBean commonBean = new CloseStreamBean();
+            commonBean.setCode(-1);
+
+
+            e.printStackTrace();
+            return commonBean;
+
+        }
+    }
 
     public String getSavePath(Integer tenantCode) {
 

@@ -20,5 +20,6 @@ public class CommonBean {
 
     private Long nodeId;
 
+
     private Map<String,Object> data=new HashMap<>();
 }

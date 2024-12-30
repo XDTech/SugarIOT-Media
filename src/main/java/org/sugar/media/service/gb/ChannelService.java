@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
@@ -163,6 +164,18 @@ public class ChannelService {
         }
 
         return true;
+
+    }
+
+    public String genGBStream(String deviceCode, String channelCode) {
+        return StrUtil.format("{}_{}", deviceCode, channelCode);
+    }
+
+
+    @Transactional
+    public void updateChannelStatus(Long deviceId, StatusEnum statusEnum) {
+
+        this.channelRepo.updateStatusByDevice(deviceId, statusEnum);
 
     }
 }

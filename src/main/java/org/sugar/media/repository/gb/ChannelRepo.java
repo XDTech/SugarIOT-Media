@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 
 import java.util.Date;
@@ -26,5 +27,10 @@ public interface ChannelRepo extends JpaRepository<DeviceChannelModel, Long>, Jp
 
 
     void deleteAllByDeviceId(Long deviceId);
+
+    @Modifying
+    @Transactional
+    @Query("update DeviceChannelModel m set m.status=?2 where  m.deviceId=?1")
+    void updateStatusByDevice(Long deviceId, StatusEnum statusEnum);
 
 }

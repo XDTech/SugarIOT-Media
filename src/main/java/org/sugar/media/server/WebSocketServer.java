@@ -193,12 +193,7 @@ public class WebSocketServer {
             while (true) {
                 try {
                     String message = queue.take(); // 从队列取出消息
-                    toSession.getAsyncRemote().sendText(message, result -> {
-                        if (!result.isOK()) {
-                            System.err.println("Failed to send message to session " + onlineSid);
-                            result.getException().printStackTrace();
-                        }
-                    });
+                    toSession.getBasicRemote().sendText(message);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

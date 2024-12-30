@@ -5,6 +5,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
+import org.sugar.media.beans.hooks.zlm.CloseStreamBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
@@ -23,6 +25,7 @@ import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.LoadBalanceService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
+import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
 import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.manager.SsrcManager;
@@ -73,6 +76,9 @@ public class ChannelController {
     @Resource
     private UserSecurity userSecurity;
 
+    @Resource
+    private ZlmApiService zlmApiService;
+
 
     @GetMapping("/list/{deviceId}")
     public ResponseEntity<?> getDevice(@PathVariable Long deviceId) {
@@ -100,9 +106,9 @@ public class ChannelController {
         List<ChannelBean> channelBeans = BeanConverterUtil.convertList(channelPageList.getContent(), ChannelBean.class);
 
 
-        channelBeans=  channelBeans.stream().peek(c->{
+        channelBeans = channelBeans.stream().peek(c -> {
             DeviceModel deviceModel = modelMap.get(c.getDeviceId());
-            if(ObjectUtil.isNotEmpty(deviceModel)){
+            if (ObjectUtil.isNotEmpty(deviceModel)) {
                 c.setDeviceName(deviceModel.getDeviceName());
                 c.setDeviceCode(deviceModel.getDeviceId());
             }
@@ -145,7 +151,7 @@ public class ChannelController {
             Console.log("该设备存在ssrc:{}", ssrcByCode);
 
             Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
-            return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, StrUtil.format("{}_{}",device.get().getDeviceId(),channel.get().getChannelCode()))))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
+            return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, StrUtil.format("{}_{}", device.get().getDeviceId(), channel.get().getChannelCode()))))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
 
         }
         NodeModel node = this.loadBalanceService.executeBalance();
@@ -177,11 +183,42 @@ public class ChannelController {
         String playSsrc = this.ssrcManager.createPlaySsrc(ssrcInfoBean);
         ssrcInfoBean.setSsrc(playSsrc);
 
+        Console.error(ssrcInfoBean.toString());
         this.sipRequestSender.sendInvite(deviceBean, channelBean, playSsrc);
 
 
-        return ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(node,StrUtil.format("{}_{}",device.get().getDeviceId(),channel.get().getChannelCode()))));
+        return ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(node, this.channelService.genGBStream(device.get().getDeviceId(), channel.get().getChannelCode()))));
 
     }
+
+
+    @PostMapping("/send/bye/{channelId}")
+    public ResponseEntity<?> sendBy(@PathVariable Long channelId) {
+        Optional<DeviceChannelModel> channel = this.channelService.getChannel(channelId);
+        if (channel.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+        SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrcByCode(channel.get().getChannelCode());
+
+        if (ObjectUtil.isEmpty(ssrcInfoBean)) return ResponseEntity.ok(ResponseBean.fail("该流暂未播放"));
+
+        // send bye
+        this.sipRequestSender.sendBye(ssrcInfoBean);
+
+
+        StaticLog.info(ssrcInfoBean.toString());
+        // close stream
+        if (ssrcInfoBean.getNodeId() != null) {
+            Optional<NodeModel> node = this.nodeService.getNode(ssrcInfoBean.getNodeId());
+            if (node.isPresent()) {
+                String gbStream = this.channelService.genGBStream(ssrcInfoBean.getDeviceCode(), ssrcInfoBean.getChannelCode());
+                CloseStreamBean rtp = this.zlmApiService.closeSteam("rtp", gbStream, node.get());
+
+                StaticLog.info(rtp.toString());
+            }
+        }
+
+
+        return ResponseEntity.ok(ResponseBean.success());
+    }
+
 
 }

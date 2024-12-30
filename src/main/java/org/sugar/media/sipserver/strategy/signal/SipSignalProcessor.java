@@ -1,6 +1,7 @@
 package org.sugar.media.sipserver.strategy.signal;
 
 import cn.hutool.core.lang.Console;
+import cn.hutool.log.StaticLog;
 import gov.nist.javax.sip.RequestEventExt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,7 @@ public class SipSignalProcessor {
         RequestEventExt evtExt = (RequestEventExt) requestEvent;
         String method = evtExt.getRequest().getMethod();
         SipSignalHandler handler = handlers.get(method);
+        StaticLog.info("method:{}",method);
         if (handler != null) {
             handler.processMessage(evtExt);
         } else {

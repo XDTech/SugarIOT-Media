@@ -104,6 +104,7 @@ public class CatalogEventService implements SipCmdHandler {
 
         // 更新完成后 订阅目录
 
+        this.sipRequestSender.sendCancelCatalogSubscribe(sipDevice);
         this.sipRequestSender.sendCatalogSubscribe(sipDevice);
 
     }

@@ -164,6 +164,6 @@ public class DeviceService {
      * @return
      */
     public String createDeviceCode(Integer tenantCode, String deviceId) {
-        return StrUtil.format("{}0000{}", tenantCode, deviceId);
+        return StrUtil.format("{}0000111{}", tenantCode, deviceId);
     }
 }

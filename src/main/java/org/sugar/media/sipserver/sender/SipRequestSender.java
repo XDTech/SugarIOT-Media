@@ -83,6 +83,7 @@ public class SipRequestSender {
 
     }
 
+
     @SneakyThrows
     public void sendCancelCatalogSubscribe(DeviceBean deviceBean) {
         SipProvider sipProvider = SipServer.udpSipProvider();
@@ -114,7 +115,6 @@ public class SipRequestSender {
         try {
 
             Dialog dialog = ssrcInfoBean.getDialog();
-
             Request byeRequest = dialog.createRequest(Request.BYE);
             Console.log(byeRequest.toString());
             ClientTransaction clientTransaction = SipServer.udpSipProvider().getNewClientTransaction(byeRequest);

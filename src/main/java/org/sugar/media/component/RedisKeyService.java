@@ -8,9 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.enums.SocketMsgEnum;
+import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.server.WebSocketServer;
+import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.service.node.ZlmNodeService;
@@ -43,6 +45,9 @@ public class RedisKeyService {
     @Resource
     private SsrcManager ssrcManager;
 
+    @Resource
+    private ChannelService channelService;
+
 
     // media key 过期或者删除
     public void mediaKeyPrefix(String expiredKey) {
@@ -63,8 +68,13 @@ public class RedisKeyService {
 
         DeviceModel device = this.deviceService.getDevice(deviceId);
 
-        if (ObjectUtil.isNotEmpty(device) && this.sipCacheService.isOnline(deviceId)) {
+        if (ObjectUtil.isNotEmpty(device)) {
+
+            // 把该设备下所有的通道都离线
+            this.channelService.updateChannelStatus(device.getId(), StatusEnum.offline);
             WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), device.getName()));
+
+
         }
 
     }

@@ -329,7 +329,20 @@ public class ZlmHookController {
 
         // 判断rtp
         PublishAckBean publishAckBean = new PublishAckBean();
-
+        publishAckBean.setCode(0);
+        publishAckBean.setAddMuteAudio(true);
+        publishAckBean.setContinuePushMs(10000);
+        publishAckBean.setEnableAudio(true);
+        publishAckBean.setEnableFmp4(true);
+        publishAckBean.setEnableHls(false);
+        publishAckBean.setEnableHlsFmp4(false);
+        publishAckBean.setEnableMp4(true);
+        publishAckBean.setEnableRtmp(true);
+        publishAckBean.setEnableRtsp(true);
+        publishAckBean.setEnableTs(true);
+        publishAckBean.setModifyStamp(2);
+        publishAckBean.setMp4AsPlayer(false);
+        publishAckBean.setMp4MaxSecond(3600);
         switch (data.getApp()) {
             case "rtp" -> {
                 String ssrc = BaseUtil.hex2ssrc(data.getStream());
@@ -340,25 +353,37 @@ public class ZlmHookController {
                     break;
                 }
 
-                publishAckBean.setCode(0);
-                publishAckBean.setAddMuteAudio(true);
-                publishAckBean.setContinuePushMs(10000);
-                publishAckBean.setEnableAudio(true);
-                publishAckBean.setEnableFmp4(true);
-                publishAckBean.setEnableHls(false);
-                publishAckBean.setEnableHlsFmp4(false);
-                publishAckBean.setEnableMp4(true);
-                publishAckBean.setEnableRtmp(true);
-                publishAckBean.setEnableRtsp(true);
-                publishAckBean.setEnableTs(true);
-                publishAckBean.setModifyStamp(2);
-                publishAckBean.setMp4AsPlayer(false);
-                publishAckBean.setMp4MaxSecond(3600);
+
                 //    publishAckBean.setAutoClose(false);
                 publishAckBean.setStreamReplace(StrUtil.format("{}_{}", ssrcInfoBean.getDeviceCode(), ssrcInfoBean.getChannelCode()));
 
             }
+            case "publish" -> {
+                // 其他方式推流，鉴权app 统一为租户code，参数固定位sign=tenantCode
 
+
+                // 
+                Map<String, String> paramMap = BaseUtil.paramConvertToMap(data.getParams());
+                if (!paramMap.containsKey("sign")) {
+                    publishAckBean.setCode(-1);
+                    publishAckBean.setMsg("auth error");
+
+                    break;
+                }
+                TenantModel tenant = this.tenantService.getTenant(Convert.toInt(paramMap.get("sign")));
+                if (ObjectUtil.isEmpty(tenant)) {
+                    publishAckBean.setCode(-1);
+                    publishAckBean.setMsg("auth error");
+
+                    break;
+                }
+
+                publishAckBean.setStreamReplace(StrUtil.format("{}_{}", paramMap.get("sign"), data.getStream()));
+
+
+
+
+            }
 
             default -> {
                 publishAckBean.setCode(-1);
