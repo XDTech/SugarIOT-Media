@@ -1,6 +1,8 @@
 package org.sugar.media;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -14,13 +16,16 @@ import cn.hutool.log.StaticLog;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.utils.BaseUtil;
+import org.sugar.media.utils.MonitorUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import oshi.SystemInfo;
+import oshi.software.os.FileSystem;
+import oshi.software.os.OSFileStore;
+import oshi.software.os.OperatingSystem;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Date:2024/11/26 15:49:49
@@ -30,6 +35,22 @@ import java.util.Map;
 
 public class NormalTests {
 
+
+
+    @Test
+    void test1(){
+        System.out.println("----------------操作系统信息----------------");
+        Properties props = System.getProperties();
+        //系统名称
+        String osName = props.getProperty("os.name");
+        //架构名称
+        String osArch = props.getProperty("os.arch");
+        System.out.println("操作系统名 = " + osName);
+        System.out.println("系统架构 = " + osArch);
+        SystemInfo si = new SystemInfo();
+        OperatingSystem os = si.getOperatingSystem();
+        System.out.println("系统信息 = " + os.toString());
+    }
 
     @Test
     void testXml() {

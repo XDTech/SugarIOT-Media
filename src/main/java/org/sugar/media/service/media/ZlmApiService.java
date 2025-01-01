@@ -147,6 +147,12 @@ public class ZlmApiService {
         // 推流鉴权（推到zlm的流）
 
         builder.queryParam("hook.on_publish", host + "/zlm/on_publish");
+
+        // 流改变事件
+
+        builder.queryParam("hook.on_stream_changed", host + "/zlm/on_stream_changed");
+
+
     }
 
     private void createBaseConfig(NodeModel nodeModel, UriComponentsBuilder builder) {

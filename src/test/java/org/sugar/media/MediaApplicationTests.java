@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.service.MonitorService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.node.NodeService;
@@ -33,11 +34,20 @@ class MediaApplicationTests {
     @Resource
     private MediaCacheService mediaCacheService;
 
+    @Resource
+    MonitorService monitorService;
+
     @Test
-    void contextLoads() {
+    void contextLoads() throws InterruptedException {
+        this.monitorService.getNetwork();
+//        this.monitorService.printlnCpuInfo();
+//        this.monitorService.getMemoryInfo();
+//        this.monitorService.getThread();
+//        this.monitorService.getSysInfo();
+//        this.monitorService.getJvmInfo();
+//        this.monitorService.getDiskInfo();
 
-
-        this.channelService.checkChannelCode("100001","10000100001320000008");
+     //   this.channelService.checkChannelCode("100001","10000100001320000008");
 
 //        String test = SecureUtil.sha1("test");
 //        StaticLog.info("{}", test);

@@ -281,6 +281,16 @@ public class ZlmHookController {
     @PostMapping("/on/flow/report")
     public ResponseBean on_flow_report(@RequestBody FlowReportBean data) {
 
+        StaticLog.warn("流量统计事件：{}", data.toString());
+
+        return ResponseBean.success();
+    }
+
+    // 流改变事件
+    @PostMapping("/on_stream_changed")
+    public ResponseBean on_stream_changed(@RequestBody Map<String, Object> data) {
+
+        //StaticLog.warn("流改变事件：{}", data.toString());
 
         return ResponseBean.success();
     }
