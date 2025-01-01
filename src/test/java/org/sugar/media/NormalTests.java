@@ -25,7 +25,9 @@ import oshi.software.os.OSFileStore;
 import oshi.software.os.OperatingSystem;
 
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.*;
+
 
 /**
  * Date:2024/11/26 15:49:49
@@ -36,20 +38,33 @@ import java.util.*;
 public class NormalTests {
 
 
+    private static final String[] UNITS = {"B", "KB", "MB", "GB", "TB", "PB"};
+    private static final int UNIT_THRESHOLD = 1024; // 换算单位为1024
 
+    public String formatByte(long bytes) {
+        if (bytes < UNIT_THRESHOLD) {
+            return bytes + " B";
+        }
+
+        int unitIndex = 0;
+        double size = bytes;
+        while (size >= UNIT_THRESHOLD && unitIndex < UNITS.length - 1) {
+            size /= UNIT_THRESHOLD;
+            unitIndex++;
+        }
+
+        // 保留两位小数
+        DecimalFormat decimalFormat = new DecimalFormat("#.##");
+        return decimalFormat.format(size) + " " + UNITS[unitIndex];
+    }
     @Test
     void test1(){
-        System.out.println("----------------操作系统信息----------------");
-        Properties props = System.getProperties();
-        //系统名称
-        String osName = props.getProperty("os.name");
-        //架构名称
-        String osArch = props.getProperty("os.arch");
-        System.out.println("操作系统名 = " + osName);
-        System.out.println("系统架构 = " + osArch);
-        SystemInfo si = new SystemInfo();
-        OperatingSystem os = si.getOperatingSystem();
-        System.out.println("系统信息 = " + os.toString());
+
+        String s = this.formatByte(30000000);
+
+        Console.log(s);
+
+
     }
 
     @Test

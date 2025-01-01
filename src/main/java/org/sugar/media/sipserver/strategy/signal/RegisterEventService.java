@@ -133,7 +133,7 @@ public class RegisterEventService implements SipSignalHandler {
                 // :发送ws消息
                 if (!online) {
                     ThreadUtil.execute(() -> {
-                        WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOnline, new Date(), sipDevice.getName()));
+                        WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOnline, new Date(), sipDevice.getName(),null));
                     });
                 }
 

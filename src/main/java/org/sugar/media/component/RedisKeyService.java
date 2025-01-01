@@ -57,7 +57,7 @@ public class RedisKeyService {
         LeastConnectionUtil.removeServerList(mediaId);
 
         Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(mediaId));
-        node.ifPresent(nodeModel -> WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOffline, new Date(), nodeModel.getName())));
+        node.ifPresent(nodeModel -> WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOffline, new Date(), nodeModel.getName(),null)));
 
     }
 
@@ -72,7 +72,7 @@ public class RedisKeyService {
 
             // 把该设备下所有的通道都离线
             this.channelService.updateChannelStatus(device.getId(), StatusEnum.offline);
-            WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), device.getName()));
+            WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), device.getName(),null));
 
 
         }

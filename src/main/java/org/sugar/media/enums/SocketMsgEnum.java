@@ -8,5 +8,5 @@ package org.sugar.media.enums;
 public enum SocketMsgEnum {
 
 
-    mediaOnline,mediaOffline,gbOnline,gbOffline
+    mediaOnline,mediaOffline,gbOnline,gbOffline,networkSpeed
 }

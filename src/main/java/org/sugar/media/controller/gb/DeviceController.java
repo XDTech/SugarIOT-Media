@@ -151,7 +151,7 @@ public class DeviceController {
         // 如果是修改了sip id 先把之前的踢下线
         if (!code.equals(deviceModel.get().getDeviceId())) {
             if (this.sipCacheService.isOnline(deviceModel.get().getDeviceId())) {
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getName()));
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getName(),null));
             }
             this.sipCacheService.deleteDevice(deviceModel.get().getDeviceId());
 

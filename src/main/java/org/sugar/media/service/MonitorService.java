@@ -2,8 +2,19 @@ package org.sugar.media.service;
 
 import java.lang.management.ManagementFactory;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Console;
+import jakarta.annotation.Resource;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.sugar.media.beans.SocketMsgBean;
+import org.sugar.media.enums.SocketMsgEnum;
+import org.sugar.media.server.WebSocketServer;
+import org.sugar.media.sipserver.utils.SipConfUtils;
+import org.sugar.media.sipserver.utils.SipUtils;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
@@ -17,10 +28,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,20 +38,30 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Service
+@EnableScheduling
 public class MonitorService {
+
 
     public static final DecimalFormat RATE_DECIMAL_FORMAT = new DecimalFormat("#.##");
 
-    private static final String[] UNITS = {"B", "KB", "MB", "GB", "TB", "PB"};
+    private static final String[] UNITS = {"Bps", "Kbps", "Mbps", "Gbps", "TB", "PB"};
     private static final int UNIT_THRESHOLD = 1024; // 换算单位为1024
+
+
+    private long prevBytesSent = 0;
+    private long prevBytesRecv = 0;
+
+
+    @Resource
+    private SipConfUtils sipConfUtils;
 
     public String formatByte(long bytes) {
         if (bytes < UNIT_THRESHOLD) {
-            return bytes + " B";
+            return bytes + " Bps";
         }
 
         int unitIndex = 0;
-        double size = bytes;
+        double size = (double) bytes;
         while (size >= UNIT_THRESHOLD && unitIndex < UNITS.length - 1) {
             size /= UNIT_THRESHOLD;
             unitIndex++;
@@ -54,34 +72,50 @@ public class MonitorService {
         return decimalFormat.format(size) + " " + UNITS[unitIndex];
     }
 
+
+    public MonitorService() {
+
+    }
+
+
+    public void setNetwork() {
+
+    }
+
+    @Async
+    @Scheduled(fixedRate = 1000)
     public void getNetwork() throws InterruptedException {
 
         SystemInfo systemInfo = new SystemInfo();
         List<NetworkIF> networkIFs = systemInfo.getHardware().getNetworkIFs();
 
-        for (NetworkIF networkIF : networkIFs) {
-            Console.log(networkIF.toString());
-        }
         // 找到活跃的网络接口
-        NetworkIF network = networkIFs.stream()
-//                .filter(NetworkIF::isConnectorPresent)
-                .findFirst()
-                .orElse(null);
+        NetworkIF network = networkIFs.stream().filter(n -> Arrays.asList(n.getIPv4addr()).contains(this.sipConfUtils.getIp())).findFirst().orElse(null);
 
         if (network != null) {
-            long prevBytesSent = network.getBytesSent();
-            long prevBytesRecv = network.getBytesRecv();
 
-            Thread.sleep(1000); // 1 秒时间间隔
 
-            network.updateAttributes();
             long bytesSent = network.getBytesSent();
             long bytesRecv = network.getBytesRecv();
 
-            long uploadSpeed = (bytesSent - prevBytesSent) / 1024; // KB/s
-            long downloadSpeed = (bytesRecv - prevBytesRecv) / 1024; // KB/s
+            Console.log(bytesSent, bytesRecv);
 
-            System.out.printf("Upload: %d KB/s, Download: %d KB/s%n", uploadSpeed, downloadSpeed);
+            long uploadSpeed = (bytesSent - prevBytesSent); // KB/s
+            long downloadSpeed = (bytesRecv - prevBytesRecv); // KB/s
+
+
+            prevBytesSent = bytesSent;
+            prevBytesRecv = bytesRecv;
+
+
+            Map<String, Object> map = new HashMap<>();
+
+            map.put("uploadSpeed", this.formatByte(uploadSpeed));
+            map.put("downloadSpeed", this.formatByte(downloadSpeed));
+
+            WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.networkSpeed, new Date(), "", map));
+
+
         } else {
             System.out.println("No active network interface found!");
         }
