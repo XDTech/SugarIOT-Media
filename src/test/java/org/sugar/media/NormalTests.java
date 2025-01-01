@@ -2,6 +2,7 @@ package org.sugar.media;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Console;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.core.util.XmlUtil;
@@ -31,6 +32,60 @@ public class NormalTests {
 
 
     @Test
+    void testXml() {
+        String s = """
+                <?xml version="1.0" encoding="gb2312"?>
+                <Response>
+                <CmdType>Catalog</CmdType>
+                <SN>4</SN>
+                <DeviceID>10000100001111111111</DeviceID>
+                <SumNum>2</SumNum>
+                <DeviceList Num="1">
+                <Item>
+                <DeviceID>10000100001320000002</DeviceID>
+                <Name>IPdome</Name>
+                <Manufacturer>Manufacturer</Manufacturer>
+                <Model>Camera</Model>
+                <Owner>Owner</Owner>
+                <CivilCode>CivilCode</CivilCode>
+                <Address>192.168.31.143</Address>
+                <Parental>0</Parental>
+                <ParentID>10000100001111111111</ParentID>
+                <SafetyWay>0</SafetyWay>
+                <RegisterWay>1</RegisterWay>
+                <Secrecy>0</Secrecy>
+                <Status>ON</Status>
+                <Longitude>0.000</Longitude>
+                <Latitude>0.000</Latitude>
+                <Info>
+                <PTZType>2</PTZType>
+                <a>4</a>
+                </Info>
+                </Item>
+                </DeviceList>
+                </Response>
+                """;
+
+        // 使用 Hutool 解析 XML
+        Document document = XmlUtil.parseXml(s);
+        Element root = XmlUtil.getRootElement(document);
+        // 解析 DeviceList 中的 Item 节点
+        Element deviceList = XmlUtil.getElement(root, "DeviceList");
+        List<Element> item = XmlUtil.getElements(deviceList, "Item");
+        String cmdType = XmlUtil.elementText(root, "CmdType");
+
+        for (Element element : item) {
+
+
+            Element info = XmlUtil.getElement(element, "Info");
+
+            if (ObjectUtil.isNotEmpty(info)) {
+                Console.log(XmlUtil.elementText(info, "a"),"22");
+            }
+        }
+    }
+
+    @Test
     void testUrl() {
         Integer anInt = Convert.toInt("");
         Console.log(anInt);
@@ -43,7 +98,7 @@ public class NormalTests {
 
         String substring = s.substring(a.length() - 5).substring(0, 6);
 
-        Console.log(substring, a.length(),a.length() - 5, s.length());
+        Console.log(substring, a.length(), a.length() - 5, s.length());
 
 
     }

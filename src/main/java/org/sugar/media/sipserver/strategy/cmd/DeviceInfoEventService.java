@@ -77,9 +77,12 @@ public class DeviceInfoEventService implements SipCmdHandler {
         // 给设备发送200消息
         this.sipSenderService.sendOKMessage(evtExt);
 
+        log.warn("发送catalog获取目录");
         // 发完之后，要发送catalog消息 获取设备目录
         this.sipRequestSender.sendCatalog(this.sipCacheService.getSipDevice(deviceId));
 
-
+        log.warn("订阅catalog获取目录");
+        this.sipRequestSender.sendCancelCatalogSubscribe(sipDevice);
+        this.sipRequestSender.sendCatalogSubscribe(sipDevice);
     }
 }

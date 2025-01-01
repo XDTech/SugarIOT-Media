@@ -57,4 +57,14 @@ public class ChannelBean {
 
 
     private StatusEnum status;// 状态
+
+    private StatusEnum playStatus;// 播放状态
+
+    private String lng;
+
+    private String lat;
+
+
+    // 1-球机； 2-半球； 3-固定枪机；4-遥控枪机。
+    private Integer ptzType;//
 }

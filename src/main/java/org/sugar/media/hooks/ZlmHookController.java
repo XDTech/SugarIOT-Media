@@ -18,6 +18,7 @@ import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.beans.hooks.zlm.*;
+import org.sugar.media.enums.AppEnum;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.TenantModel;
@@ -304,7 +305,7 @@ public class ZlmHookController {
 
         } else {
             // 通过截取方式获取租户code
-            tenantCode = data.getFilePath().substring(data.getUrl().length() - 5).substring(0, 6);
+            tenantCode = data.getStream().split("_")[0];
 
             recordModel.setUrl(tenantCode + "/" + recordModel.getUrl());
         }
@@ -329,20 +330,8 @@ public class ZlmHookController {
 
         // 判断rtp
         PublishAckBean publishAckBean = new PublishAckBean();
+
         publishAckBean.setCode(0);
-        publishAckBean.setAddMuteAudio(true);
-        publishAckBean.setContinuePushMs(10000);
-        publishAckBean.setEnableAudio(true);
-        publishAckBean.setEnableFmp4(true);
-        publishAckBean.setEnableHls(false);
-        publishAckBean.setEnableHlsFmp4(false);
-        publishAckBean.setEnableMp4(true);
-        publishAckBean.setEnableRtmp(true);
-        publishAckBean.setEnableRtsp(true);
-        publishAckBean.setEnableTs(true);
-        publishAckBean.setModifyStamp(2);
-        publishAckBean.setMp4AsPlayer(false);
-        publishAckBean.setMp4MaxSecond(3600);
         switch (data.getApp()) {
             case "rtp" -> {
                 String ssrc = BaseUtil.hex2ssrc(data.getStream());
@@ -358,11 +347,9 @@ public class ZlmHookController {
                 publishAckBean.setStreamReplace(StrUtil.format("{}_{}", ssrcInfoBean.getDeviceCode(), ssrcInfoBean.getChannelCode()));
 
             }
-            case "publish" -> {
-                // 其他方式推流，鉴权app 统一为租户code，参数固定位sign=tenantCode
-
-
-                // 
+            case "live" -> {
+                // 其他方式推流，鉴权app 统一为live，参数固定位sign=666
+                //
                 Map<String, String> paramMap = BaseUtil.paramConvertToMap(data.getParams());
                 if (!paramMap.containsKey("sign")) {
                     publishAckBean.setCode(-1);
@@ -370,17 +357,34 @@ public class ZlmHookController {
 
                     break;
                 }
-                TenantModel tenant = this.tenantService.getTenant(Convert.toInt(paramMap.get("sign")));
-                if (ObjectUtil.isEmpty(tenant)) {
+                if (!paramMap.get("sign").equals("666")) {
                     publishAckBean.setCode(-1);
                     publishAckBean.setMsg("auth error");
 
                     break;
                 }
 
-                publishAckBean.setStreamReplace(StrUtil.format("{}_{}", paramMap.get("sign"), data.getStream()));
+                try {
+
+                    Integer code = Convert.toInt(data.getStream().split("_")[0]);
+
+                    TenantModel tenant = this.tenantService.getTenant(code);
+                    if (ObjectUtil.isEmpty(tenant)) {
+                        publishAckBean.setCode(-1);
+                        publishAckBean.setMsg("auth error");
+
+                        break;
+                    }
+
+                    String savePath = this.zlmApiService.getSavePath(code);
+                    publishAckBean.setMp4SavePath(savePath);
 
 
+                } catch (Exception e) {
+
+                    publishAckBean.setCode(-1);
+                    publishAckBean.setMsg("auth error");
+                }
 
 
             }
@@ -390,7 +394,26 @@ public class ZlmHookController {
                 publishAckBean.setMsg("auth error");
             }
         }
+
+        if (publishAckBean.getCode() == 0) {
+            publishAckBean.setAddMuteAudio(true);
+            publishAckBean.setContinuePushMs(10000);
+            publishAckBean.setEnableAudio(true);
+            publishAckBean.setEnableFmp4(true);
+            publishAckBean.setEnableHls(false);
+            publishAckBean.setEnableHlsFmp4(false);
+            publishAckBean.setEnableMp4(true);
+            publishAckBean.setEnableRtmp(true);
+            publishAckBean.setEnableRtsp(true);
+            publishAckBean.setEnableTs(true);
+            publishAckBean.setModifyStamp(2);
+            publishAckBean.setMp4AsPlayer(false);
+            publishAckBean.setMp4MaxSecond(3600);
+
+        }
         StaticLog.info(publishAckBean.toString());
+
+
         return publishAckBean;
     }
 

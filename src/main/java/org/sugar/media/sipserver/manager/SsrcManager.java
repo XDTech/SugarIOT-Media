@@ -80,6 +80,16 @@ public class SsrcManager {
 
     }
 
+    public void releaseSsrcByCode(String channelCode) {
+
+        if (!this.ssrcMapByChannel.containsKey(channelCode)) return;
+
+        SsrcInfoBean ssrcInfoBean = this.ssrcMapByChannel.get(channelCode);
+        this.releaseSsrc(ssrcInfoBean.getSsrc(), channelCode);
+
+
+    }
+
 
     // 通过ssrc查找info
 

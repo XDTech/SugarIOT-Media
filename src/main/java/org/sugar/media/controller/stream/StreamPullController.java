@@ -24,6 +24,7 @@ import org.sugar.media.service.node.NodeService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.service.stream.StreamPullService;
 import org.sugar.media.utils.BeanConverterUtil;
+import org.sugar.media.utils.MediaUtil;
 import org.sugar.media.validation.stream.StreamPullVal;
 
 import java.util.List;
@@ -61,6 +62,9 @@ public class StreamPullController {
 
     @Resource
     private MediaCacheService mediaCacheService;
+
+    @Resource
+    private MediaUtil mediaUtil;
 
     /**
      * 分页查询
@@ -132,9 +136,9 @@ public class StreamPullController {
     public ResponseEntity<?> createMStreamPull(@RequestBody @Validated StreamPullVal mStreamPullBean) {
 
 
-        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(
-                Convert.toStr(this.userSecurity.getCurrentTenantCode())
-                , mStreamPullBean.getStream());
+        mStreamPullBean.setStream(this.mediaUtil.genStreamId(mStreamPullBean.getStream()));
+
+        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(mStreamPullBean.getApp(), mStreamPullBean.getStream());
 
 
         if (ObjectUtil.isNotEmpty(streamPullModel)) {
@@ -169,10 +173,8 @@ public class StreamPullController {
         }
 
         // 判断是否存在
-
-        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(
-                Convert.toStr(this.userSecurity.getCurrentTenantCode())
-                , mStreamPullBean.getStream());
+        mStreamPullBean.setStream(this.mediaUtil.genStreamId(mStreamPullBean.getStream()));
+        StreamPullModel streamPullModel = this.mStreamPullService.onlyStream(mStreamPullBean.getApp(), mStreamPullBean.getStream());
 
         if (ObjectUtil.isNotEmpty(streamPullModel) && !streamPullModel.getId().equals(mStreamPullBean.getId())) {
             return ResponseEntity.ok(ResponseBean.fail("Stream重复"));

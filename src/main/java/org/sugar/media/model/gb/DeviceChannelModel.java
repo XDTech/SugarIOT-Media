@@ -63,6 +63,13 @@ public class DeviceChannelModel {
     private Integer registerWay;       // 注册方式 (1: 符合 GB/T 28181)
     private Integer secrecy;           // 是否涉密 (0: 非涉密, 1: 涉密)
 
+    private String lng;
+
+    private String lat;
+
+
+    // 1-球机； 2-半球； 3-固定枪机；4-遥控枪机。
+    private Integer ptzType;//
 
     private Date syncTime; // 通道同步时间
 

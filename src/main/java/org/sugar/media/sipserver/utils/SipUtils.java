@@ -159,12 +159,11 @@ public class SipUtils {
 
         // 获取 CmdType
         String cmdType = XmlUtil.elementText(root, "CmdType");
-        System.out.println("CmdType: " + cmdType);
 
 
         // 获取 SumNum
         String sumNum = XmlUtil.elementText(root, "SumNum");
-        System.out.println("SumNum: " + sumNum);
+
 
         // 解析 DeviceList 中的 Item 节点
         Element deviceList = XmlUtil.getElement(root, "DeviceList");
@@ -209,8 +208,22 @@ public class SipUtils {
             deviceChannelModel.setRegisterWay(Convert.toInt(XmlUtil.elementText(element, "RegisterWay")));
             deviceChannelModel.setSecrecy(Convert.toInt(XmlUtil.elementText(element, "Secrecy")));
             deviceChannelModel.setStatus(XmlUtil.elementText(element, "Status").equalsIgnoreCase("ON") ? StatusEnum.online : StatusEnum.offline);
+            deviceChannelModel.setLng(XmlUtil.elementText(element, "Longitude"));
+            deviceChannelModel.setLat(XmlUtil.elementText(element, "Latitude"));
 
             deviceChannelModel.setSyncTime(new Date());
+            // 获取info的ptz type
+            Element info = XmlUtil.getElement(element, "Info");
+            if (ObjectUtil.isNotEmpty(info)) {
+
+                String ptzType = XmlUtil.elementText(info, "PTZType");
+
+
+                deviceChannelModel.setPtzType(Convert.toInt(ptzType));
+
+
+            }
+
             channelModelList.add(deviceChannelModel);
 
         }

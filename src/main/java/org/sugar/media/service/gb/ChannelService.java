@@ -67,6 +67,17 @@ public class ChannelService {
 
 
     @Transactional
+    public void deleteChannel(DeviceChannelModel channelModel) {
+
+
+        this.ssrcManager.releaseSsrcByCode(channelModel.getChannelCode());
+
+        this.channelRepo.delete(channelModel);
+
+    }
+
+
+    @Transactional
     public void deleteAll(Long deviceId) {
 
 //        List<DeviceChannelModel> deviceChannelList = this.getDeviceChannelList(deviceId);

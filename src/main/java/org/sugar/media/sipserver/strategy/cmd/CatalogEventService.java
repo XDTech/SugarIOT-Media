@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * Date:2024/12/10 13:46:20
  * Author：Tobin
- * Description: 目录事件回调
+ * Description: 目录事件回调 可能发送多次
  */
 
 @Slf4j
@@ -98,14 +98,13 @@ public class CatalogEventService implements SipCmdHandler {
 
         channelModels = new ArrayList<>(uniqueByCode.values());
 
+
         this.channelService.createChannel(channelModels);
 
         this.sipSenderService.sendOKMessage(evtExt);
 
         // 更新完成后 订阅目录
 
-        this.sipRequestSender.sendCancelCatalogSubscribe(sipDevice);
-        this.sipRequestSender.sendCatalogSubscribe(sipDevice);
 
     }
 }

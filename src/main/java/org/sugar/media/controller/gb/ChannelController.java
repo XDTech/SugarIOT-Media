@@ -109,8 +109,15 @@ public class ChannelController {
         channelBeans = channelBeans.stream().peek(c -> {
             DeviceModel deviceModel = modelMap.get(c.getDeviceId());
             if (ObjectUtil.isNotEmpty(deviceModel)) {
-                c.setDeviceName(deviceModel.getDeviceName());
+                c.setDeviceName(deviceModel.getName());
                 c.setDeviceCode(deviceModel.getDeviceId());
+            }
+            // 查询ssrc
+            SsrcInfoBean ssrcByCode = this.ssrcManager.getSsrcByCode(c.getChannelCode());
+            c.setPlayStatus(StatusEnum.offline);
+
+            if (ObjectUtil.isNotEmpty(ssrcByCode)) {
+                c.setPlayStatus(StatusEnum.online);
             }
 
         }).toList();
@@ -220,5 +227,23 @@ public class ChannelController {
         return ResponseEntity.ok(ResponseBean.success());
     }
 
+
+    @DeleteMapping("/{channelId}")
+    public ResponseEntity<?> deleteChannel(@PathVariable Long channelId) {
+
+        Optional<DeviceChannelModel> channel = this.channelService.getChannel(channelId);
+
+        if (channel.isEmpty()) {
+            return ResponseEntity.ok(ResponseBean.fail());
+        }
+
+
+        this.channelService.deleteChannel(channel.get());
+
+
+        return ResponseEntity.ok(ResponseBean.success());
+
+
+    }
 
 }

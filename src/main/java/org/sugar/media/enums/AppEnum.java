@@ -7,5 +7,5 @@ package org.sugar.media.enums;
  */
 public enum AppEnum {
 
-    rtp,publish
+    rtp,proxy,live
 }
