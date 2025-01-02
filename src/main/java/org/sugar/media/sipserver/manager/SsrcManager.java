@@ -94,8 +94,7 @@ public class SsrcManager {
     // 通过ssrc查找info
 
     public SsrcInfoBean getSsrc(String ssrc) {
-        Console.log(ssrcMapBySsrc.toString());
-        Console.log(ssrcMapByChannel.toString());
+
         if (!this.ssrcMapBySsrc.containsKey(ssrc)) return null;
 
 

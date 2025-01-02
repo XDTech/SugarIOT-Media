@@ -1,6 +1,7 @@
 package org.sugar.media.beans.stream;
 
 import lombok.Data;
+import org.sugar.media.enums.StatusEnum;
 
 import java.util.Date;
 
@@ -64,6 +65,7 @@ public class StreamPullBean  {
     private String autoClose;
 
     private String nodeName;
+
 
 }
 

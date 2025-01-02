@@ -2,6 +2,9 @@ package org.sugar.media.service.media;
 
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.Console;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
@@ -11,10 +14,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.sugar.media.beans.hooks.zlm.CloseStreamBean;
-import org.sugar.media.beans.hooks.zlm.CommonBean;
-import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
-import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
+import org.sugar.media.beans.hooks.zlm.*;
 import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.SyncEnum;
 import org.sugar.media.model.TenantModel;
@@ -23,10 +23,7 @@ import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.service.tenant.TenantService;
 import org.sugar.media.utils.BaseUtil;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ZlmApiService {
@@ -370,8 +367,6 @@ public class ZlmApiService {
     }
 
 
-
-
     public CloseStreamBean closeSteam(String app, String stream, NodeModel nodeModel) {
 
         try {
@@ -401,6 +396,49 @@ public class ZlmApiService {
 
         }
     }
+
+
+    public List<StreamInfoBean> getMediaList(String schema, String app, String stream, NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getMediaList");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+
+            if (StrUtil.isNotBlank(schema)) {
+                builder.queryParam("schema", schema);
+            }
+            if (StrUtil.isNotBlank(app)) {
+                builder.queryParam("app", app);
+            }
+            if (StrUtil.isNotBlank(stream)) {
+                builder.queryParam("stream", stream);
+            }
+
+            builder.queryParam("vhost", nodeModel.getVhost());
+
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<StreamInfoRootBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, StreamInfoRootBean.class);
+
+            Console.log(exchange);
+
+            if (Objects.requireNonNull(exchange.getBody()).getCode() == 0 && ArrayUtil.isNotEmpty(exchange.getBody().getData())) {
+                return exchange.getBody().getData();
+            }
+
+            return null;
+
+        } catch (Exception e) {
+
+
+            return null;
+
+        }
+    }
+
 
     public String getSavePath(Integer tenantCode) {
 

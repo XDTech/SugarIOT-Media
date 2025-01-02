@@ -17,16 +17,20 @@ import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.beans.hooks.zlm.CloseStreamBean;
+import org.sugar.media.beans.hooks.zlm.StreamInfoBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
+import org.sugar.media.model.stream.StreamPushModel;
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.LoadBalanceService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
+import org.sugar.media.service.node.ZlmNodeService;
+import org.sugar.media.service.stream.StreamPushService;
 import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.sender.SipRequestSender;
@@ -79,6 +83,11 @@ public class ChannelController {
     @Resource
     private ZlmApiService zlmApiService;
 
+    @Resource
+    private ZlmNodeService zlmNodeService;
+
+    @Resource
+    private StreamPushService streamPushService;
 
     @GetMapping("/list/{deviceId}")
     public ResponseEntity<?> getDevice(@PathVariable Long deviceId) {
@@ -104,21 +113,30 @@ public class ChannelController {
 
 
         List<ChannelBean> channelBeans = BeanConverterUtil.convertList(channelPageList.getContent(), ChannelBean.class);
+        List<StreamInfoBean> mediaListAll = this.zlmNodeService.getMediaListAll();
 
+        List<StreamPushModel> streamPushList = this.streamPushService.getStreamPushList();
 
+        Map<Long, StreamPushModel> pushModelMap = streamPushList.stream().filter(s -> s.getRelevanceId() != null).collect(Collectors.toMap(StreamPushModel::getRelevanceId, s -> s));
         channelBeans = channelBeans.stream().peek(c -> {
+            c.setPlayStatus(StatusEnum.offline);
             DeviceModel deviceModel = modelMap.get(c.getDeviceId());
             if (ObjectUtil.isNotEmpty(deviceModel)) {
                 c.setDeviceName(deviceModel.getName());
                 c.setDeviceCode(deviceModel.getDeviceId());
             }
-            // 查询ssrc
-            SsrcInfoBean ssrcByCode = this.ssrcManager.getSsrcByCode(c.getChannelCode());
-            c.setPlayStatus(StatusEnum.offline);
 
-            if (ObjectUtil.isNotEmpty(ssrcByCode)) {
-                c.setPlayStatus(StatusEnum.online);
+            // 查询推流表
+
+            StreamPushModel streamPushModel = pushModelMap.get(c.getId());
+
+            if (ObjectUtil.isNotEmpty(streamPushModel)) {
+                Optional<StreamInfoBean> streamInfo = mediaListAll.stream().filter(s -> s.getApp().equals(streamPushModel.getApp())).filter(s -> s.getStream().equals(streamPushModel.getStream())).filter(s -> s.getNodeId().equals(streamPushModel.getNodeId())).findFirst();
+                if (streamInfo.isPresent()) {
+                    c.setPlayStatus(StatusEnum.online);
+                }
             }
+
 
         }).toList();
 
@@ -182,9 +200,12 @@ public class ChannelController {
         SsrcInfoBean ssrcInfoBean = new SsrcInfoBean();
         ssrcInfoBean.setDeviceCode(device.get().getDeviceId());
         ssrcInfoBean.setChannelCode(channelBean.getChannelCode());
+        ssrcInfoBean.setChannelId(channel.get().getId());
+        ssrcInfoBean.setName(channel.get().getChannelName());
         ssrcInfoBean.setDeviceHost(device.get().getHost());
         ssrcInfoBean.setDevicePort(device.get().getPort());
         ssrcInfoBean.setNodeId(node.getId());
+        ssrcInfoBean.setTenantId(device.get().getTenantId());
         ssrcInfoBean.setTransport(device.get().getTransport());
 
         String playSsrc = this.ssrcManager.createPlaySsrc(ssrcInfoBean);
@@ -210,8 +231,6 @@ public class ChannelController {
         // send bye
         this.sipRequestSender.sendBye(ssrcInfoBean);
 
-
-        StaticLog.info(ssrcInfoBean.toString());
         // close stream
         if (ssrcInfoBean.getNodeId() != null) {
             Optional<NodeModel> node = this.nodeService.getNode(ssrcInfoBean.getNodeId());

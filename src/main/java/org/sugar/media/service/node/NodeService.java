@@ -26,6 +26,8 @@ public class NodeService {
     private NodeRepo nodeRepo;
 
 
+
+
     public Optional<NodeModel> getNode(Long id) {
 
         return this.nodeRepo.findById(id);
@@ -146,6 +148,9 @@ public class NodeService {
         list.add(StrUtil.format("https://{}/{}.live.mp4?sign={}", sslHost, appStream, token));
         map.put("FMP4MediaSource", list);
     }
+
+
+
 
 
 }

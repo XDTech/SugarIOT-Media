@@ -98,7 +98,6 @@ public class MonitorService {
             long bytesSent = network.getBytesSent();
             long bytesRecv = network.getBytesRecv();
 
-            Console.log(bytesSent, bytesRecv);
 
             long uploadSpeed = (bytesSent - prevBytesSent); // KB/s
             long downloadSpeed = (bytesRecv - prevBytesRecv); // KB/s

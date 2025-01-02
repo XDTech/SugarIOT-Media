@@ -16,6 +16,9 @@ public class SsrcInfoBean {
     private String deviceCode;
 
     private String channelCode;
+    private Long channelId;
+
+    private String name;
 
     private String deviceHost;
 
@@ -35,4 +38,6 @@ public class SsrcInfoBean {
     private String streamId;
 
     private Dialog dialog;
+
+    private Long tenantId;
 }

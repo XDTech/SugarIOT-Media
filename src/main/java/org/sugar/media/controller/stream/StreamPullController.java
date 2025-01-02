@@ -116,7 +116,7 @@ public class StreamPullController {
 
         Optional<StreamPullModel> mStreamPull = this.mStreamPullService.getMStreamPull(id);
         if (mStreamPull.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
+            return ResponseEntity.ok(ResponseBean.fail("数据不存在"));
         }
         StreamPullBean streamPullBean = new StreamPullBean();
         BeanUtil.copyProperties(mStreamPull.get(), streamPullBean);

@@ -3,10 +3,14 @@ package org.sugar.media.service.node;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sugar.media.beans.hooks.zlm.StreamInfoBean;
 import org.sugar.media.beans.hooks.zlm.ZlmRemoteConfigBean;
 import org.sugar.media.enums.MediaServerEnum;
 import org.sugar.media.enums.StatusEnum;
@@ -16,10 +20,7 @@ import org.sugar.media.repository.node.NodeRepo;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.media.ZlmApiService;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * ZLM Node Service
@@ -37,6 +38,25 @@ public class ZlmNodeService {
 
     @Resource
     private MediaCacheService mediaCacheService;
+
+
+    public List<StreamInfoBean> getMediaListAll() {
+
+        List<StreamInfoBean> streamInfoBeanList = new ArrayList<>();
+
+        List<NodeModel> nodeList = this.getNodeList();
+
+        for (NodeModel model : nodeList) {
+            List<StreamInfoBean> rtmp = this.zlmApiService.getMediaList("rtmp", "", "", model);
+            if (ArrayUtil.isEmpty(rtmp)) continue;
+
+            rtmp = rtmp.stream().peek(s -> s.setNodeId(model.getId())).toList();
+            streamInfoBeanList.addAll(rtmp);
+        }
+
+        return streamInfoBeanList;
+
+    }
 
 
     @Transactional

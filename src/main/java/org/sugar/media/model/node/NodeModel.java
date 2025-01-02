@@ -96,4 +96,8 @@ public class NodeModel {
     // rtp
     @Column(columnDefinition = "int4 default 10000")
     private Integer rtpPort;
+
+
+    @Column(columnDefinition = "varchar(255) default '__defaultVhost__'")
+    private String vhost;
 }

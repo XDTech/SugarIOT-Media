@@ -50,6 +50,9 @@ public class StreamPushModel {
 
     private String stream;
 
+    @Column(columnDefinition = "text")
+    private String params;
+
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(255)")
@@ -57,4 +60,14 @@ public class StreamPushModel {
 
 
     private Long nodeId;
+
+    private Long relevanceId; // 关联的 通道id
+
+    private String originTypeStr;
+
+    private Integer originType;
+
+    private String schema;
+
+    private Date pushAt;
 }

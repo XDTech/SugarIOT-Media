@@ -26,12 +26,14 @@ import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.record.RecordModel;
 import org.sugar.media.model.stream.StreamPullModel;
+import org.sugar.media.model.stream.StreamPushModel;
 import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.service.record.RecordService;
 import org.sugar.media.service.stream.StreamPullService;
+import org.sugar.media.service.stream.StreamPushService;
 import org.sugar.media.service.tenant.TenantService;
 import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.sender.SipRequestSender;
@@ -77,6 +79,9 @@ public class ZlmHookController {
     @Resource
     private RecordService recordService;
 
+    @Resource
+    private StreamPushService streamPushService;
+
 
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
     @PostMapping("/keepalive")
@@ -93,7 +98,7 @@ public class ZlmHookController {
             if (!online) {
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline, new Date(), node.get().getName(),null));
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline, new Date(), node.get().getName(), null));
             }
             this.zlmNodeService.updateHeartbeatTimeById(mediaServerId, new Date());
 
@@ -118,7 +123,7 @@ public class ZlmHookController {
             if (!online) {
                 //TODO:发送上线消息
                 StaticLog.info("发送消息");
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline, new Date(), node.get().getName(),null));
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline, new Date(), node.get().getName(), null));
 
             }
             this.zlmNodeService.writeAllAndUpdateTime(node.get());
@@ -341,6 +346,8 @@ public class ZlmHookController {
         // 判断rtp
         PublishAckBean publishAckBean = new PublishAckBean();
 
+        StreamPushModel streamPushModel = new StreamPushModel();
+
         publishAckBean.setCode(0);
         switch (data.getApp()) {
             case "rtp" -> {
@@ -355,6 +362,13 @@ public class ZlmHookController {
 
                 //    publishAckBean.setAutoClose(false);
                 publishAckBean.setStreamReplace(StrUtil.format("{}_{}", ssrcInfoBean.getDeviceCode(), ssrcInfoBean.getChannelCode()));
+
+
+                streamPushModel.setTypes(AppEnum.rtp);
+                streamPushModel.setTenantId(ssrcInfoBean.getTenantId());
+                streamPushModel.setStream(publishAckBean.getStreamReplace());
+                streamPushModel.setRelevanceId(ssrcInfoBean.getChannelId());
+                streamPushModel.setName(ssrcInfoBean.getName());
 
             }
             case "live" -> {
@@ -388,6 +402,10 @@ public class ZlmHookController {
 
                     String savePath = this.zlmApiService.getSavePath(code);
                     publishAckBean.setMp4SavePath(savePath);
+                    streamPushModel.setTypes(AppEnum.live);
+                    streamPushModel.setTenantId(tenant.getId());
+                    streamPushModel.setStream(data.getStream());
+                    streamPushModel.setName(data.getStream());
 
 
                 } catch (Exception e) {
@@ -420,8 +438,33 @@ public class ZlmHookController {
             publishAckBean.setMp4AsPlayer(false);
             publishAckBean.setMp4MaxSecond(3600);
 
+            // 推流
+
+
+            streamPushModel.setNodeId(Convert.toLong(data.getMediaServerId()));
+
+            streamPushModel.setApp(data.getApp());
+
+            streamPushModel.setParams(data.getParams());
+
+            streamPushModel.setSchema(data.getSchema());
+            streamPushModel.setOriginType(data.getOriginType());
+            streamPushModel.setOriginTypeStr(data.getOriginTypeStr());
+
+            StreamPushModel pushModel = this.streamPushService.onlyPushStream(data.getApp(), streamPushModel.getStream(), streamPushModel.getTenantId());
+
+            if (ObjectUtil.isNotEmpty(pushModel)) {
+                streamPushModel.setId(pushModel.getId());
+
+            }
+
+            streamPushModel.setPushAt(new Date());
+
+            this.streamPushService.createPushStream(streamPushModel);
+
+
         }
-        StaticLog.info(publishAckBean.toString());
+
 
 
         return publishAckBean;
