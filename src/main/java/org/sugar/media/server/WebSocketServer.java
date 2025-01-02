@@ -72,27 +72,27 @@ public class WebSocketServer {
      */
     @OnOpen
     public void onOpen(@PathParam("token") String token, Session session) throws IOException {
-        /**
-         * session.getId()：当前session会话会自动生成一个id，从0开始累加的。
-         */
-        UserModel user = this.userSecurity.getUser(token);
-        StaticLog.info("{}", user);
 
-        // 鉴权失败
-        if (ObjectUtil.isEmpty(user)) {
-            session.close(new CloseReason(CLOSED_ABNORMALLY, "fail"));
-            return;
-        }
+//        UserModel user = userSecurity.getUser(token);
+//        StaticLog.info("{}", user);
+//
+//        // 鉴权失败
+//        if (ObjectUtil.isEmpty(user)) {
+//            session.close(new CloseReason(CLOSED_ABNORMALLY, "fail"));
+//            return;
+//        }
 
         StaticLog.info("连接建立中 ==> session_id = {}， sid = {}", session.getId(), token);
-        //加入 Map中。将页面的uid和session绑定或者session.getId()与session
+
 
         //在线数加1
 
-        onlineSessionClientMap.put(Convert.toStr(user.getId()), session);
+//        onlineSessionClientMap.put(Convert.toStr(user.getId()), session);
+        onlineSessionClientMap.put(token, session);
 
         this.token = token;
-        this.uid = Convert.toStr(user.getId());
+//        this.uid = Convert.toStr(user.getId());
+        this.uid = token;
         this.session = session;
 //        sendToOne(uid, "连接成功");
         StaticLog.info("连接建立成功，当前在线数为：{} ==> 开始监听新连接：session_id = {}， sid = {},。", onlineSessionClientMap.size(), session.getId(), uid);

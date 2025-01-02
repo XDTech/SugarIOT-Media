@@ -39,8 +39,8 @@ import java.util.*;
 public class SipUtils {
 
 
-    @Resource
-    private ChannelService channelService;
+    public String channelCodeMid = "0000132";
+
 
     /**
      * 获取远端地址
@@ -175,7 +175,7 @@ public class SipUtils {
 
             String channelCode = XmlUtil.elementText(element, "DeviceID");
             // 判断通道号是否合法
-            boolean checked = this.channelService.checkChannelCode(tenantCode, channelCode);
+            boolean checked = this.checkChannelCode(tenantCode, channelCode);
 
 
             if (!checked) {
@@ -239,6 +239,33 @@ public class SipUtils {
 
     public String getXmlContent(byte[] rawContent) {
         return new String(rawContent, Charset.forName("GB2312"));
+
+    }
+
+    /**
+     * @param tenantCode
+     * @param channelCode 设备传过来的20位编码
+     * @return 000 0132
+     */
+    public boolean checkChannelCode(String tenantCode, String channelCode) {
+
+        // 判断长度是否20位
+        if (channelCode.length() != 20) {
+            return false;
+        }
+        // 判断前6位租户编码是否相同
+        String tenant = channelCode.substring(0, 6);
+        if (!tenantCode.equals(tenant)) {
+            return false;
+        }
+
+        String check = channelCode.substring(6, 13);
+
+        if (!check.equals(this.channelCodeMid)) {
+            return false;
+        }
+
+        return true;
 
     }
 }

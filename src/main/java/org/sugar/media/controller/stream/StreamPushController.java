@@ -141,4 +141,14 @@ public class StreamPushController {
 
         return ResponseEntity.ok(ResponseBean.success());
     }
+
+
+    @DeleteMapping("/{pushId}")
+    public ResponseEntity<?> deletePushStream(@PathVariable Long pushId) {
+        Optional<StreamPushModel> streamPush = this.streamPushService.getStreamPush(pushId);
+        if (streamPush.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+        this.streamPushService.deletePushStream(streamPush.get());
+        return ResponseEntity.ok(ResponseBean.success());
+    }
 }

@@ -2,6 +2,7 @@ package org.sugar.media.service.gb;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Console;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -11,8 +12,11 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
@@ -20,6 +24,7 @@ import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.repository.gb.ChannelRepo;
 import org.sugar.media.service.node.NodeService;
 import org.sugar.media.sipserver.manager.SsrcManager;
+import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.utils.JwtUtils;
 
 import java.util.*;
@@ -34,7 +39,6 @@ import java.util.*;
 public class ChannelService {
 
 
-    public String channelCodeMid = "0000132";
     @Resource
     private ChannelRepo channelRepo;
 
@@ -43,6 +47,9 @@ public class ChannelService {
 
     @Resource
     private SsrcManager ssrcManager;
+
+    @Resource
+    private SipRequestSender sipRequestSender;
 
 
     public List<DeviceChannelModel> getDeviceChannelList(Long deviceId) {
@@ -147,36 +154,7 @@ public class ChannelService {
     }
 
 
-    public String genChannelCode(Integer tenantCode, String code) {
-        return StrUtil.format("{}{}{}", tenantCode, this.channelCodeMid, code);
-    }
 
-    /**
-     * @param tenantCode
-     * @param channelCode 设备传过来的20位编码
-     * @return 000 0132
-     */
-    public boolean checkChannelCode(String tenantCode, String channelCode) {
-
-        // 判断长度是否20位
-        if (channelCode.length() != 20) {
-            return false;
-        }
-        // 判断前6位租户编码是否相同
-        String tenant = channelCode.substring(0, 6);
-        if (!tenantCode.equals(tenant)) {
-            return false;
-        }
-
-        String check = channelCode.substring(6, 13);
-
-        if (!check.equals(this.channelCodeMid)) {
-            return false;
-        }
-
-        return true;
-
-    }
 
     public String genGBStream(String deviceCode, String channelCode) {
         return StrUtil.format("{}_{}", deviceCode, channelCode);
@@ -187,6 +165,18 @@ public class ChannelService {
     public void updateChannelStatus(Long deviceId, StatusEnum statusEnum) {
 
         this.channelRepo.updateStatusByDevice(deviceId, statusEnum);
+
+    }
+
+    // 通过 channel code 发送send by
+
+    public void sendByCode(String channelCode) {
+        SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrcByCode(channelCode);
+
+        if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
+            this.sipRequestSender.sendBye(ssrcInfoBean);
+        }
+
 
     }
 }

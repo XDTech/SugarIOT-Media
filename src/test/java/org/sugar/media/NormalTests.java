@@ -15,6 +15,7 @@ import cn.hutool.jwt.signers.JWTSignerUtil;
 import cn.hutool.log.StaticLog;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.sugar.media.enums.AppEnum;
 import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.MonitorUtil;
 import org.w3c.dom.Document;
@@ -59,6 +60,9 @@ public class NormalTests {
     }
     @Test
     void test1(){
+
+
+        Console.log(AppEnum.rtp.toString());
 
         String s = this.formatByte(30000000);
 
