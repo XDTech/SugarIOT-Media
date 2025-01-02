@@ -130,6 +130,16 @@ public class StreamPushController {
     }
 
 
+    @GetMapping("/{pushId}")
+    public ResponseEntity<?> getInfo(@PathVariable Long pushId) {
+        Optional<StreamPushModel> streamPush = this.streamPushService.getStreamPush(pushId);
+        return streamPush.<ResponseEntity<?>>
+                map(streamPushModel -> ResponseEntity.ok(ResponseBean.success(streamPushModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail()));
+
+
+    }
+
+
     @PostMapping("/close/{pushId}")
     public ResponseEntity<?> sendBy(@PathVariable Long pushId) {
         Optional<StreamPushModel> streamPush = this.streamPushService.getStreamPush(pushId);
@@ -149,6 +159,19 @@ public class StreamPushController {
         if (streamPush.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
 
         this.streamPushService.deletePushStream(streamPush.get());
+        return ResponseEntity.ok(ResponseBean.success());
+    }
+
+
+    @PutMapping("/{pushId}")
+    public ResponseEntity<?> updatePushStream(@PathVariable Long pushId, @RequestParam String name) {
+        Optional<StreamPushModel> streamPush = this.streamPushService.getStreamPush(pushId);
+        if (streamPush.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+        streamPush.get().setName(name);
+
+
+        this.streamPushService.updatePushStream(streamPush.get());
         return ResponseEntity.ok(ResponseBean.success());
     }
 }

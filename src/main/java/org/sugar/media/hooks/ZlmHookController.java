@@ -295,7 +295,7 @@ public class ZlmHookController {
     @PostMapping("/on_stream_changed")
     public ResponseBean on_stream_changed(@RequestBody Map<String, Object> data) {
 
-        //StaticLog.warn("流改变事件：{}", data.toString());
+       StaticLog.warn("流改变事件：{}", data.toString());
 
         return ResponseBean.success();
     }

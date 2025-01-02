@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.sugar.media.enums.AppEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
@@ -62,10 +63,18 @@ public class StreamPushService {
         return this.streamPushRepo.findAllByRelevanceId(relevanceId);
     }
 
+    @Transactional
     public StreamPushModel createPushStream(StreamPushModel streamPushModel) {
 
         return this.streamPushRepo.save(streamPushModel);
     }
+
+    @Transactional
+    public StreamPushModel updatePushStream(StreamPushModel streamPushModel) {
+
+        return this.streamPushRepo.save(streamPushModel);
+    }
+
 
     public Optional<StreamPushModel> getStreamPush(Long id) {
 

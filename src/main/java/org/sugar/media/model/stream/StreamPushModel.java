@@ -61,6 +61,7 @@ public class StreamPushModel {
 
     private Long nodeId;
 
+    @Column(unique = true)
     private Long relevanceId; // 关联的 通道id
 
     private String originTypeStr;
