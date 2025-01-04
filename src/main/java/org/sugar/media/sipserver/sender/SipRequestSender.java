@@ -17,9 +17,7 @@ import org.sugar.media.sipserver.request.SipRequestService;
 
 import javax.sip.*;
 import javax.sip.address.URI;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.FromHeader;
-import javax.sip.header.ToHeader;
+import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -104,6 +102,9 @@ public class SipRequestSender {
         SipProvider sipProvider = SipServer.udpSipProvider();
         CallIdHeader newCallId = sipProvider.getNewCallId();
         Request invite = this.sipRequestService.createInvite(deviceBean, channelBean, newCallId, ssrc);
+
+        ViaHeader viaHeader = (ViaHeader)invite.getHeader(ViaHeader.NAME);
+        Console.error("发送invite方式{}", viaHeader.getTransport());
 
         sipProvider.sendRequest(invite);
 

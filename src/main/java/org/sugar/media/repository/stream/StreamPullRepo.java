@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import org.sugar.media.model.stream.StreamPullModel;
 
+import java.util.List;
+
 /**
  * (MStreamPull)
  *
@@ -16,4 +18,5 @@ public interface StreamPullRepo extends JpaRepository<StreamPullModel, Long>, Jp
 
 
     StreamPullModel findAllByAppAndStream(String app,String stream);
+    List<StreamPullModel> findByTenantId(Long tenantId);
 }

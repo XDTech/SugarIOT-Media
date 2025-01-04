@@ -16,6 +16,7 @@ import cn.hutool.log.StaticLog;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.enums.AppEnum;
+import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.MonitorUtil;
 import org.w3c.dom.Document;
@@ -58,15 +59,12 @@ public class NormalTests {
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         return decimalFormat.format(size) + " " + UNITS[unitIndex];
     }
+
     @Test
-    void test1(){
+    void test1() {
 
 
-        Console.log(AppEnum.rtp.toString());
-
-        String s = this.formatByte(30000000);
-
-        Console.log(s);
+        Console.log(StatusEnum.valueOf(Convert.toStr(1)));
 
 
     }
@@ -120,7 +118,7 @@ public class NormalTests {
             Element info = XmlUtil.getElement(element, "Info");
 
             if (ObjectUtil.isNotEmpty(info)) {
-                Console.log(XmlUtil.elementText(info, "a"),"22");
+                Console.log(XmlUtil.elementText(info, "a"), "22");
             }
         }
     }

@@ -62,6 +62,10 @@ public class StreamPushService {
 
         return this.streamPushRepo.findAllByRelevanceId(relevanceId);
     }
+    public List<StreamPushModel> findAllByTenantId(Long tenantId) {
+
+        return this.streamPushRepo.findAllByTenantId(tenantId);
+    }
 
     @Transactional
     public StreamPushModel createPushStream(StreamPushModel streamPushModel) {

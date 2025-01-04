@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.model.stream.StreamPushModel;
 
+import java.util.List;
+
 /**
  * (MStreamPull)
  *
@@ -18,4 +20,5 @@ public interface StreamPushRepo extends JpaRepository<StreamPushModel, Long>, Jp
 
     StreamPushModel findAllByAppAndStreamAndTenantId(String app,String stream,Long tenantId);
     StreamPushModel findAllByRelevanceId(Long relevanceId);
+    List<StreamPushModel> findAllByTenantId(Long tenantId);
 }

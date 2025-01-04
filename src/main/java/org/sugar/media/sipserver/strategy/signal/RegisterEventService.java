@@ -64,6 +64,10 @@ public class RegisterEventService implements SipSignalHandler {
             if (expires == 0) {
                 tip = "设备注销";
             }
+            String transportProtocol = this.sipUtils.getTransportProtocol(request);
+
+            Console.error(transportProtocol);
+
 
             //  log.info(authTemplate, tip, "收到设备认证请求", deviceId, request.getViaHost(), request.getViaPort());
 

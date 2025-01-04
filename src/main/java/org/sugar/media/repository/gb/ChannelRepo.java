@@ -24,6 +24,8 @@ public interface ChannelRepo extends JpaRepository<DeviceChannelModel, Long>, Jp
 
     List<DeviceChannelModel> findByDeviceId(Long deviceId);
 
+    List<DeviceChannelModel> findByTenantId(Long tenantId);
+
 
 
     void deleteAllByDeviceId(Long deviceId);

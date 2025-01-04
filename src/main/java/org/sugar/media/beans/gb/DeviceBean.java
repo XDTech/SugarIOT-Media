@@ -40,7 +40,7 @@ public class DeviceBean {
 
     private Integer port;// 设备端口
 
-    // UDP TCP
+    // UDP TCP-PASSIVE  TCP-ACTIVE
     private String transport;
 
     private String status;

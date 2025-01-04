@@ -1,5 +1,6 @@
 package org.sugar.media.sipserver.sender;
 
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.log.StaticLog;
 import gov.nist.javax.sip.RequestEventExt;
@@ -66,6 +67,7 @@ public class SipSenderService {
                 if (tag == null) {
                     request.getToHeader().setTag(this.sipUtils.getNewTag());
                 }
+
                 WWWAuthenticateHeader authHeader = SipFactory.getInstance().createHeaderFactory().createWWWAuthenticateHeader("Digest");
 
                 authHeader.setParameter("realm", "sugar.media.com");

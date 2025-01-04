@@ -59,6 +59,13 @@ public class ChannelService {
 
     }
 
+    public List<DeviceChannelModel> getChannelList(Long tenantId) {
+
+        return this.channelRepo.findByTenantId(tenantId);
+
+
+    }
+
     public Optional<DeviceChannelModel> getChannel(Long channelId) {
 
         return this.channelRepo.findById(channelId);
@@ -152,8 +159,6 @@ public class ChannelService {
         return map;
 
     }
-
-
 
 
     public String genGBStream(String deviceCode, String channelCode) {

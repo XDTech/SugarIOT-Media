@@ -27,6 +27,7 @@ public class SipServer  {
     private SipFactory sipFactory;
     private SipStack sipStack;
     private static SipProvider udpSipProvider;
+    private static SipProvider tcpSipProvider;
 
 
     @Resource
@@ -74,6 +75,14 @@ public class SipServer  {
             ListeningPoint lp = sipStack.createListeningPoint(this.sipConfUtils.getIp(), this.sipConfUtils.getPort(), ListeningPoint.UDP);
             udpSipProvider = sipStack.createSipProvider(lp);
             udpSipProvider.addSipListener(sipEventListener);
+
+
+            // tcp 监听
+
+            ListeningPoint tcpLp = sipStack.createListeningPoint(this.sipConfUtils.getIp(), this.sipConfUtils.getPort(), ListeningPoint.TCP);
+            tcpSipProvider = sipStack.createSipProvider(tcpLp);
+            tcpSipProvider.addSipListener(sipEventListener);
+
             sipStack.start();
 
             String ipAddress = udpSipProvider.getListeningPoint(ListeningPoint.UDP).getIPAddress();

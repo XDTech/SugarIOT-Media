@@ -228,6 +228,11 @@ public class StreamPullService {
     }
 
 
+    public List<StreamPullModel> streamPushList(Long tenantId) {
+       return this.streamPullRepo.findByTenantId(tenantId);
+    }
+
+
     public Optional<StreamPullModel> getMStreamPull(Long id) {
         return this.streamPullRepo.findById(id);
     }

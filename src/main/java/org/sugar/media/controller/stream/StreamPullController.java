@@ -90,7 +90,6 @@ public class StreamPullController {
                         // 加载流状态
                         StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(streamPullBean.getStreamKey(), node.get());
                         if (streamProxyInfo.getCode() == 0) {
-                            StaticLog.info("{}", Convert.toStr(streamProxyInfo.toString()));
                             streamPullBean.setStatus(Convert.toStr(streamProxyInfo.getData().getStatus()));
                         }
                     }

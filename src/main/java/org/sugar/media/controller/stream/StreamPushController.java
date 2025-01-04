@@ -84,7 +84,7 @@ public class StreamPushController {
 
         List<StreamInfoBean> mediaListAll = this.zlmNodeService.getMediaListAll();
 
-        Console.log(mediaListAll.toString());
+
 
         streamPushBeans = streamPushBeans.stream().peek((streamPushBean -> {
 
@@ -124,6 +124,8 @@ public class StreamPushController {
 
         if (!this.mediaCacheService.isOnline(node.get().getId()))
             return ResponseEntity.ok(ResponseBean.fail("播放节点离线"));
+
+        // 判断流是否在线
 
         return ResponseEntity.ok(ResponseBean.success(this.mediaUtil.genAddr(node.get(), streamPushModel.get().getApp(), streamPushModel.get().getStream())));
 
