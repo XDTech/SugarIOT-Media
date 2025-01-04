@@ -455,6 +455,7 @@ public class ZlmHookController {
 
             if (ObjectUtil.isNotEmpty(pushModel)) {
                 streamPushModel.setId(pushModel.getId());
+                streamPushModel.setName(pushModel.getName()); // 不再重新赋值名字
 
             }
 

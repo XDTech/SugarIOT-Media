@@ -106,7 +106,7 @@ public class ScreenController {
             ScreenBean screenBean = new ScreenBean();
             screenBean.setName(deviceModel.getName());
             screenBean.setTypes(AppEnum.rtp);
-            screenBean.setStatus(this.sipCacheService.isOnline(deviceModel.getId().toString()) ? StatusEnum.online : StatusEnum.offline);
+            screenBean.setStatus(this.sipCacheService.isOnline(deviceModel.getDeviceId()) ? StatusEnum.online : StatusEnum.offline);
             screenBean.setId(deviceModel.getId());
             screenBeanList.add(screenBean);
         }
@@ -119,22 +119,23 @@ public class ScreenController {
             ScreenBean screenBean = new ScreenBean();
             screenBean.setParentId(deviceChannelModel.getDeviceId());
             screenBean.setName(deviceChannelModel.getChannelName());
-            screenBean.setStatus(StatusEnum.offline);
+            screenBean.setStatus(deviceChannelModel.getStatus());
             screenBean.setTypes(AppEnum.rtp);
             screenBean.setId(deviceChannelModel.getId());
             screenBean.setNodeType("1");
+
             // 查找流
-            StreamPushModel streamPushModel = pushModelMap.get(deviceChannelModel.getId());
-
-            if (ObjectUtil.isNotEmpty(streamPushModel)) {
-
-                StreamInfoBean streamInfoBean = streamInfoBeanMap.get(StrUtil.format("{}{}{}", streamPushModel.getApp(), streamPushModel.getStream(), streamPushModel.getNodeId()));
-
-                if (ObjectUtil.isNotEmpty(streamInfoBean)) {
-
-                    screenBean.setStatus(StatusEnum.online);
-                }
-            }
+//            StreamPushModel streamPushModel = pushModelMap.get(deviceChannelModel.getId());
+//
+//            if (ObjectUtil.isNotEmpty(streamPushModel)) {
+//
+//                StreamInfoBean streamInfoBean = streamInfoBeanMap.get(StrUtil.format("{}{}{}", streamPushModel.getApp(), streamPushModel.getStream(), streamPushModel.getNodeId()));
+//
+//                if (ObjectUtil.isNotEmpty(streamInfoBean)) {
+//
+//                    screenBean.setStatus(StatusEnum.online);
+//                }
+//            }
 
             screenBeanList.add(screenBean);
 
