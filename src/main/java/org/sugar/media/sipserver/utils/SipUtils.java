@@ -184,6 +184,7 @@ public class SipUtils {
             }
 
             DeviceChannelModel deviceChannelModel = new DeviceChannelModel();
+
             // 查询是否存在
             Optional<DeviceChannelModel> result = modelList.stream().filter(device -> device.getChannelCode().equals(channelCode)).findFirst();
 
@@ -191,37 +192,39 @@ public class SipUtils {
                 deviceChannelModel = result.get();
             }
 
+            {
 
-            deviceChannelModel.setDeviceId(deviceId);
-            deviceChannelModel.setTenantId(tenantId);
+                deviceChannelModel.setDeviceId(deviceId);
+                deviceChannelModel.setTenantId(tenantId);
 
-            deviceChannelModel.setChannelCode(XmlUtil.elementText(element, "DeviceID"));
-            deviceChannelModel.setChannelName(XmlUtil.elementText(element, "Name"));
-            deviceChannelModel.setManufacturer(XmlUtil.elementText(element, "Manufacturer"));
-            deviceChannelModel.setModel(XmlUtil.elementText(element, "Model"));
-            deviceChannelModel.setOwner(XmlUtil.elementText(element, "Owner"));
-            deviceChannelModel.setCivilCode(XmlUtil.elementText(element, "CivilCode"));
-            deviceChannelModel.setAddress(XmlUtil.elementText(element, "Address"));
-            deviceChannelModel.setParental(Convert.toInt(XmlUtil.elementText(element, "Parental")));
-            deviceChannelModel.setParentId(XmlUtil.elementText(element, "ParentID"));
-            deviceChannelModel.setSafetyWay(Convert.toInt(XmlUtil.elementText(element, "SafetyWay")));
-            deviceChannelModel.setRegisterWay(Convert.toInt(XmlUtil.elementText(element, "RegisterWay")));
-            deviceChannelModel.setSecrecy(Convert.toInt(XmlUtil.elementText(element, "Secrecy")));
-            deviceChannelModel.setStatus(XmlUtil.elementText(element, "Status").equalsIgnoreCase("ON") ? StatusEnum.online : StatusEnum.offline);
-            deviceChannelModel.setLng(XmlUtil.elementText(element, "Longitude"));
-            deviceChannelModel.setLat(XmlUtil.elementText(element, "Latitude"));
+                deviceChannelModel.setChannelCode(XmlUtil.elementText(element, "DeviceID"));
+                deviceChannelModel.setChannelName(XmlUtil.elementText(element, "Name"));
+                deviceChannelModel.setManufacturer(XmlUtil.elementText(element, "Manufacturer"));
+                deviceChannelModel.setModel(XmlUtil.elementText(element, "Model"));
+                deviceChannelModel.setOwner(XmlUtil.elementText(element, "Owner"));
+                deviceChannelModel.setCivilCode(XmlUtil.elementText(element, "CivilCode"));
+                deviceChannelModel.setAddress(XmlUtil.elementText(element, "Address"));
+                deviceChannelModel.setParental(Convert.toInt(XmlUtil.elementText(element, "Parental")));
+                deviceChannelModel.setParentId(XmlUtil.elementText(element, "ParentID"));
+                deviceChannelModel.setSafetyWay(Convert.toInt(XmlUtil.elementText(element, "SafetyWay")));
+                deviceChannelModel.setRegisterWay(Convert.toInt(XmlUtil.elementText(element, "RegisterWay")));
+                deviceChannelModel.setSecrecy(Convert.toInt(XmlUtil.elementText(element, "Secrecy")));
+                deviceChannelModel.setStatus(XmlUtil.elementText(element, "Status").equalsIgnoreCase("ON") ? StatusEnum.online : StatusEnum.offline);
+                deviceChannelModel.setLng(XmlUtil.elementText(element, "Longitude"));
+                deviceChannelModel.setLat(XmlUtil.elementText(element, "Latitude"));
 
-            deviceChannelModel.setSyncTime(new Date());
-            // 获取info的ptz type
-            Element info = XmlUtil.getElement(element, "Info");
-            if (ObjectUtil.isNotEmpty(info)) {
+                deviceChannelModel.setSyncTime(new Date());
+                // 获取info的ptz type
+                Element info = XmlUtil.getElement(element, "Info");
+                if (ObjectUtil.isNotEmpty(info)) {
 
-                String ptzType = XmlUtil.elementText(info, "PTZType");
-
-
-                deviceChannelModel.setPtzType(Convert.toInt(ptzType));
+                    String ptzType = XmlUtil.elementText(info, "PTZType");
 
 
+                    deviceChannelModel.setPtzType(Convert.toInt(ptzType));
+
+
+                }
             }
 
             channelModelList.add(deviceChannelModel);
@@ -267,5 +270,110 @@ public class SipUtils {
 
         return true;
 
+    }
+
+    // 生成ptz的控制命令
+    public byte[] genPtzCommand(List<String> directions, int speed) {
+        byte[] command = new byte[8];
+        // 字节1：指令的首字节 (A5H)
+        command[0] = (byte) 0xA5;
+
+        // 字节2：组合码1，版本0H，校验位
+        // 字节2: 组合码1, 高4 位是版本信息, 低4 位是校验位。 本标准的版本号是1.0, 版本信息为0H。
+        // 校验位= (字节1 的高4 位+ 字节1 的低4 位+ 字节2 的高4 位) %16。
+        int version = 0x00;
+        int byte1High4Bits = (command[0] >> 4) & 0x0F; // 获取字节1的高4位
+        int byte1Low4Bits = command[0] & 0x0F; // 获取字节1的低4位
+        int versionHigh4Bits = (version >> 4) & 0x0F;
+        int checksum = (byte1High4Bits + byte1Low4Bits + versionHigh4Bits) % 16;
+        command[1] = (byte) ((version << 4) | checksum);
+        byte address = 0x01;
+        // 字节3：设备地址的低8位
+        command[2] = (byte) (address & 0xFF);
+
+        // 字节4 ptz command
+
+        byte result = generateControlByte(directions);
+
+        command[3] = result;
+
+        // 水平速度
+        command[4] = (byte) speed;
+
+        // 垂直速度
+        command[5] = (byte) speed;
+
+        // zoom out in 速度
+        command[6] = (byte) ((speed << 4) | ((address >> 4) & 0x0F));
+
+
+        byte checksum8 = 0;
+        for (int i = 0; i < 7; i++) {
+            checksum8 += command[i];
+        }
+        command[7] = (byte) ((checksum8 & 0xFF) % 256);
+
+        return command;
+    }
+
+
+    private byte generateControlByte(List<String> directions) {
+        byte result = 0;
+
+        // 遍历指令列表，设置相应的位
+        for (String direction : directions) {
+            switch (direction) {
+                case "zoomOut":
+                    result = setBit(result, 5, true); // 镜头缩小（OUT），Bit5
+                    break;
+                case "zoomIn":
+                    result = setBit(result, 4, true);  // 镜头放大（IN），Bit4
+                    break;
+                case "tiltUp":
+                    result = setBit(result, 3, true);  // 向上（Up），Bit3
+                    break;
+                case "tiltDown":
+                    result = setBit(result, 2, true);  // 向下（Down），Bit2
+                    break;
+                case "panLeft":
+                    result = setBit(result, 1, true);  // 向左（Left），Bit1
+                    break;
+                case "panRight":
+                    result = setBit(result, 0, true);  // 向右（Right），Bit0
+                    break;
+                default:
+                    // 如果是未知指令，可以忽略或抛出异常
+                    System.out.println("未知指令: " + direction);
+                    break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 设置字节的指定位
+     *
+     * @param byteValue   当前字节值
+     * @param bitPosition 位的位置（0 到 5）
+     * @param setBit      是否设置该位为 1（true）或 0（false）
+     * @return 修改后的字节值
+     */
+    private byte setBit(byte byteValue, int bitPosition, boolean setBit) {
+        if (setBit) {
+            byteValue |= (byte) (1 << bitPosition);  // 将指定的位设置为 1
+        }
+        return byteValue;
+    }
+
+    public String byteArrayToHexString(byte[] byteArray) {
+        StringBuilder hexString = new StringBuilder();
+
+        for (byte b : byteArray) {
+            // 使用 Integer.toHexString 方法将每个字节转换为16进制
+            hexString.append(String.format("%02X", b));  // %02X 确保每个字节都以两位16进制形式表示
+        }
+
+        return hexString.toString();
     }
 }

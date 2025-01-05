@@ -8,7 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.sugar.media.beans.gb.DeviceBean;
+import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
+import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
@@ -43,6 +45,9 @@ public class DeviceInfoEventService implements SipCmdHandler {
     @Resource
     private SipRequestSender sipRequestSender;
 
+    @Resource
+    private ChannelService channelService;
+
     @Override
     public void processMessage(RequestEventExt evtExt) {
 
@@ -64,7 +69,7 @@ public class DeviceInfoEventService implements SipCmdHandler {
             device = new DeviceModel();
         }
 
-        String xmlContent =this.sipUtils.getXmlContent(request);
+        String xmlContent = this.sipUtils.getXmlContent(request);
 
         // 存储设备发过来的信息
         device.setHost(request.getViaHost());
@@ -76,6 +81,8 @@ public class DeviceInfoEventService implements SipCmdHandler {
         this.deviceService.createDevice(device);
         // 给设备发送200消息
         this.sipSenderService.sendOKMessage(evtExt);
+
+        this.channelService.updateChannelStatus(device.getId(), StatusEnum.offline);
 
         log.warn("发送catalog获取目录");
         // 发完之后，要发送catalog消息 获取设备目录

@@ -47,9 +47,6 @@ public class SipRequestService {
     private SipConfUtils sipConfUtils;
 
 
-
-
-
     private final String catalogTemplate = """
             <?xml version="1.0"?>
             <Query>
@@ -58,6 +55,16 @@ public class SipRequestService {
                 <DeviceID>{}</DeviceID>
             </Query>
             """;
+
+    private final String ptzTemplate = """
+            <?xml version="1.0"?>
+            <Control>
+                 <CmdType>DeviceControl</CmdType>
+                  <SN>{}</SN>
+                  <DeviceID>{}</DeviceID>
+                  <PTZCmd>{}</PTZCmd>
+            </Control>
+             """;
 
     public Request createCatalog(DeviceBean device, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 
@@ -114,6 +121,22 @@ public class SipRequestService {
 
 
         return request;
+
+
+    }
+
+
+    @SneakyThrows
+    public Request createPTZ(DeviceBean device, CallIdHeader callIdHeader,String ptzCmd) {
+
+
+        String content = StrUtil.format(ptzTemplate
+                , this.sipCacheService.getNextCSeqFromRedis(device.getDeviceId())
+                , device.getDeviceId()
+                ,ptzCmd
+        );
+
+        return this.createBase(device, Request.MESSAGE, content, this.sipUtils.getNewTag(), null, callIdHeader);
 
 
     }

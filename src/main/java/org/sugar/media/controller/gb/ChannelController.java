@@ -2,6 +2,8 @@ package org.sugar.media.controller.gb;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -35,13 +37,12 @@ import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.sipserver.sender.SipSenderService;
+import org.sugar.media.sipserver.utils.SipUtils;
 import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.utils.LeastConnectionUtil;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -88,6 +89,10 @@ public class ChannelController {
 
     @Resource
     private StreamPushService streamPushService;
+
+    @Resource
+    private SipUtils sipUtils;
+
 
     @GetMapping("/list/{deviceId}")
     public ResponseEntity<?> getDevice(@PathVariable Long deviceId) {
@@ -264,5 +269,38 @@ public class ChannelController {
 
 
     }
+
+    @GetMapping("/ptz/{deviceCode}/{channelCode}")
+    public ResponseEntity<?> ptzChannel(@PathVariable String deviceCode, @RequestParam List<String> directions, @PathVariable String channelCode) {
+
+        TimeInterval timer = DateUtil.timer();
+
+
+        DeviceBean deviceBean = this.sipCacheService.getSipDevice(deviceCode);
+        if (ObjectUtil.isEmpty(deviceBean)) {
+            return ResponseEntity.ok(ResponseBean.fail());
+        }
+
+
+        deviceBean.setDeviceId(channelCode);
+        deviceBean.setHost(deviceBean.getHost());
+        deviceBean.setPort(deviceBean.getPort());
+        deviceBean.setTransport(deviceBean.getTransport());
+
+
+        Console.log("{}====查询耗时", timer.intervalRestart());
+        byte[] bytes = this.sipUtils.genPtzCommand(directions, 100);
+
+        Console.log("{}====生成耗时", timer.intervalRestart());
+
+        this.sipRequestSender.sendPtzControl(deviceBean, this.sipUtils.byteArrayToHexString(bytes));
+
+        Console.log("{}====发送耗时", timer.intervalRestart());
+
+        return ResponseEntity.ok(ResponseBean.success());
+
+
+    }
+
 
 }

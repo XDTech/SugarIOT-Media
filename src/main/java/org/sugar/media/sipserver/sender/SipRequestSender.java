@@ -80,6 +80,18 @@ public class SipRequestSender {
 
 
     }
+    @SneakyThrows
+    public void sendPtzControl(DeviceBean deviceBean,String ptzCmd) {
+        SipProvider sipProvider = SipServer.udpSipProvider();
+        CallIdHeader newCallId = sipProvider.getNewCallId();
+
+        Request catalog = this.sipRequestService.createPTZ(deviceBean, newCallId,ptzCmd);
+
+        sipProvider.sendRequest(catalog);
+        log.info("发送{}，ptz", deviceBean.getDeviceId());
+
+
+    }
 
 
     @SneakyThrows
@@ -147,4 +159,7 @@ public class SipRequestSender {
 
         }
     }
+
+
+
 }

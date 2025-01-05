@@ -4,10 +4,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Console;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
-import cn.hutool.core.util.XmlUtil;
+import cn.hutool.core.util.*;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.signers.JWTSigner;
@@ -17,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.enums.AppEnum;
 import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.sipserver.utils.SipUtils;
 import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.MonitorUtil;
 import org.w3c.dom.Document;
@@ -58,6 +56,66 @@ public class NormalTests {
         // 保留两位小数
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         return decimalFormat.format(size) + " " + UNITS[unitIndex];
+    }
+
+    public  String byteArrayToHexString(byte[] byteArray) {
+        StringBuilder hexString = new StringBuilder();
+
+        for (byte b : byteArray) {
+            // 使用 Integer.toHexString 方法将每个字节转换为16进制
+            hexString.append(String.format("%02X", b));  // %02X 确保每个字节都以两位16进制形式表示
+        }
+
+        return hexString.toString();
+    }
+    @Test
+    public void testNUm() {
+
+
+//        SipUtils sipUtils = new SipUtils();
+//        byte[] bytes = sipUtils.genPtzCommand();
+//        String hexString = byteArrayToHexString(bytes);
+//        System.out.println("16进制字符串: " + hexString);  // 输出：012A3FA4
+    }
+//    public byte[] buildPtzCommand(int direction, int speed, int zoom) {
+//
+//
+//
+//    }
+
+
+    public byte[] buildPTZControlMessage(int deviceAddress, byte commandCode, byte data1, byte data2, byte data3) {
+        byte[] message = new byte[8];
+
+        // 字节1：指令的首字节 (A5H)
+        message[0] = (byte) 0xA5;
+
+        // 字节2：组合码1，版本0H，校验位
+        byte version = 0x01;
+        byte checksum = (byte) ((byte) ((message[0] >> 4) & 0x0F + (message[0] & 0x0F) + (version >> 4)) & 0x0F);
+        message[1] = (byte) ((version << 4) | checksum);
+
+        // 字节3：设备地址的低8位
+        message[2] = (byte) (deviceAddress & 0xFF);
+
+        // 字节4：指令码
+        message[3] = commandCode;
+
+        // 字节5、6：数据1和数据2
+        message[4] = data1;
+        message[5] = data2;
+
+        // 字节7：组合码2，高4位是数据3，低4位是地址的高4位
+        message[6] = (byte) ((data3 << 4) | ((deviceAddress >> 8) & 0x0F));
+
+        // 字节8：校验码
+        byte checksum8 = 0;
+        for (int i = 0; i < 7; i++) {
+            checksum8 += message[i];
+        }
+        message[7] = (byte) (checksum8 & 0xFF);
+
+        return message;
     }
 
     @Test
