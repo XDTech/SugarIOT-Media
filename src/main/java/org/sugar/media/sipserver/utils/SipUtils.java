@@ -341,6 +341,9 @@ public class SipUtils {
                 case "panRight":
                     result = setBit(result, 0, true);  // 向右（Right），Bit0
                     break;
+
+                case "stop":
+                    break;
                 default:
                     // 如果是未知指令，可以忽略或抛出异常
                     System.out.println("未知指令: " + direction);

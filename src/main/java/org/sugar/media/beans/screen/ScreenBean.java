@@ -25,5 +25,9 @@ public class ScreenBean {
 
     private StatusEnum status;
 
+    private String deviceCode;
+
+    private String channelCode;
+
 
 }

@@ -95,7 +95,7 @@ public class ScreenController {
         List<StreamPushModel> pushModels = this.streamPushService.findAllByTenantId(tenantId);
 
         // 过滤国标流
-        Map<Long, StreamPushModel> pushModelMap = pushModels.stream().filter(s -> s.getRelevanceId() != null).collect(Collectors.toMap(StreamPushModel::getRelevanceId, s -> s));
+//        Map<Long, StreamPushModel> pushModelMap = pushModels.stream().filter(s -> s.getRelevanceId() != null).collect(Collectors.toMap(StreamPushModel::getRelevanceId, s -> s));
 
         List<StreamInfoBean> mediaListAll = this.zlmNodeService.getMediaListAll();
 
@@ -108,6 +108,7 @@ public class ScreenController {
             screenBean.setTypes(AppEnum.rtp);
             screenBean.setStatus(this.sipCacheService.isOnline(deviceModel.getDeviceId()) ? StatusEnum.online : StatusEnum.offline);
             screenBean.setId(deviceModel.getId());
+            screenBean.setDeviceCode(deviceModel.getDeviceId());
             screenBeanList.add(screenBean);
         }
 
@@ -123,6 +124,10 @@ public class ScreenController {
             screenBean.setTypes(AppEnum.rtp);
             screenBean.setId(deviceChannelModel.getId());
             screenBean.setNodeType("1");
+
+            Optional<ScreenBean> beanOptional = screenBeanList.stream().filter(s -> s.getId().equals(deviceChannelModel.getDeviceId())).findFirst();
+            beanOptional.ifPresent(bean -> screenBean.setDeviceCode(bean.getDeviceCode()));
+            screenBean.setChannelCode(deviceChannelModel.getChannelCode());
 
             // 查找流
 //            StreamPushModel streamPushModel = pushModelMap.get(deviceChannelModel.getId());
@@ -159,6 +164,7 @@ public class ScreenController {
 
                 if (node.isEmpty()) continue;
 
+                if(StrUtil.isBlank(stream.getStreamKey())) continue;
                 StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(stream.getStreamKey(), node.get());
                 if (streamProxyInfo.getCode() == 0) {
                     screenBean.setStatus(streamProxyInfo.getData().getStatus() == 0 ? StatusEnum.online : StatusEnum.offline);

@@ -270,8 +270,8 @@ public class ChannelController {
 
     }
 
-    @GetMapping("/ptz/{deviceCode}/{channelCode}")
-    public ResponseEntity<?> ptzChannel(@PathVariable String deviceCode, @RequestParam List<String> directions, @PathVariable String channelCode) {
+    @GetMapping("/ptz/{deviceCode}/{channelCode}/{speed}")
+    public ResponseEntity<?> ptzChannel(@PathVariable String deviceCode, @RequestParam List<String> directions, @PathVariable String channelCode, @PathVariable Integer speed) {
 
         TimeInterval timer = DateUtil.timer();
 
@@ -289,7 +289,7 @@ public class ChannelController {
 
 
         Console.log("{}====查询耗时", timer.intervalRestart());
-        byte[] bytes = this.sipUtils.genPtzCommand(directions, 100);
+        byte[] bytes = this.sipUtils.genPtzCommand(directions, speed);
 
         Console.log("{}====生成耗时", timer.intervalRestart());
 
