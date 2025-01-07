@@ -195,6 +195,7 @@ public class SipRequestService {
             String subject = StrUtil.format("{}:{},{}:{}", channelBean.getChannelCode(), ssrc, this.sipConfUtils.getId(), 0);
             SubjectHeader subjectHeader = SipFactory.getInstance().createHeaderFactory().createSubjectHeader(subject);
             request.addHeader(subjectHeader);
+
             String sdp = StrUtil.format("""
                     v=0
                     o={} 0 0 IN IP4 {}
@@ -202,9 +203,12 @@ public class SipRequestService {
                     u={}:0
                     c=IN IP4 {}
                     t=0 0
-                    m=video {} RTP/AVP 96
+                    m=video {} RTP/AVP 96 97 98 99
                     a=recvonly
                     a=rtpmap:96 PS/90000
+                    a=rtpmap:98 H264/90000
+                    a=rtpmap:97 MPEG4/90000
+                    a=rtpmap:99 H265/90000
                     y={}
                     """, this.sipConfUtils.getId(), device.getNodeHost(), channelBean.getChannelCode(), device.getNodeHost(), device.getNodePort(), ssrc);
 

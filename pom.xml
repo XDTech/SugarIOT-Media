@@ -74,6 +74,21 @@
             <version>5.8.33</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.github.03</groupId>
+            <artifactId>onvif</artifactId>
+            <version>1.0.9</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.github.rburgst/okhttp-digest -->
+        <dependency>
+            <groupId>io.github.rburgst</groupId>
+            <artifactId>okhttp-digest</artifactId>
+            <version>2.5</version>
+        </dependency>
+
+
         <!--验证-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

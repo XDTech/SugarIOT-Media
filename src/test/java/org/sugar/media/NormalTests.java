@@ -71,11 +71,16 @@ public class NormalTests {
     @Test
     public void testNUm() {
 
+        try {
+            DeviceDiscovery deviceDiscovery = new DeviceDiscovery();
 
-//        SipUtils sipUtils = new SipUtils();
-//        byte[] bytes = sipUtils.genPtzCommand();
-//        String hexString = byteArrayToHexString(bytes);
-//        System.out.println("16进制字符串: " + hexString);  // 输出：012A3FA4
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
     }
 //    public byte[] buildPtzCommand(int direction, int speed, int zoom) {
 //
