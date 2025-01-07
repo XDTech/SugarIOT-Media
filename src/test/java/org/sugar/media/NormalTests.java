@@ -71,13 +71,6 @@ public class NormalTests {
     @Test
     public void testNUm() {
 
-        try {
-            DeviceDiscovery deviceDiscovery = new DeviceDiscovery();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
 
 

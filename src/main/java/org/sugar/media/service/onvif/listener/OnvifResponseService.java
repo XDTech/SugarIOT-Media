@@ -1,4 +1,4 @@
-package org.sugar.media.service.onvif;
+package org.sugar.media.service.onvif.listener;
 
 import be.teletask.onvif.OnvifManager;
 import be.teletask.onvif.listeners.OnvifDeviceInformationListener;

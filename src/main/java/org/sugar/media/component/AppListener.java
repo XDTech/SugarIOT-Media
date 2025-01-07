@@ -4,7 +4,7 @@ import jakarta.annotation.Resource;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.sugar.media.service.onvif.OnvifService;
+import org.sugar.media.service.onvif.OnvifDiscoveryService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.service.node.ZlmNodeService;
 import org.sugar.media.sipserver.SipServer;
@@ -29,7 +29,7 @@ public class AppListener {
 
 
     @Resource
-    private OnvifService onvifService;
+    private OnvifDiscoveryService onvifService;
 
 
 
@@ -50,7 +50,7 @@ public class AppListener {
         this.sipServer.run();
 
 
-        this.onvifService.getManager();
+        this.onvifService.Discovery();
 
     }
 }

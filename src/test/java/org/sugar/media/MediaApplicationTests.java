@@ -1,7 +1,10 @@
 package org.sugar.media;
 
+import be.teletask.onvif.models.OnvifDevice;
+import be.teletask.onvif.models.OnvifDeviceInformation;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
+import cn.hutool.core.lang.Console;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
@@ -13,6 +16,7 @@ import org.sugar.media.service.MonitorService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.node.NodeService;
+import org.sugar.media.service.onvif.OnvifManagerService;
 
 import java.util.List;
 
@@ -37,9 +41,20 @@ class MediaApplicationTests {
     @Resource
     MonitorService monitorService;
 
+
+    @Resource
+    private OnvifManagerService onvifManagerService;
     @Test
     void contextLoads() throws InterruptedException {
-        this.monitorService.getNetwork();
+
+        OnvifDevice onvifDevice = new OnvifDevice("http://192.168.31.28", "admin", "Aa12345678");
+
+        OnvifDeviceInformation deviceInfo = this.onvifManagerService.getDeviceInfo(onvifDevice);
+
+
+        Console.error(deviceInfo.toString());
+
+        //  this.monitorService.getNetwork();
 //        this.monitorService.printlnCpuInfo();
 //        this.monitorService.getMemoryInfo();
 //        this.monitorService.getThread();
