@@ -164,7 +164,7 @@ public class ScreenController {
 
                 if (node.isEmpty()) continue;
 
-                if(StrUtil.isBlank(stream.getStreamKey())) continue;
+//                if(StrUtil.isBlank(stream.getStreamKey())) continue;
                 StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(stream.getStreamKey(), node.get());
                 if (streamProxyInfo.getCode() == 0) {
                     screenBean.setStatus(streamProxyInfo.getData().getStatus() == 0 ? StatusEnum.online : StatusEnum.offline);

@@ -5,7 +5,6 @@ import be.teletask.onvif.models.OnvifDevice;
 import be.teletask.onvif.models.OnvifDeviceInformation;
 import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.sugar.media.service.onvif.listener.OnvifDeviceListenerService;
 import org.sugar.media.service.onvif.listener.OnvifResponseService;
@@ -27,7 +26,7 @@ public class OnvifManagerService {
     @Resource
     private OnvifDeviceListenerService onvifDeviceListenerService;
 
-    private OnvifManager onvifManager = new OnvifManager(onvifResponseService);
+    private final OnvifManager onvifManager = new OnvifManager(onvifResponseService);
 
     /**
      * 获取设备信息
