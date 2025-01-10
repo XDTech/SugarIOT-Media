@@ -23,7 +23,8 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "m_stream_pull", schema = "public", indexes = {@Index(name = "idx_pull_zid", columnList = "tenantId")}) // 1.表名 2.模式
+@Table(name = "m_stream_pull", schema = "public", indexes = {@Index(name = "idx_pull_zid", columnList = "tenantId")})
+// 1.表名 2.模式
 @DynamicInsert
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 忽略  lazy 层级/为空 时候的引用
 public class StreamPullModel {
@@ -123,8 +124,8 @@ public class StreamPullModel {
 
 
     // mp4录制切片大小，单位秒
-    @Column(columnDefinition = "int8 default 1800")
-    private Long mp4MaxSecond = 1800L;
+    @Column(columnDefinition = "int8 default 3600")
+    private Long mp4MaxSecond = 3600L;
 
     // 无人观看时，是否直接关闭(而不是通过on_none_reader hook返回close)
     @Enumerated(EnumType.STRING)
