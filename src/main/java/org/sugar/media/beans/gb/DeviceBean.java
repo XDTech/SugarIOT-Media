@@ -1,8 +1,12 @@
 package org.sugar.media.beans.gb;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.DeviceTypeEnum;
 
 import java.util.Date;
@@ -56,4 +60,17 @@ public class DeviceBean {
     private Integer channel;//通道数
 
     private Date syncTime;
+
+
+
+    private AutoCloseEnum autoClose;
+
+
+    private boolean enablePull;
+
+    // enable_mp4 录制
+    private boolean enableMp4;
+
+
+
 }

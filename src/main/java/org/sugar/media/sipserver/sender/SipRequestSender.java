@@ -152,7 +152,6 @@ public class SipRequestSender {
         SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrcByCode(channelCode);
         if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
 
-            Console.log(ssrcInfoBean.toString());
 
             this.sendBye(ssrcInfoBean);
 

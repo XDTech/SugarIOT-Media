@@ -45,8 +45,6 @@ public class DeviceService {
     @Resource
     private SipCacheService sipCacheService;
 
-    @Resource
-    private SsrcManager ssrcManager;
 
     public List<DeviceModel> getDeviceList() {
         return this.deviceRepo.findAll();
@@ -83,6 +81,7 @@ public class DeviceService {
     public DeviceModel getDevice(String deviceCode) {
         return this.deviceRepo.findAllByDeviceId(deviceCode);
     }
+
     public List<DeviceModel> getDeviceList(Long tenantId) {
         return this.deviceRepo.findAllByTenantId(tenantId);
     }

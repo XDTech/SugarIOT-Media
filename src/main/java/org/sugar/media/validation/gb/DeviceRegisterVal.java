@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.groups.Default;
 import lombok.Data;
+import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.DeviceTypeEnum;
 import org.sugar.media.enums.PlayerTypeEnum;
 import org.sugar.media.validation.stream.StreamPullVal;
@@ -36,6 +37,17 @@ public class DeviceRegisterVal {
     private  String deviceType;
 
     private String pwd; //国标设备验证id 为空采用系统密码
+
+
+
+    private AutoCloseEnum autoClose;
+
+
+    private boolean enablePull;
+
+    // enable_mp4 录制
+    private boolean enableMp4;
+
 
     public interface Update extends Default {
 

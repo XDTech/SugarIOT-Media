@@ -87,7 +87,7 @@ public class CatalogEventService implements SipCmdHandler {
         // :然后把解析出来的数据都存到数据库中
         String xmlContent = this.sipUtils.getXmlContent(request);
         String tenantCode = device.getDeviceId().substring(0, 6);
-        List<DeviceChannelModel> channelModels = this.sipUtils.parseCatalog(xmlContent, device.getId(), device.getTenantId(), tenantCode, deviceChannelList);
+        List<DeviceChannelModel> channelModels = this.sipUtils.parseCatalog(xmlContent, device, device.getTenantId(), tenantCode, deviceChannelList);
 
 
         // 通过 code 字段去重，保留每个 code 的第一条记录
@@ -100,6 +100,9 @@ public class CatalogEventService implements SipCmdHandler {
 
 
         this.channelService.createChannel(channelModels);
+
+        // 在这里auto invite
+        this.channelService.inviteChannels(channelModels);
 
         this.sipSenderService.sendOKMessage(evtExt);
 

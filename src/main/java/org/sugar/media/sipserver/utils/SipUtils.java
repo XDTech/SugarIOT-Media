@@ -148,7 +148,7 @@ public class SipUtils {
 
     // 解析catalog
 
-    public List<DeviceChannelModel> parseCatalog(String xml, Long deviceId, Long tenantId, String tenantCode, List<DeviceChannelModel> modelList) {
+    public List<DeviceChannelModel> parseCatalog(String xml, DeviceModel deviceModel, Long tenantId, String tenantCode, List<DeviceChannelModel> modelList) {
 
         List<DeviceChannelModel> channelModelList = new ArrayList<>();
         // 使用 Hutool 解析 XML
@@ -185,6 +185,12 @@ public class SipUtils {
 
             DeviceChannelModel deviceChannelModel = new DeviceChannelModel();
 
+            // ====要用通道自定义配置====
+            deviceChannelModel.setEnablePull(deviceModel.isEnablePull());
+            deviceChannelModel.setAutoClose(deviceModel.getAutoClose());
+            deviceChannelModel.setEnableMp4(deviceModel.isEnableMp4());
+
+            //==========
             // 查询是否存在
             Optional<DeviceChannelModel> result = modelList.stream().filter(device -> device.getChannelCode().equals(channelCode)).findFirst();
 
@@ -194,7 +200,7 @@ public class SipUtils {
 
             {
 
-                deviceChannelModel.setDeviceId(deviceId);
+                deviceChannelModel.setDeviceId(deviceModel.getId());
                 deviceChannelModel.setTenantId(tenantId);
 
                 deviceChannelModel.setChannelCode(XmlUtil.elementText(element, "DeviceID"));
@@ -214,6 +220,7 @@ public class SipUtils {
                 deviceChannelModel.setLat(XmlUtil.elementText(element, "Latitude"));
 
                 deviceChannelModel.setSyncTime(new Date());
+
                 // 获取info的ptz type
                 Element info = XmlUtil.getElement(element, "Info");
                 if (ObjectUtil.isNotEmpty(info)) {

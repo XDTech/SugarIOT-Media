@@ -20,6 +20,7 @@ import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.beans.hooks.zlm.CloseStreamBean;
 import org.sugar.media.beans.hooks.zlm.StreamInfoBean;
+import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
@@ -162,65 +163,14 @@ public class ChannelController {
 
         if (channel.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("通道不存在"));
 
-        if (channel.get().getStatus().equals(StatusEnum.offline)) {
-            return ResponseEntity.ok(ResponseBean.fail("通道离线"));
-        }
 
-        Optional<DeviceModel> device = this.deviceService.getDevice(channel.get().getDeviceId());
-        if (device.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+        Map<String, List<String>> stringListMap = this.channelService.inviteChannel(channel.get());
+        Console.log(stringListMap);
 
-        if (!this.sipCacheService.isOnline(device.get().getDeviceId())) {
-            return ResponseEntity.ok(ResponseBean.fail("设备离线"));
-        }
+        if (ObjectUtil.isEmpty(stringListMap)) return ResponseEntity.ok(ResponseBean.fail("设备离线，播放失败"));
 
 
-        //
-        SsrcInfoBean ssrcByCode = this.ssrcManager.getSsrcByCode(channel.get().getChannelCode());
-
-        if (ObjectUtil.isNotEmpty(ssrcByCode)) {
-            Console.log("该设备存在ssrc:{}", ssrcByCode);
-
-            Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
-            return node.map(nodeModel -> ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(nodeModel, StrUtil.format("{}_{}", device.get().getDeviceId(), channel.get().getChannelCode()))))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail("节点不存在")));
-
-        }
-        NodeModel node = this.loadBalanceService.executeBalance();
-
-
-        if (ObjectUtil.isEmpty(node)) return ResponseEntity.ok(ResponseBean.fail("暂无可用播放节点"));
-
-        DeviceBean deviceBean = new DeviceBean();
-        BeanUtil.copyProperties(device.get(), deviceBean);
-
-
-        ChannelBean channelBean = new ChannelBean();
-
-        BeanUtil.copyProperties(channel.get(), channelBean);
-
-
-        deviceBean.setNodeHost(node.getIp());
-        deviceBean.setNodePort(node.getRtpPort());
-        deviceBean.setNodeId(node.getId());
-
-        SsrcInfoBean ssrcInfoBean = new SsrcInfoBean();
-        ssrcInfoBean.setDeviceCode(device.get().getDeviceId());
-        ssrcInfoBean.setChannelCode(channelBean.getChannelCode());
-        ssrcInfoBean.setChannelId(channel.get().getId());
-        ssrcInfoBean.setName(channel.get().getChannelName());
-        ssrcInfoBean.setDeviceHost(device.get().getHost());
-        ssrcInfoBean.setDevicePort(device.get().getPort());
-        ssrcInfoBean.setNodeId(node.getId());
-        ssrcInfoBean.setTenantId(device.get().getTenantId());
-        ssrcInfoBean.setTransport(device.get().getTransport());
-
-        String playSsrc = this.ssrcManager.createPlaySsrc(ssrcInfoBean);
-        ssrcInfoBean.setSsrc(playSsrc);
-
-        Console.error(ssrcInfoBean.toString());
-        this.sipRequestSender.sendInvite(deviceBean, channelBean, playSsrc);
-
-
-        return ResponseEntity.ok(ResponseBean.success(this.channelService.genAddr(node, this.channelService.genGBStream(device.get().getDeviceId(), channel.get().getChannelCode()))));
+        return ResponseEntity.ok(ResponseBean.success(stringListMap));
 
     }
 
@@ -268,6 +218,35 @@ public class ChannelController {
         return ResponseEntity.ok(ResponseBean.success());
 
 
+    }
+
+    @GetMapping("/{channelId}")
+    public ResponseEntity<?> getChannel(@PathVariable Long channelId) {
+
+        Optional<DeviceChannelModel> channel = this.channelService.getChannel(channelId);
+
+        return channel.<ResponseEntity<?>>map(channelModel -> ResponseEntity.ok(ResponseBean.success(channelModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail()));
+
+
+    }
+
+
+    @PutMapping
+    public ResponseEntity<?> updateChannel(@RequestParam Long id, @RequestParam String autoClose, @RequestParam Boolean enablePull, @RequestParam Boolean enableMp4) {
+
+        Optional<DeviceChannelModel> channel = this.channelService.getChannel(id);
+
+        if (channel.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+
+        channel.get().setEnableMp4(enableMp4);
+        channel.get().setEnablePull(enablePull);
+        channel.get().setAutoClose(AutoCloseEnum.valueOf(autoClose));
+
+
+        this.channelService.updateChannel(channel.get());
+
+        return ResponseEntity.ok(ResponseBean.success());
     }
 
     @GetMapping("/ptz/{deviceCode}/{channelCode}/{speed}")

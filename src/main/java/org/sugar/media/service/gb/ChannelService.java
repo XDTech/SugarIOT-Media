@@ -1,7 +1,9 @@
 package org.sugar.media.service.gb;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Console;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
@@ -16,13 +18,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sugar.media.beans.ResponseBean;
+import org.sugar.media.beans.gb.ChannelBean;
+import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.repository.gb.ChannelRepo;
+import org.sugar.media.repository.gb.DeviceRepo;
+import org.sugar.media.service.LoadBalanceService;
 import org.sugar.media.service.node.NodeService;
+import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.sender.SipRequestSender;
 import org.sugar.media.utils.JwtUtils;
@@ -51,6 +58,15 @@ public class ChannelService {
     @Resource
     private SipRequestSender sipRequestSender;
 
+    @Resource
+    private DeviceRepo deviceRepo;
+
+    @Resource
+    private SipCacheService sipCacheService;
+
+    @Resource
+    private LoadBalanceService loadBalanceService;
+
 
     public List<DeviceChannelModel> getDeviceChannelList(Long deviceId) {
 
@@ -69,6 +85,14 @@ public class ChannelService {
     public Optional<DeviceChannelModel> getChannel(Long channelId) {
 
         return this.channelRepo.findById(channelId);
+
+
+    }
+
+    @Transactional
+    public DeviceChannelModel updateChannel(DeviceChannelModel deviceChannelModel) {
+
+        return this.channelRepo.save(deviceChannelModel);
 
 
     }
@@ -182,6 +206,86 @@ public class ChannelService {
             this.sipRequestSender.sendBye(ssrcInfoBean);
         }
 
+    }
 
+
+    public void inviteChannels(List<DeviceChannelModel> channelModels) {
+        for (DeviceChannelModel channelModel : channelModels) {
+            if (!channelModel.isEnablePull()) continue;
+            ThreadUtil.execute(() -> {
+
+                this.inviteChannel(channelModel);
+            });
+        }
+
+    }
+
+
+    // 发送invite 生成播放地址
+    public Map<String, List<String>> inviteChannel(DeviceChannelModel channel) {
+
+        if (channel.getStatus().equals(StatusEnum.offline)) {
+            return null;
+        }
+
+        Optional<DeviceModel> device = this.deviceRepo.findById(channel.getDeviceId());
+        if (device.isEmpty()) return null;
+
+        if (!this.sipCacheService.isOnline(device.get().getDeviceId())) {
+            return null;
+        }
+
+
+        //
+        SsrcInfoBean ssrcByCode = this.ssrcManager.getSsrcByCode(channel.getChannelCode());
+
+        if (ObjectUtil.isNotEmpty(ssrcByCode)) {
+            Console.log("该设备存在ssrc:{}", ssrcByCode);
+
+            Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
+
+            if (node.isPresent()) {
+                return this.genAddr(node.get(), StrUtil.format("{}_{}", device.get().getDeviceId(), channel.getChannelCode()));
+            }
+        }
+
+        NodeModel node = this.loadBalanceService.executeBalance();
+
+
+        if (ObjectUtil.isEmpty(node)) return null;
+
+        DeviceBean deviceBean = new DeviceBean();
+        BeanUtil.copyProperties(device.get(), deviceBean);
+
+
+        ChannelBean channelBean = new ChannelBean();
+
+        BeanUtil.copyProperties(channel, channelBean);
+
+
+        deviceBean.setNodeHost(node.getIp());
+        deviceBean.setNodePort(node.getRtpPort());
+        deviceBean.setNodeId(node.getId());
+
+        SsrcInfoBean ssrcInfoBean = new SsrcInfoBean();
+        ssrcInfoBean.setDeviceCode(device.get().getDeviceId());
+        ssrcInfoBean.setChannelCode(channelBean.getChannelCode());
+        ssrcInfoBean.setChannelId(channel.getId());
+        ssrcInfoBean.setName(channel.getChannelName());
+        ssrcInfoBean.setDeviceHost(device.get().getHost());
+        ssrcInfoBean.setDevicePort(device.get().getPort());
+        ssrcInfoBean.setNodeId(node.getId());
+        ssrcInfoBean.setTenantId(device.get().getTenantId());
+        ssrcInfoBean.setTransport(device.get().getTransport());
+        ssrcInfoBean.setEnablePull(device.get().isEnablePull());
+        ssrcInfoBean.setEnableMp4(device.get().isEnableMp4());
+        ssrcInfoBean.setAutoClose(device.get().getAutoClose());
+
+        String playSsrc = this.ssrcManager.createPlaySsrc(ssrcInfoBean);
+        ssrcInfoBean.setSsrc(playSsrc);
+
+        this.sipRequestSender.sendInvite(deviceBean, channelBean, playSsrc);
+
+        return this.genAddr(node, this.genGBStream(device.get().getDeviceId(), channel.getChannelCode()));
     }
 }

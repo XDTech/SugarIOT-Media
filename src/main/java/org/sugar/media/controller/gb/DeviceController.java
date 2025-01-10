@@ -124,6 +124,9 @@ public class DeviceController {
         deviceModel.setDeviceId(code);
         deviceModel.setDeviceType(DeviceTypeEnum.valueOf(deviceRegisterVal.getDeviceType()));
         deviceModel.setTenantId(this.userSecurity.getCurrentTenantId());
+        deviceModel.setEnablePull(deviceRegisterVal.isEnablePull());
+        deviceModel.setAutoClose(deviceRegisterVal.getAutoClose());
+        deviceModel.setEnableMp4(deviceRegisterVal.isEnableMp4());
         this.deviceService.createDevice(deviceModel);
 
         return ResponseEntity.ok(ResponseBean.success());
@@ -151,7 +154,7 @@ public class DeviceController {
         // 如果是修改了sip id 先把之前的踢下线
         if (!code.equals(deviceModel.get().getDeviceId())) {
             if (this.sipCacheService.isOnline(deviceModel.get().getDeviceId())) {
-                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getName(),null));
+                WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOffline, new Date(), deviceRegisterVal.getName(), null));
             }
             this.sipCacheService.deleteDevice(deviceModel.get().getDeviceId());
 
@@ -162,6 +165,9 @@ public class DeviceController {
         deviceModel.get().setPwd(deviceRegisterVal.getPwd());
         deviceModel.get().setDeviceId(code);
         deviceModel.get().setDeviceType(DeviceTypeEnum.valueOf(deviceRegisterVal.getDeviceType()));
+        deviceModel.get().setEnablePull(deviceRegisterVal.isEnablePull());
+        deviceModel.get().setAutoClose(deviceRegisterVal.getAutoClose());
+        deviceModel.get().setEnableMp4(deviceRegisterVal.isEnableMp4());
         this.deviceService.createDevice(deviceModel.get());
 
         return ResponseEntity.ok(ResponseBean.success());

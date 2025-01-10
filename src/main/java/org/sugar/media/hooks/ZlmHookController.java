@@ -13,12 +13,14 @@ import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
 import org.sugar.media.beans.hooks.zlm.*;
 import org.sugar.media.enums.AppEnum;
+import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.TenantModel;
@@ -54,6 +56,15 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/zlm")
 public class ZlmHookController {
+
+
+    @Value("${live.enableMp4}")
+    private Boolean liveEnableMp4=false;
+
+
+
+    @Value("${live.autoClose}")
+    private Boolean liveAutoClose=true;
 
     @Resource
     private MediaCacheService mediaCacheService;
@@ -236,45 +247,72 @@ public class ZlmHookController {
         Map<String, Object> map = new HashMap<>();
         StaticLog.info("{}。{}", "触发无人观看事件", body);
 
-
-        if (body.getApp().equals("rtp")) {
-            // TODO:校验stream_id
-            String hexString = body.getStream();
-
-
-            // 通过ssrc 查找
-
-            this.sipRequestSender.sendBye(hexString.split("_")[1]);
-
-            map.put("code", 0);
-            map.put("close", true);
-
-            // 给设备发送bye消息
-            return map;
-        }
-
-        // 重置拉流代理
-        /// 查询是哪个node
-
-        ThreadUtil.execute(() -> {
-            Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(body.getMediaServerId()));
-            if (node.isPresent()) {
-
-                StreamPullModel streamPullModel = this.streamPullService.onlyStream(body.getApp(), body.getStream());
-
-                if (ObjectUtil.isNotEmpty(streamPullModel)) {
-                    this.streamPullService.resetStream(streamPullModel);
-                }
-            }
-        });
-
-
-        //end=========
         map.put("code", 0);
+        // 关闭
         map.put("close", true);
+
+        switch (body.getApp()) {
+            case "rtp" -> {
+                String hexString = body.getStream();
+
+
+                String channelCode = hexString.split("_")[1];
+                // 通过ssrc 查找
+                SsrcInfoBean ssrcInfoBean = this.ssrcManager.getSsrcByCode(channelCode);
+
+                if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
+                    // 是否关闭流
+                    if (ssrcInfoBean.getAutoClose().equals(AutoCloseEnum.ignore)) {
+                        map.put("close", false);// 不关闭
+                    } else {
+                        this.sipRequestSender.sendBye(channelCode);
+                    }
+
+                }
+
+
+            }
+
+            case "proxy" -> {
+
+                // 重置拉流代理
+                /// 查询是哪个node
+
+                Optional<NodeModel> node = this.zlmNodeService.getNode(Convert.toLong(body.getMediaServerId()));
+                if (node.isPresent()) {
+
+                    StreamPullModel streamPullModel = this.streamPullService.onlyStream(body.getApp(), body.getStream());
+
+                    if (ObjectUtil.isNotEmpty(streamPullModel)) {
+
+
+                        if (streamPullModel.getAutoClose().equals(AutoCloseEnum.ignore)) {
+                            map.put("close", false);
+
+
+                            break;
+                        }
+
+
+                        this.streamPullService.resetStream(streamPullModel);
+
+
+                    }
+                }
+
+
+            }
+
+            case "live"->{
+
+                map.put("close", this.liveAutoClose);
+            }
+            default -> map.put("close", true);
+        }
 
 
         return map;
+
     }
 
     /**
@@ -295,7 +333,7 @@ public class ZlmHookController {
     @PostMapping("/on_stream_changed")
     public ResponseBean on_stream_changed(@RequestBody Map<String, Object> data) {
 
-       StaticLog.warn("流改变事件：{}", data.toString());
+        StaticLog.warn("流改变事件：{}", data.toString());
 
         return ResponseBean.success();
     }
@@ -345,6 +383,7 @@ public class ZlmHookController {
 
         // 判断rtp
         PublishAckBean publishAckBean = new PublishAckBean();
+        publishAckBean.setEnableMp4(false); //默认关闭录制
 
         StreamPushModel streamPushModel = new StreamPushModel();
 
@@ -368,6 +407,7 @@ public class ZlmHookController {
                 streamPushModel.setTenantId(ssrcInfoBean.getTenantId());
                 streamPushModel.setStream(publishAckBean.getStreamReplace());
                 streamPushModel.setRelevanceId(ssrcInfoBean.getChannelId());
+                publishAckBean.setEnableMp4(ssrcInfoBean.isEnableMp4());
                 streamPushModel.setName(ssrcInfoBean.getName());
 
             }
@@ -406,6 +446,7 @@ public class ZlmHookController {
                     streamPushModel.setTenantId(tenant.getId());
                     streamPushModel.setStream(data.getStream());
                     streamPushModel.setName(data.getStream());
+                    publishAckBean.setEnableMp4(this.liveEnableMp4);
 
 
                 } catch (Exception e) {
@@ -430,12 +471,12 @@ public class ZlmHookController {
             publishAckBean.setEnableFmp4(true);
             publishAckBean.setEnableHls(false);
             publishAckBean.setEnableHlsFmp4(false);
-            publishAckBean.setEnableMp4(true);
             publishAckBean.setEnableRtmp(true);
             publishAckBean.setEnableRtsp(true);
             publishAckBean.setEnableTs(true);
             publishAckBean.setModifyStamp(2);
             publishAckBean.setMp4AsPlayer(false);
+            publishAckBean.setAutoClose(false);
             publishAckBean.setMp4MaxSecond(3600);
 
             // 推流
@@ -465,7 +506,6 @@ public class ZlmHookController {
 
 
         }
-
 
 
         return publishAckBean;

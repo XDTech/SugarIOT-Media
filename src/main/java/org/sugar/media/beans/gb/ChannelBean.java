@@ -8,6 +8,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.StatusEnum;
 
 import java.util.Date;
@@ -67,4 +68,15 @@ public class ChannelBean {
 
     // 1-球机； 2-半球； 3-固定枪机；4-遥控枪机。
     private Integer ptzType;//
+
+
+    private AutoCloseEnum autoClose;
+
+
+    private boolean enablePull;
+
+    // enable_mp4 录制
+    private boolean enableMp4;
+
+
 }

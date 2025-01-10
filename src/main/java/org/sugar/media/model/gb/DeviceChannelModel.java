@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.StatusEnum;
 
 import java.util.Date;
@@ -79,4 +80,19 @@ public class DeviceChannelModel {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20) default 'offline'")
     private StatusEnum status = StatusEnum.offline;// 状态
+
+
+
+    // 无人观看时，是否直接关闭(而不是通过on_none_reader hook返回close)
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(255) default 'no'")
+    private AutoCloseEnum autoClose = AutoCloseEnum.no;
+
+
+    @Column(columnDefinition = "bool default false")
+    private boolean enablePull = false; //是否开启拉流 默认关闭
+
+    // enable_mp4 录制
+    @Column(columnDefinition = "bool default false")
+    private boolean enableMp4 = false;
 }

@@ -1,6 +1,7 @@
 package org.sugar.media.beans.gb;
 
 import lombok.Data;
+import org.sugar.media.enums.AutoCloseEnum;
 
 import javax.sip.Dialog;
 
@@ -40,4 +41,14 @@ public class SsrcInfoBean {
     private Dialog dialog;
 
     private Long tenantId;
+
+
+
+    private AutoCloseEnum autoClose;
+
+
+    private boolean enablePull;
+
+    // enable_mp4 录制
+    private boolean enableMp4;
 }
