@@ -24,7 +24,8 @@
 - **后端**：Java 17+, Spring Boot 3
 - **数据库**：Postgresql 
 - **缓存数据库**：Redis
-- **前端**：Vue3
+- **前端**：Vue3 
+- **前端地址**  https://github.com/XDTech/SugarIOT-Media-UI
 
 
 ## 安装指南
