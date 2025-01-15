@@ -267,7 +267,7 @@ public class ZlmApiService {
             builder.queryParam("stream", pullModel.getStream());
             builder.queryParam("url", pullModel.getUrl());
             builder.queryParam("mp4_save_path", this.getSavePath(tenant.get().getCode()));
-            builder.queryParam("hls_save_path", this.getSavePath(tenant.get().getCode()));
+//            builder.queryParam("hls_save_path", this.getSavePath(tenant.get().getCode()));
             builder.queryParam("timeout_sec", pullModel.getTimeoutSec());
             builder.queryParam("enable_rtsp", BaseUtil.convertBool(pullModel.isEnableRtsp()));
             builder.queryParam("enable_hls", BaseUtil.convertBool(pullModel.isEnableHls()));
