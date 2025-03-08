@@ -1,30 +1,18 @@
 package org.sugar.media.controller.stream;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.lang.Console;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
-import org.sugar.media.beans.gb.SsrcInfoBean;
-import org.sugar.media.beans.hooks.zlm.CloseStreamBean;
 import org.sugar.media.beans.hooks.zlm.StreamInfoBean;
-import org.sugar.media.beans.hooks.zlm.StreamProxyInfoBean;
-import org.sugar.media.beans.stream.StreamPullBean;
 import org.sugar.media.beans.stream.StreamPushBean;
 import org.sugar.media.enums.StatusEnum;
-import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.node.NodeModel;
-import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.model.stream.StreamPushModel;
 import org.sugar.media.security.UserSecurity;
-import org.sugar.media.service.MonitorService;
+import org.sugar.media.service.MonitorNetworkService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
@@ -35,7 +23,6 @@ import org.sugar.media.utils.MediaUtil;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Date:2025/01/02 09:09:42
@@ -62,7 +49,7 @@ public class StreamPushController {
     private NodeService nodeService;
 
     @Resource
-    private MonitorService monitorService;
+    private MonitorNetworkService monitorNetworkService;
 
     @Resource
     private MediaUtil mediaUtil;
@@ -96,7 +83,7 @@ public class StreamPushController {
                 streamPushBean.setStatus(StatusEnum.online);
                 streamPushBean.setTotalReaderCount(streamInfo.get().getTotalReaderCount());
                 streamPushBean.setAliveSecond(streamInfo.get().getAliveSecond());
-                streamPushBean.setBytesSpeed(this.monitorService.formatByte(streamInfo.get().getBytesSpeed()));
+                streamPushBean.setBytesSpeed(this.monitorNetworkService.formatByte(streamInfo.get().getBytesSpeed()));
 
             }
 

@@ -58,6 +58,7 @@ public class GlobalException extends Exception {
     // 未登录异常
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(NotLoginException.class)
+    @ResponseBody
     public String handleNotLoginExceptions(NotLoginException ex) {
         return "";
     }

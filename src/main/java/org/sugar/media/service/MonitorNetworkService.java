@@ -2,9 +2,6 @@ package org.sugar.media.service;
 
 import java.lang.management.ManagementFactory;
 
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.lang.Console;
 import jakarta.annotation.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -14,7 +11,6 @@ import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.server.WebSocketServer;
 import org.sugar.media.sipserver.utils.SipConfUtils;
-import org.sugar.media.sipserver.utils.SipUtils;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
@@ -39,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @EnableScheduling
-public class MonitorService {
+public class MonitorNetworkService {
 
 
     public static final DecimalFormat RATE_DECIMAL_FORMAT = new DecimalFormat("#.##");
@@ -73,7 +69,7 @@ public class MonitorService {
     }
 
 
-    public MonitorService() {
+    public MonitorNetworkService() {
 
     }
 

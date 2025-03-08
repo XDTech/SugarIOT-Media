@@ -5,14 +5,13 @@ import be.teletask.onvif.models.OnvifDeviceInformation;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.Console;
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.model.node.NodeModel;
-import org.sugar.media.service.MonitorService;
+import org.sugar.media.service.MonitorNetworkService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.node.NodeService;
@@ -39,7 +38,7 @@ class MediaApplicationTests {
     private MediaCacheService mediaCacheService;
 
     @Resource
-    MonitorService monitorService;
+    MonitorNetworkService monitorNetworkService;
 
 
     @Resource

@@ -1,4 +1,4 @@
-package org.sugar.media.repository;
+package org.sugar.media.repository.user;
 
 import org.sugar.media.model.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;

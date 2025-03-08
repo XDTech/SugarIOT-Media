@@ -1,21 +1,26 @@
 package org.sugar.media.service.user;
 
+import cn.hutool.core.util.ObjectUtil;
+import jakarta.annotation.Resource;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.sugar.media.model.UserModel;
-import org.sugar.media.repository.UserRepo;
+import org.sugar.media.model.system.RoleModel;
+import org.sugar.media.repository.user.UserRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.domain.Specification;
+import org.sugar.media.service.system.RoleService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
@@ -29,6 +34,9 @@ public class UserService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Resource
+    private RoleService roleService;
 
 
 
@@ -98,4 +106,43 @@ public class UserService {
         return this.userRepo.findAll(specification, pageRequest);
 
     }
+
+
+
+
+//    public void createRootAccount() {
+//        String accountName = "root";
+//
+//        RoleModel role = this.roleService.getRole(accountName);
+//
+//        if (ObjectUtil.isEmpty(role)) {
+//            role = new RoleModel();
+//
+//            role.setName(accountName);
+//            role.setIdentity(accountName);
+//
+//            this.roleService.createRole(role);
+//
+//        }
+//        UserModel root = this.userRepo.findByUsername(accountName);
+//
+//        if (ObjectUtil.isEmpty(root)) {
+//            UserModel userModel = new UserModel();
+//
+//            userModel.setName(accountName);
+//            userModel.setUsername(accountName);
+//            // 生成加密盐
+//            String salt = this.securityUtils.createSecuritySalt();
+//            userModel.setSalt(salt);
+//            // 生成密码
+//            String pwd = this.securityUtils.shaEncode(accountName + salt);
+//
+//            userModel.setPassword(pwd);
+//            userModel.setRoles(new Long[]{role.getId()});
+//
+//            this.userRepo.save(userModel);
+//
+//        }
+//
+//    }
 }

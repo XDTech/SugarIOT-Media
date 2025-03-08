@@ -1,6 +1,7 @@
 package org.sugar.media.utils;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -63,6 +64,10 @@ public class BaseUtil {
         }
         return ssrc;
 
+    }
+    public static String genDeleteName(String name) {
+
+        return StrUtil.format("{}_{}", name, DateTime.now().getTime());
     }
 }
 
