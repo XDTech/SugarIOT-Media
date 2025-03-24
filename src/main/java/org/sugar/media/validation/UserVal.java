@@ -1,6 +1,7 @@
 package org.sugar.media.validation;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import jakarta.validation.groups.Default;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserVal {
 
 
@@ -29,6 +31,8 @@ public class UserVal {
     private String email;// 邮箱
 
     private String phone;// 电话
+
+    private String status;
 
     public interface Create extends Default {
 

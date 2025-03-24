@@ -74,8 +74,8 @@ public class UserController {
     public ResponseEntity<?> getMUser(@PathVariable("id") Long id) {
 
         Optional<UserModel> mUser = this.mUserService.getMUser(id);
-        if (!mUser.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
+        if (mUser.isEmpty()) {
+            return ResponseEntity.ok(ResponseBean.fail());
         }
         return ResponseEntity.ok(ResponseBean.createResponseBean(ResponseEnum.Success.getCode(), mUser.get(), ResponseEnum.Success.getMsg()));
 
@@ -154,12 +154,12 @@ public class UserController {
     public ResponseEntity<?> deleteMUserById(@PathVariable("id") Long id) {
 
         Optional<UserModel> mUser = this.mUserService.getMUser(id);
-        if (!mUser.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
+        if (mUser.isEmpty()) {
+            return ResponseEntity.ok(ResponseBean.fail());
         }
 
         this.mUserService.deleteMUser(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ResponseBean.success());
     }
 
     /**
