@@ -31,6 +31,8 @@ public class NodeBean {
 
     private String ip;
 
+    private String remoteIp;
+
 
     private Integer httpPort;
 

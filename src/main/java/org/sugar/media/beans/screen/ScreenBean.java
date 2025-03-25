@@ -23,6 +23,10 @@ public class ScreenBean {
 
     private Long parentId = 0L;
 
+    private String app;
+
+    private String stream;
+
     private StatusEnum status;
 
     private String deviceCode;

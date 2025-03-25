@@ -54,7 +54,7 @@ public class AppListener {
         this.sipServer.run();
 
 
-        this.onvifService.Discovery();
+//        this.onvifService.Discovery();
 
     }
 }

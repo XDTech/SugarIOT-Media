@@ -62,6 +62,9 @@ public class NodeModel {
     @NotBlank
     private String ip;
 
+    @NotBlank
+    private String remoteIp;
+
     @NotNull
     @Column(columnDefinition = "int4 default 80")
     private Integer httpPort;

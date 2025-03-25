@@ -43,10 +43,10 @@ public class TenantService {
     }
 
     public void createRoot() {
-        TenantModel tenant = this.getTenant(10000);
+        TenantModel tenant = this.getTenant(100000);
         if (tenant == null) {
             TenantModel tenantModel = new TenantModel();
-            tenantModel.setCode(10000);
+            tenantModel.setCode(100000);
 
             tenant = this.tenantRepo.save(tenantModel);
 
@@ -60,6 +60,7 @@ public class TenantService {
         UserModel newUser = new UserModel();
 
         newUser.setTenantId(tenant.getId());
+        newUser.setTenantCode(tenant.getCode());
         newUser.setEmail("944192161@qq.com");
         newUser.setPassword("smile100");
         newUser.setStatus(UserStatusEnum.normal);
@@ -75,7 +76,7 @@ public class TenantService {
         String pwd = this.securityUtils.shaEncode(newUser.getPassword() + salt);
 
         newUser.setPassword(pwd);
-        newUser.setRole(RoleEnum.tenant_admin);
+        newUser.setRole(RoleEnum.platform_admin);
         this.userService.createMUser(newUser);
 
     }

@@ -64,6 +64,7 @@ public class UserModel {
 
 
     private Long tenantId;// 为空是平台管理员
+    private Integer tenantCode;// 为空是平台管理员
 
 
     @CreationTimestamp

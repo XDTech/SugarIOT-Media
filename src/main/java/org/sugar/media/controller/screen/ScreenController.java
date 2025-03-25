@@ -129,6 +129,9 @@ public class ScreenController {
             beanOptional.ifPresent(bean -> screenBean.setDeviceCode(bean.getDeviceCode()));
             screenBean.setChannelCode(deviceChannelModel.getChannelCode());
 
+            screenBean.setApp("rtp");
+            screenBean.setStream(screenBean.getDeviceCode() + "_" + deviceChannelModel.getChannelCode());
+
             // 查找流
 //            StreamPushModel streamPushModel = pushModelMap.get(deviceChannelModel.getId());
 //
@@ -159,6 +162,8 @@ public class ScreenController {
             screenBean.setName(stream.getName());
             screenBean.setStatus(StatusEnum.offline);
             screenBean.setNodeType("1");
+            screenBean.setApp(stream.getApp());
+            screenBean.setStream(stream.getStream());
             if (stream.getNodeId() != null) {
                 Optional<NodeModel> node = this.nodeService.getNode(stream.getNodeId());
 
@@ -186,7 +191,8 @@ public class ScreenController {
                 screenBean.setId(pushModel.getId());
                 screenBean.setNodeType("1");
                 screenBean.setTypes(AppEnum.live);
-
+                screenBean.setApp(pushModel.getApp());
+                screenBean.setStream(pushModel.getStream());
                 StreamInfoBean streamInfoBean = streamInfoBeanMap.get(StrUtil.format("{}{}{}", pushModel.getApp(), pushModel.getStream(), pushModel.getNodeId()));
 
                 if (ObjectUtil.isNotEmpty(streamInfoBean)) {

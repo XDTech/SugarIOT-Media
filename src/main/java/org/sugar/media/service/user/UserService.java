@@ -47,6 +47,10 @@ public class UserService {
         return this.userRepo.findAllByUsernameAndTenantId(username,tenantId);
     }
 
+    public UserModel getUser(String username,Integer tenantCode) {
+        return this.userRepo.findAllByUsernameAndTenantCode(username,tenantCode);
+    }
+
     @Transactional
     public UserModel createMUser(UserModel mUser) {
         return this.userRepo.save(mUser);

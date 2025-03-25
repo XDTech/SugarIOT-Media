@@ -21,6 +21,8 @@ import cn.hutool.core.bean.BeanUtil;
 import org.sugar.media.utils.SecurityUtils;
 import org.sugar.media.validation.UserVal;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -90,7 +92,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<?> createMUser(@RequestBody @Validated(UserVal.Create.class) UserVal userBean) {
 
-        StaticLog.info("{}",userBean.toString());
+        StaticLog.info("{}", userBean.toString());
 
         Long tenantId = this.userSecurity.getCurrentAdminUser().getTenantId();
         UserModel user = this.mUserService.getUser(userBean.getUsername(), tenantId);
@@ -100,6 +102,7 @@ public class UserController {
         UserModel newUser = new UserModel();
 
         newUser.setTenantId(tenantId);
+        newUser.setTenantCode(this.userSecurity.getCurrentAdminUser().getTenantCode());
 
 
         BeanUtil.copyProperties(userBean, newUser);
@@ -114,7 +117,7 @@ public class UserController {
         String pwd = this.securityUtils.shaEncode(newUser.getPassword() + salt);
 
         newUser.setPassword(pwd);
-        newUser.setRole(RoleEnum.tenant_admin);
+        newUser.setRole(RoleEnum.tenant_user);
         UserModel userPojo = this.mUserService.createMUser(newUser);
         // 序列化返回
         UserBean newAminUserBean = new UserBean();
@@ -163,7 +166,8 @@ public class UserController {
     }
 
     /**
-     *  获取当前登录用户的用户信息
+     * 获取当前登录用户的用户信息
+     *
      * @return
      */
     @GetMapping("/info")
@@ -172,18 +176,35 @@ public class UserController {
         UserModel currentAdminUser = this.userSecurity.getCurrentAdminUser();
 
 
-        UserBean userBean=new UserBean();
+        UserBean userBean = new UserBean();
 
-        BeanUtil.copyProperties(currentAdminUser,userBean);
+        BeanUtil.copyProperties(currentAdminUser, userBean);
 
 
         Optional<TenantModel> tenant = this.tenantService.getTenant(userBean.getTenantId());
 
-        if(tenant.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+        if (tenant.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
 
         userBean.setTenantCode(tenant.get().getCode());
 
         return ResponseEntity.ok(ResponseBean.success(userBean));
+    }
+
+    @GetMapping("/codes")
+    public ResponseEntity<?> getUserCodes() {
+
+
+        UserModel currentAdminUser = this.userSecurity.getCurrentAdminUser();
+
+        // 用户角色码
+        List<String> userRoles = new ArrayList<>();
+
+        userRoles.add(currentAdminUser.getRole().toString());
+
+
+        return ResponseEntity.ok(ResponseBean.success(userRoles));
+
+
     }
 
 }

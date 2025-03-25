@@ -16,4 +16,6 @@ public interface UserRepo extends JpaRepository<UserModel, Long>, JpaSpecificati
 
 
     UserModel findAllByUsernameAndTenantId(String username,Long tenantId);
+    UserModel findAllByUsernameAndTenantCode(String username,Integer tenantCode);
+
 }

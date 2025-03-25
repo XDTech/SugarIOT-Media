@@ -27,6 +27,9 @@ public class NodeVal {
     @NotBlank(message = "ip can not be null")
     private String ip;
 
+    @NotBlank(message = "remote ip can not be null")
+    private String remoteIp;
+
     @NotNull(message = "httpPort can not be null")
     private Integer httpPort;
 

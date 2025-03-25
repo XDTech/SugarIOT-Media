@@ -32,7 +32,7 @@ public class LoginController {
     @PostMapping("/user")
     public ResponseBean userLogin(@RequestParam(name = "username") String username, @RequestParam(name = "password") String password) {
         // TODO:查询用户是否存在 ,默认租户
-        UserModel user = this.userService.getUser(username, 1l);
+        UserModel user = this.userService.getUser(username, 100000);
 
         if (user == null) {
             return ResponseBean.fail("用户不存在");
