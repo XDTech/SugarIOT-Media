@@ -101,6 +101,7 @@ public class UserService {
                  }
                  **/
                 Predicate[] p = new Predicate[predicatesList.size()];
+                predicatesList.add(cb.notEqual(root.get("username"), "root"));
                 query.where(predicatesList.toArray(p));
                 query.orderBy(cb.desc(root.get("createdAt")));
                 return query.getGroupRestriction();

@@ -108,7 +108,6 @@ public class ZlmHookController {
             this.mediaCacheService.setMediaStatus(mediaServerId, StatusEnum.online.getStatus(), node.get().getAliveInterval());
             if (!online) {
                 //TODO:发送上线消息
-                StaticLog.info("发送消息");
                 WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.mediaOnline, new Date(), node.get().getName(), null));
             }
             this.zlmNodeService.updateHeartbeatTimeById(mediaServerId, new Date());

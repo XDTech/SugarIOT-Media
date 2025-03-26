@@ -135,7 +135,7 @@ public class ChannelService {
             List<Predicate> predicatesList = new ArrayList<>();
 
             if (!StrUtil.isEmpty(name)) {
-                predicatesList.add(cb.like(root.get("name"), "%" + name + "%"));
+                predicatesList.add(cb.like(root.get("channelName"), "%" + name + "%"));
             }
             if (tenantId != null) {
                 predicatesList.add(cb.equal(root.get("tenantId"), tenantId));
@@ -172,8 +172,8 @@ public class ChannelService {
         String token = JwtUtils.createToken(tokenMap);
         Map<String, List<String>> map = new HashMap<>();
         String appStream = StrUtil.format("{}/{}", "rtp", ssrc);
-        String host = StrUtil.format("{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
-        String sslHost = StrUtil.format("{}:{}", nodeModel.getIp(), nodeModel.getHttpsPort());
+        String host = StrUtil.format("{}:{}", nodeModel.getRemoteIp(), nodeModel.getHttpPort());
+        String sslHost = StrUtil.format("{}:{}", nodeModel.getRemoteIp(), nodeModel.getHttpsPort());
 
         this.nodeService.addFmp4MediaSource(map, host, sslHost, appStream, token);
         this.nodeService.addRtmpMediaSource(map, host, sslHost, appStream, token);
@@ -213,7 +213,6 @@ public class ChannelService {
         for (DeviceChannelModel channelModel : channelModels) {
             if (!channelModel.isEnablePull()) continue;
             ThreadUtil.execute(() -> {
-
                 this.inviteChannel(channelModel);
             });
         }
