@@ -9,10 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.sugar.media.enums.AutoCloseEnum;
-import org.sugar.media.enums.DeviceTypeEnum;
-import org.sugar.media.enums.MediaServerEnum;
-import org.sugar.media.enums.StatusEnum;
+import org.sugar.media.enums.*;
 
 import java.util.Date;
 
@@ -82,6 +79,10 @@ public class DeviceModel {
     private Integer channel;//通道数
 
     private Date syncTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(255) default 'private_net'")
+    private NetworkEnum netType = NetworkEnum.private_net;
 
 
 //    @NotNull

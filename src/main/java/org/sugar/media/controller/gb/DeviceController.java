@@ -13,6 +13,7 @@ import org.sugar.media.beans.SocketMsgBean;
 import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.enums.DeviceTypeEnum;
+import org.sugar.media.enums.NetworkEnum;
 import org.sugar.media.enums.SocketMsgEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceModel;
@@ -127,6 +128,7 @@ public class DeviceController {
         deviceModel.setEnablePull(deviceRegisterVal.isEnablePull());
         deviceModel.setAutoClose(deviceRegisterVal.getAutoClose());
         deviceModel.setEnableMp4(deviceRegisterVal.isEnableMp4());
+        deviceModel.setNetType(NetworkEnum.valueOf(deviceRegisterVal.getNetType()));
         this.deviceService.createDevice(deviceModel);
 
         return ResponseEntity.ok(ResponseBean.success());
@@ -168,6 +170,7 @@ public class DeviceController {
         deviceModel.get().setEnablePull(deviceRegisterVal.isEnablePull());
         deviceModel.get().setAutoClose(deviceRegisterVal.getAutoClose());
         deviceModel.get().setEnableMp4(deviceRegisterVal.isEnableMp4());
+        deviceModel.get().setNetType(NetworkEnum.valueOf(deviceRegisterVal.getNetType()));
         this.deviceService.createDevice(deviceModel.get());
 
         return ResponseEntity.ok(ResponseBean.success());

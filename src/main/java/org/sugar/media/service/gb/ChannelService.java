@@ -21,6 +21,7 @@ import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
+import org.sugar.media.enums.NetworkEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.gb.DeviceChannelModel;
 import org.sugar.media.model.gb.DeviceModel;
@@ -262,7 +263,7 @@ public class ChannelService {
         BeanUtil.copyProperties(channel, channelBean);
 
 
-        deviceBean.setNodeHost(node.getIp());
+        deviceBean.setNodeHost(device.get().getNetType().equals(NetworkEnum.private_net) ? node.getIp() : node.getRemoteIp());
         deviceBean.setNodePort(node.getRtpPort());
         deviceBean.setNodeId(node.getId());
 

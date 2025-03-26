@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.DeviceTypeEnum;
+import org.sugar.media.enums.NetworkEnum;
 
 import java.util.Date;
 
@@ -32,6 +33,8 @@ public class DeviceBean {
     private String deviceId;// 设备id 规则:[租户编码]+0000+7位流水号生成
     private String pwd; //国标设备验证id 为空采用系统密码
 
+
+    private NetworkEnum netType;
 
     private String deviceType; // 设备类型
     private Long nodeId;// 采用哪个节点播放

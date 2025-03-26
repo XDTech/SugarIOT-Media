@@ -165,7 +165,6 @@ public class ChannelController {
 
 
         Map<String, List<String>> stringListMap = this.channelService.inviteChannel(channel.get());
-        Console.log(stringListMap);
 
         if (ObjectUtil.isEmpty(stringListMap)) return ResponseEntity.ok(ResponseBean.fail("设备离线，播放失败"));
 

@@ -7,6 +7,7 @@ import jakarta.validation.groups.Default;
 import lombok.Data;
 import org.sugar.media.enums.AutoCloseEnum;
 import org.sugar.media.enums.DeviceTypeEnum;
+import org.sugar.media.enums.NetworkEnum;
 import org.sugar.media.enums.PlayerTypeEnum;
 import org.sugar.media.validation.stream.StreamPullVal;
 import org.sugar.media.validation.validator.EnumValidatorInterface;
@@ -38,6 +39,8 @@ public class DeviceRegisterVal {
 
     private String pwd; //国标设备验证id 为空采用系统密码
 
+
+    private String netType;
 
 
     private AutoCloseEnum autoClose;

@@ -50,8 +50,8 @@ public class SipUtils {
      */
     public AddressBean getAddress(SIPRequest sipRequest) {
         AddressBean addressBean = new AddressBean();
-        addressBean.setHost(sipRequest.getViaHost());
-        addressBean.setPort(sipRequest.getViaPort());
+        addressBean.setHost(sipRequest.getRemoteAddress().getHostAddress());
+        addressBean.setPort(sipRequest.getRemotePort());
 
         return addressBean;
 

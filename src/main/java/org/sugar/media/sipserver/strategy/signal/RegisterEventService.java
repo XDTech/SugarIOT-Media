@@ -68,8 +68,11 @@ public class RegisterEventService implements SipSignalHandler {
 
             Console.error(transportProtocol);
 
+            String host = requestEventExt.getRemoteIpAddress();
+            int port = requestEventExt.getRemotePort();
 
-            //  log.info(authTemplate, tip, "收到设备认证请求", deviceId, request.getViaHost(), request.getViaPort());
+
+            //  log.info(authTemplate, tip, "收到设备认证请求", deviceId, equest.getLocalAddress().getHostAddress()), request.getViaPort());
 
             //: 1. 获取协议中的 设备id，在redis中比对是否注册， 没有注册的设备没法接入
 
@@ -79,7 +82,7 @@ public class RegisterEventService implements SipSignalHandler {
             if (ObjectUtil.isEmpty(sipDevice)) {
                 // 不存在直接发送失败消息
                 this.sipSenderService.sendAuthErrorMsg(requestEventExt);
-                log.warn(authTemplate, tip, "认证失败:设备不存在", deviceId, request.getViaHost(), request.getViaPort());
+                log.warn(authTemplate, tip, "认证失败:设备不存在", deviceId, host, port);
 
                 return;
             }
@@ -88,7 +91,8 @@ public class RegisterEventService implements SipSignalHandler {
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             // 为空发送给设备401消息
             if (ObjectUtil.isEmpty(authHead)) {
-                log.info(authTemplate, tip, "设备存在:发送401消息", deviceId, request.getViaHost(), request.getViaPort());
+                log.info(authTemplate, tip, "设备存在:发送401消息", deviceId, host, port);
+                ;
                 this.sipSenderService.sendAuthMessage(requestEventExt);
                 return;
             }
@@ -98,11 +102,11 @@ public class RegisterEventService implements SipSignalHandler {
             // 1. 如果设备设置了密码，优先采用设备的
             String authPwd = sipConfUtils.getPwd();
             if (StrUtil.isNotBlank(sipDevice.getPwd())) {
-                log.info(authTemplate, tip, "[采用设备密码鉴权]", deviceId, request.getViaHost(), request.getViaPort());
+                log.info(authTemplate, tip, "[采用设备密码鉴权]", deviceId, host, port);
 
                 authPwd = sipDevice.getPwd();
             } else {
-                log.info(authTemplate, tip, "[采用系统密码鉴权]", deviceId, request.getViaHost(), request.getViaPort());
+                log.info(authTemplate, tip, "[采用系统密码鉴权]", deviceId, host, port);
             }
 
 
@@ -110,7 +114,7 @@ public class RegisterEventService implements SipSignalHandler {
 
             if (!verify) {
                 log.warn("{}设备验证失败", deviceId);
-                log.warn(authTemplate, tip, "鉴权失败:密码错误", deviceId, request.getViaHost(), request.getViaPort());
+                log.warn(authTemplate, tip, "鉴权失败:密码错误", deviceId, host, port);
                 this.sipSenderService.sendAuthErrorMsg(requestEventExt);
                 return;
             }
@@ -124,12 +128,12 @@ public class RegisterEventService implements SipSignalHandler {
 
             if (expires == 0) {
 
-                log.info(authTemplate, tip, "设备注销成功", deviceId, request.getViaHost(), request.getViaPort());
+                log.info(authTemplate, tip, "设备注销成功", deviceId, host, port);
                 //TODO:把设备下所有的通道踢下线？
 
             } else {
 
-                log.info(authTemplate, tip, "设备上线成功", deviceId, request.getViaHost(), request.getViaPort());
+                log.info(authTemplate, tip, "设备上线成功", deviceId, host, port);
 
                 boolean online = this.sipCacheService.isOnline(deviceId);
 
@@ -137,14 +141,14 @@ public class RegisterEventService implements SipSignalHandler {
                 // :发送ws消息
                 if (!online) {
                     ThreadUtil.execute(() -> {
-                        WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOnline, new Date(), sipDevice.getName(),null));
+                        WebSocketServer.sendSystemMsg(new SocketMsgBean(SocketMsgEnum.gbOnline, new Date(), sipDevice.getName(), null));
                     });
                 }
 
 
                 DeviceBean deviceBean = new DeviceBean();
-                deviceBean.setHost(request.getViaHost());
-                deviceBean.setPort(request.getViaPort());
+                deviceBean.setHost(host);
+                deviceBean.setPort(port);
                 deviceBean.setTransport(this.sipUtils.getTransportProtocol(request));
                 deviceBean.setDeviceId(this.sipUtils.getDeviceId(request));
                 Console.log("解析设备的bean{}", deviceBean.toString());

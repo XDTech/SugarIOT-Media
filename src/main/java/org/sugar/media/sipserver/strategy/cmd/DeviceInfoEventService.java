@@ -72,8 +72,8 @@ public class DeviceInfoEventService implements SipCmdHandler {
         String xmlContent = this.sipUtils.getXmlContent(request);
 
         // 存储设备发过来的信息
-        device.setHost(request.getViaHost());
-        device.setPort(request.getViaPort());
+        device.setHost(evtExt.getRemoteIpAddress());
+        device.setPort(evtExt.getRemotePort());
         device.setTransport(this.sipUtils.getTransportProtocol(request));
         device.setSyncTime(new Date());
 
