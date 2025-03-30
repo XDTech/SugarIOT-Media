@@ -55,4 +55,6 @@ public class StreamPushBean {
     private Date pushAt;
 
     private Long aliveSecond;
+
+    private String secret;
 }

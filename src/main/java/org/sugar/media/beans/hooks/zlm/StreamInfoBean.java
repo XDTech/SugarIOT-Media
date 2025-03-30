@@ -31,5 +31,7 @@ public class StreamInfoBean {
     private int totalReaderCount;
     private List<Tracks> tracks;
     private String vhost;
+    private String secret;
+
 
 }

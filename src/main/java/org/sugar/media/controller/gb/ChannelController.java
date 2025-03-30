@@ -28,6 +28,7 @@ import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPushModel;
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.LoadBalanceService;
+import org.sugar.media.service.StreamService;
 import org.sugar.media.service.gb.ChannelService;
 import org.sugar.media.service.gb.DeviceService;
 import org.sugar.media.service.media.ZlmApiService;
@@ -94,6 +95,9 @@ public class ChannelController {
     @Resource
     private SipUtils sipUtils;
 
+    @Resource
+    private StreamService streamService;
+
 
     @GetMapping("/list/{deviceId}")
     public ResponseEntity<?> getDevice(@PathVariable Long deviceId) {
@@ -126,6 +130,7 @@ public class ChannelController {
         Map<Long, StreamPushModel> pushModelMap = streamPushList.stream().filter(s -> s.getRelevanceId() != null).collect(Collectors.toMap(StreamPushModel::getRelevanceId, s -> s));
         channelBeans = channelBeans.stream().peek(c -> {
             c.setPlayStatus(StatusEnum.offline);
+            c.setSecret(this.streamService.getStreamCode(c.getId(), "rtp"));
             DeviceModel deviceModel = modelMap.get(c.getDeviceId());
             if (ObjectUtil.isNotEmpty(deviceModel)) {
                 c.setDeviceName(deviceModel.getName());

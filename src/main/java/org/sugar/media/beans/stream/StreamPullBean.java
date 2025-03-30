@@ -66,6 +66,8 @@ public class StreamPullBean  {
 
     private String nodeName;
 
+    private String secret;
+
 
 }
 

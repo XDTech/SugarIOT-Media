@@ -15,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.sugar.media.enums.AppEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.sipserver.utils.SipUtils;
+import org.sugar.media.utils.AesUtil;
 import org.sugar.media.utils.BaseUtil;
 import org.sugar.media.utils.MonitorUtil;
 import org.w3c.dom.Document;
@@ -38,6 +39,13 @@ import java.util.*;
 public class NormalTests {
 
 
+
+
+    @Test
+    public void aesTest(){
+       String s= AesUtil.aesEncrypt("1");
+        AesUtil.aesDecrypt(s);
+    }
     private static final String[] UNITS = {"B", "KB", "MB", "GB", "TB", "PB"};
     private static final int UNIT_THRESHOLD = 1024; // 换算单位为1024
 

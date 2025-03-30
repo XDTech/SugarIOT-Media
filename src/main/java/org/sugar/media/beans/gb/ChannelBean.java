@@ -79,4 +79,7 @@ public class ChannelBean {
     private boolean enableMp4;
 
 
+    private String secret;
+
+
 }

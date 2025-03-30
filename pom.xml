@@ -74,7 +74,11 @@
             <version>5.8.33</version>
         </dependency>
 
-
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15to18</artifactId>
+            <version>1.68</version>
+        </dependency>
         <dependency>
             <groupId>com.github.03</groupId>
             <artifactId>onvif</artifactId>

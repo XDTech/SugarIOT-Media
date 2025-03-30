@@ -18,6 +18,7 @@ import org.sugar.media.beans.stream.StreamPullBean;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPullModel;
 import org.sugar.media.security.UserSecurity;
+import org.sugar.media.service.StreamService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
@@ -66,6 +67,10 @@ public class StreamPullController {
     @Resource
     private MediaUtil mediaUtil;
 
+    @Resource
+    private StreamService streamService;
+
+
     /**
      * 分页查询
      *
@@ -86,6 +91,7 @@ public class StreamPullController {
                 Optional<NodeModel> node = this.zlmNodeService.getNode(streamPullBean.getNodeId());
                 node.ifPresent(nodeModel -> {
                     streamPullBean.setNodeName(nodeModel.getName());
+                    streamPullBean.setSecret(this.streamService.getStreamCode(streamPullBean.getId(), streamPullBean.getApp()));
                     if (this.mediaCacheService.isOnline(nodeModel.getId())) {
                         // 加载流状态
                         StreamProxyInfoBean streamProxyInfo = this.zlmApiService.getStreamProxyInfo(streamPullBean.getStreamKey(), node.get());
@@ -246,25 +252,12 @@ public class StreamPullController {
     @GetMapping("/proxy/address/{streamPullId}")
     public ResponseEntity<?> getStreamPlayerAddress(@PathVariable("streamPullId") Long id) {
 
-        Optional<StreamPullModel> mStreamPull = this.mStreamPullService.getMStreamPull(id);
-        if (mStreamPull.isEmpty()) {
-            return ResponseEntity.ok(ResponseBean.fail());
-        }
+        Map<String, List<String>> pullStreamAddr = this.streamService.getPullStreamAddr(id);
 
 
-        Optional<NodeModel> playerNode = this.mStreamPullService.getPlayerNode(mStreamPull.get());
+        if (ObjectUtil.isNotEmpty(pullStreamAddr)) return ResponseEntity.ok(ResponseBean.fail("暂无播放地址"));
 
-
-        if (playerNode.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("暂无可以用播放节点"));
-
-
-        // 在线-->获取地址
-        Map<String, List<String>> nodePlayerUrl = this.nodeService.createNodePlayerUrl(mStreamPull.get(), playerNode.get());
-
-
-        if (nodePlayerUrl.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("播放地址为空"));
-
-        return ResponseEntity.ok(ResponseBean.success(nodePlayerUrl));
+        return ResponseEntity.ok(ResponseBean.success(pullStreamAddr));
     }
 
     @DeleteMapping("/close/proxy/{streamPullId}")

@@ -1,5 +1,6 @@
 package org.sugar.media.controller.stream;
 
+import cn.hutool.core.util.ObjectUtil;
 import jakarta.annotation.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -8,11 +9,13 @@ import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.hooks.zlm.StreamInfoBean;
 import org.sugar.media.beans.stream.StreamPushBean;
+import org.sugar.media.enums.AppEnum;
 import org.sugar.media.enums.StatusEnum;
 import org.sugar.media.model.node.NodeModel;
 import org.sugar.media.model.stream.StreamPushModel;
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.MonitorNetworkService;
+import org.sugar.media.service.StreamService;
 import org.sugar.media.service.media.MediaCacheService;
 import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
@@ -22,6 +25,7 @@ import org.sugar.media.utils.BeanConverterUtil;
 import org.sugar.media.utils.MediaUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -38,6 +42,8 @@ public class StreamPushController {
     @Resource
     private StreamPushService streamPushService;
 
+    @Resource
+    private StreamService streamService;
 
     @Resource
     private UserSecurity userSecurity;
@@ -72,11 +78,19 @@ public class StreamPushController {
         List<StreamInfoBean> mediaListAll = this.zlmNodeService.getMediaListAll();
 
 
-
         streamPushBeans = streamPushBeans.stream().peek((streamPushBean -> {
 
 
             streamPushBean.setStatus(StatusEnum.offline);
+
+            if (streamPushBean.getTypes().equals(AppEnum.rtp)) {
+                streamPushBean.setSecret(this.streamService.getStreamCode(streamPushBean.getRelevanceId(), AppEnum.rtp.toString()));
+            }
+
+            if (streamPushBean.getTypes().equals(AppEnum.live)) {
+                streamPushBean.setSecret(this.streamService.getStreamCode(streamPushBean.getId(), AppEnum.live.toString()));
+            }
+
             Optional<StreamInfoBean> streamInfo = mediaListAll.stream().filter(s -> s.getApp().equals(streamPushBean.getApp())).filter(s -> s.getStream().equals(streamPushBean.getStream())).filter(s -> s.getNodeId().equals(streamPushBean.getNodeId())).findFirst();
 
             if (streamInfo.isPresent()) {
@@ -100,21 +114,13 @@ public class StreamPushController {
     @GetMapping("/addr/{id}")
     public ResponseEntity<?> genAddr(@PathVariable("id") Long id) {
 
-        Optional<StreamPushModel> streamPushModel = this.streamPushService.getStreamPush(id);
-        if (streamPushModel.isEmpty()) {
-            return ResponseEntity.ok(ResponseBean.fail("数据不存在"));
-        }
 
-        Optional<NodeModel> node = this.nodeService.getNode(streamPushModel.get().getNodeId());
+        Map<String, List<String>> pushStreamAddr = this.streamService.getPushStreamAddr(id);
 
-        if (node.isEmpty()) return ResponseEntity.ok(ResponseBean.fail("数据不存在"));
+        if (ObjectUtil.isEmpty(pushStreamAddr)) return ResponseEntity.ok(ResponseBean.fail());
 
-        if (!this.mediaCacheService.isOnline(node.get().getId()))
-            return ResponseEntity.ok(ResponseBean.fail("播放节点离线"));
 
-        // 判断流是否在线
-
-        return ResponseEntity.ok(ResponseBean.success(this.mediaUtil.genAddr(node.get(), streamPushModel.get().getApp(), streamPushModel.get().getStream())));
+        return ResponseEntity.ok(ResponseBean.success(pushStreamAddr));
 
     }
 
@@ -122,8 +128,7 @@ public class StreamPushController {
     @GetMapping("/{pushId}")
     public ResponseEntity<?> getInfo(@PathVariable Long pushId) {
         Optional<StreamPushModel> streamPush = this.streamPushService.getStreamPush(pushId);
-        return streamPush.<ResponseEntity<?>>
-                map(streamPushModel -> ResponseEntity.ok(ResponseBean.success(streamPushModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail()));
+        return streamPush.<ResponseEntity<?>>map(streamPushModel -> ResponseEntity.ok(ResponseBean.success(streamPushModel))).orElseGet(() -> ResponseEntity.ok(ResponseBean.fail()));
 
 
     }

@@ -33,5 +33,10 @@ public class ScreenBean {
 
     private String channelCode;
 
+    private String secret;
+
+
+    private Long tenantId;
+
 
 }
