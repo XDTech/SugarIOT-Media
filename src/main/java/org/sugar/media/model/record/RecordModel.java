@@ -19,7 +19,7 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "m_record", schema = "public", indexes = {@Index(name = "idx_pull_zid", columnList = "tenantId")})
+@Table(name = "m_record", schema = "public", indexes = {@Index(name = "idx_record_zid", columnList = "tenantId")})
 // 1.表名 2.模式
 @DynamicInsert
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 忽略  lazy 层级/为空 时候的引用
