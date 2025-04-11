@@ -16,11 +16,11 @@ public class UserVal {
     @NotNull(message = "id can not be null", groups = Update.class)
     private Long id;
 
-    @NotBlank(message = "username can not be null")
+    @NotBlank(message = "username can not be null",groups = Create.class)
     private String username;
 
 
-    @NotBlank(message = "password can not be null")
+    @NotBlank(message = "password can not be null",groups = Create.class)
     private String password;
 
 
@@ -31,6 +31,8 @@ public class UserVal {
     private String email;// 邮箱
 
     private String phone;// 电话
+
+    private String postName;// 岗位
 
     private String status;
 

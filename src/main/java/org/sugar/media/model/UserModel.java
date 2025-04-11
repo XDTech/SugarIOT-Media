@@ -52,6 +52,10 @@ public class UserModel {
 
     private String phone;// 电话
 
+    private String postName;// 岗位
+
+
+
 
     @NotNull
     @Enumerated(EnumType.STRING)

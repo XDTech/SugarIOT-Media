@@ -36,8 +36,6 @@ public class NodeModel {
     private Date updatedAt;
 
 
-
-
     // ===========end===========
 
 
@@ -51,7 +49,6 @@ public class NodeModel {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20) default 'zlm'")
     private MediaServerEnum types;// 状态
-
 
 
     // 默认节点
@@ -81,7 +78,7 @@ public class NodeModel {
     // ==webhook配置
 
     // keepalive hook触发间隔,单位秒，float类型
-    private Float aliveInterval ;
+    private Float aliveInterval;
 
     // hook api最大等待回复时间，单位秒
     private Integer timeoutSec;
@@ -99,6 +96,10 @@ public class NodeModel {
     // rtp
     @Column(columnDefinition = "int4 default 10000")
     private Integer rtpPort;
+
+
+    @Column(columnDefinition = "int4 default 10000")
+    private Integer remoteRtpPort;// 映射的收流端口
 
 
     @Column(columnDefinition = "varchar(255) default '__defaultVhost__'")

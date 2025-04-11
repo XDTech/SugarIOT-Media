@@ -36,6 +36,10 @@ public class NodeVal {
     @NotNull(message = "httpsPort can not be null")
     private Integer httpsPort;
 
+
+    @NotNull(message = "remoteRtpPort can not be null")
+    private Integer remoteRtpPort;
+
     @NotBlank(message = "secret can not be null")
     private String secret;
 

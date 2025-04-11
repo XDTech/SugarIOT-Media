@@ -5,6 +5,7 @@ import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.sugar.media.enums.ResponseEnum;
 import org.sugar.media.enums.RoleEnum;
+import org.sugar.media.enums.UserStatusEnum;
 import org.sugar.media.model.TenantModel;
 import org.sugar.media.model.UserModel;
 import org.sugar.media.security.UserSecurity;
@@ -136,15 +137,22 @@ public class UserController {
     public ResponseEntity<?> updateMUser(@RequestBody @Validated(UserVal.Update.class) UserVal userBean) {
 
         Optional<UserModel> mUserOptional = this.mUserService.getMUser(userBean.getId());
-        if (!mUserOptional.isPresent()) {
+        if (mUserOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("数据不存在");
         }
 
         UserModel mUser = mUserOptional.get();
-        BeanUtil.copyProperties(userBean, mUser, "createdAt", "updatedAt", "status", "deleted");
+
+        mUser.setPhone(userBean.getPhone());
+        mUser.setName(userBean.getName());
+        mUser.setEmail(userBean.getEmail());
+        mUser.setPostName(userBean.getPostName());
+        mUser.setAvatar(userBean.getAvatar());
+        mUser.setStatus(UserStatusEnum.valueOf(userBean.getStatus()));
 
 
-        return ResponseEntity.ok(this.mUserService.updateMUser(mUser));
+
+        return ResponseEntity.ok(ResponseBean.success(this.mUserService.updateMUser(mUser)));
     }
 
     /**

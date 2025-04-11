@@ -264,7 +264,7 @@ public class ChannelService {
 
 
         deviceBean.setNodeHost(device.get().getNetType().equals(NetworkEnum.private_net) ? node.getIp() : node.getRemoteIp());
-        deviceBean.setNodePort(node.getRtpPort());
+        deviceBean.setNodePort(device.get().getNetType().equals(NetworkEnum.private_net) ? node.getRtpPort() : node.getRemoteRtpPort());
         deviceBean.setNodeId(node.getId());
 
         SsrcInfoBean ssrcInfoBean = new SsrcInfoBean();

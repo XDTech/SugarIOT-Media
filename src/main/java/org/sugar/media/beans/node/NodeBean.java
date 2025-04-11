@@ -58,4 +58,9 @@ public class NodeBean {
 
     // rtsp port
     private Integer rtspPort;
+
+
+    private Integer remoteRtpPort;
+
+
 }
