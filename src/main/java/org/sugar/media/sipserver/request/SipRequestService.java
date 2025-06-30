@@ -1,5 +1,6 @@
 package org.sugar.media.sipserver.request;
 
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.StrUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import jakarta.annotation.Resource;
@@ -79,7 +80,7 @@ public class SipRequestService {
 
 
         String xmlContent = """
-                <?xml version="1.0"?>
+                <?xml version="1.0" ?>
                 <Query>
                     <CmdType>DeviceInfo</CmdType>
                     <SN>{}</SN>
@@ -212,6 +213,8 @@ public class SipRequestService {
                     y={}
                     """, this.sipConfUtils.getId(), device.getNodeHost(), channelBean.getChannelCode(), device.getNodeHost(), device.getNodePort(), ssrc);
 
+
+            Console.log("invite sdp:{}",sdp);
             ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
             request.setContent(sdp, contentTypeHeader);
 

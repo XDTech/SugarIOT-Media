@@ -10,6 +10,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTPayload;
 import cn.hutool.jwt.JWTUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
@@ -173,13 +174,22 @@ public class ZlmHookController {
         TimeInterval timer = DateUtil.timer();
         Map<String, String> authentication = this.authentication(body.getParams());
 
+        Console.log("=========");
+        Console.log(authentication);
+        Console.log("===========");
+
 
         if (MapUtil.isEmpty(authentication)) return ResponseBean.fail();
 
 
         JWT parseToken = JWTUtil.parseToken(authentication.get("sign"));
         Object streamId = parseToken.getPayload("streamId");
-        if (ObjectUtil.isEmpty(streamId)) return ResponseBean.fail();
+
+        if (ObjectUtil.isEmpty(streamId)) {
+
+            Console.log("stream is empty {}",streamId);
+            return ResponseBean.fail();
+        };
 
 
         Console.log("{}====鉴权耗时", timer.intervalRestart());

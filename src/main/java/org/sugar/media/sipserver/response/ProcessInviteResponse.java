@@ -65,6 +65,7 @@ public class ProcessInviteResponse {
             }
 
 
+
             // 获取from 头
             FromHeader fromHeader = (FromHeader) response.getHeader(FromHeader.NAME);
 

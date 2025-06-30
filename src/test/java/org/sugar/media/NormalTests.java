@@ -7,6 +7,8 @@ import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.*;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTPayload;
+import cn.hutool.jwt.JWTUtil;
 import cn.hutool.jwt.signers.JWTSigner;
 import cn.hutool.jwt.signers.JWTSignerUtil;
 import cn.hutool.log.StaticLog;
@@ -79,9 +81,10 @@ public class NormalTests {
     @Test
     public void testNUm() {
 
+        var s=JWTUtil.parseToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTA3MzAxOTIsInR5cGUiOiJnYiJ9.gsemtd12UXvuwJBStVDgL6ya-06BAFDvip4ZIan7TxQ");
 
-
-
+        JWTPayload payload = s.getPayload();
+        Console.log(payload.toString());
     }
 //    public byte[] buildPtzCommand(int direction, int speed, int zoom) {
 //

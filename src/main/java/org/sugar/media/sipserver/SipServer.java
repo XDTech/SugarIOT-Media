@@ -97,4 +97,8 @@ public class SipServer  {
     public static SipProvider udpSipProvider() {
         return SipServer.udpSipProvider;
     }
+
+    public static SipProvider tcpSipProvider() {
+        return SipServer.tcpSipProvider;
+    }
 }

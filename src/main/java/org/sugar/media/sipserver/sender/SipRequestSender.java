@@ -62,6 +62,7 @@ public class SipRequestSender {
 
         Request deviceInfo = this.sipRequestService.createDeviceInfo(deviceBean, newCallId);
 
+        Console.log(deviceInfo.getRequestURI().toString());
         sipProvider.sendRequest(deviceInfo);
 
     }
