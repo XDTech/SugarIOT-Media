@@ -92,8 +92,7 @@
 - **ZLMediaKit** - 流媒体服务基于 [@夏楚](https://github.com/xia-chu) 开发的 [ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)，提供了强大的流媒体接入和分发功能。
 - **Jessibuca** - 播放器使用了 [@dexter](https://github.com/langhuihui) 的 [Jessibuca](https://github.com/langhuihui/jessibuca/tree/v3)，该播放器提供了高性能的视频播放支持。
 - **Vben Admin** - 前端使用了[Vben Admin](https://doc.vben.pro/)，企业级管理系统框架。
-
-感谢所有直接或间接支持 SugarIOT-Media 的朋友们，正是因为有你们的帮助，我们才能不断进步和创新！
+- **wvp-GB28181-pro** 灵感来自[WVP](https://github.com/648540858/wvp-GB28181-pro) 感谢作者开源了功能强大的网络视频平台
 
 
 
