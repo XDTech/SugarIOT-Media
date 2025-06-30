@@ -102,3 +102,8 @@
 
 - Email: 944192161@qq.com
 - GitHub: [https://github.com/XDTech/SugarIOT-Media](https://github.com/XDTech/SugarIOT-Media)
+
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=XDTech/SugarIOT-Media&type=Date)](https://star-history.com/#XDTech/SugarIOT-Media&Date)
