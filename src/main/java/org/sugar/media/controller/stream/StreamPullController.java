@@ -255,7 +255,7 @@ public class StreamPullController {
         Map<String, List<String>> pullStreamAddr = this.streamService.getPullStreamAddr(id);
 
 
-        if (ObjectUtil.isNotEmpty(pullStreamAddr)) return ResponseEntity.ok(ResponseBean.fail("暂无播放地址"));
+        if (ObjectUtil.isEmpty(pullStreamAddr)) return ResponseEntity.ok(ResponseBean.fail("暂无播放地址"));
 
         return ResponseEntity.ok(ResponseBean.success(pullStreamAddr));
     }

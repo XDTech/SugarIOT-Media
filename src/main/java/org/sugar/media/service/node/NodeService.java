@@ -82,8 +82,8 @@ public class NodeService {
         String token = JwtUtils.createToken(tokenMap);
         Map<String, List<String>> map = new HashMap<>();
         String appStream = StrUtil.format("{}/{}", streamPullModel.getApp(), streamPullModel.getStream());
-        String host = StrUtil.format("{}:{}", nodeModel.getIp(), nodeModel.getHttpPort());
-        String sslHost = StrUtil.format("{}:{}", nodeModel.getIp(), nodeModel.getHttpsPort());
+        String host = StrUtil.format("{}:{}", nodeModel.getRemoteIp(), nodeModel.getHttpPort());
+        String sslHost = StrUtil.format("{}:{}", nodeModel.getRemoteIp(), nodeModel.getHttpsPort());
 
 
         // rtmp url (ws/wss/http/https .flv)
