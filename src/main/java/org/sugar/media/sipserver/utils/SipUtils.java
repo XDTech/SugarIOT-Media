@@ -6,6 +6,7 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.XmlUtil;
+import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.ViaList;
@@ -144,6 +145,33 @@ public class SipUtils {
             e.printStackTrace();
         }
         return "UNKNOWN"; // 如果无法解析
+    }
+
+
+    public int getPort(RequestEventExt ext) {
+        try {
+            SIPRequest request = (SIPRequest) ext.getRequest();
+            // 获取 Via 头部
+            ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
+
+// rport（关键）
+            int rport = via.getRPort();
+
+            if (rport == 0) {
+                rport = ext.getRemotePort();
+            }
+
+// received（公网IP）
+            String received = via.getReceived();
+
+            System.out.println("rport = " + rport);
+            System.out.println("received = " + received);
+
+            return rport;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 5060; // 如果无法解析
     }
 
     // 解析catalog

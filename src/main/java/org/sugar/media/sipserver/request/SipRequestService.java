@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.sugar.media.beans.gb.ChannelBean;
 import org.sugar.media.beans.gb.DeviceBean;
 import org.sugar.media.beans.gb.SsrcInfoBean;
+import org.sugar.media.enums.NetworkEnum;
 import org.sugar.media.sipserver.manager.SipCacheService;
 import org.sugar.media.sipserver.manager.SsrcManager;
 import org.sugar.media.sipserver.utils.SipConfUtils;
@@ -89,8 +90,9 @@ public class SipRequestService {
                 """;
         String content = StrUtil.format(xmlContent, this.sipCacheService.getNextCSeqFromRedis(device.getDeviceId()), device.getDeviceId());
 
+        Console.log("发送的device info:{}", content);
 
-        return this.createBase(device, Request.MESSAGE, content, this.sipUtils.getNewTag(), this.sipUtils.getNewTag(), callIdHeader);
+        return this.createBase(device, Request.MESSAGE, content, this.sipUtils.getNewTag(), null, callIdHeader);
     }
 
 
@@ -128,13 +130,13 @@ public class SipRequestService {
 
 
     @SneakyThrows
-    public Request createPTZ(DeviceBean device, CallIdHeader callIdHeader,String ptzCmd) {
+    public Request createPTZ(DeviceBean device, CallIdHeader callIdHeader, String ptzCmd) {
 
 
         String content = StrUtil.format(ptzTemplate
                 , this.sipCacheService.getNextCSeqFromRedis(device.getDeviceId())
                 , device.getDeviceId()
-                ,ptzCmd
+                , ptzCmd
         );
 
         return this.createBase(device, Request.MESSAGE, content, this.sipUtils.getNewTag(), null, callIdHeader);
@@ -214,7 +216,7 @@ public class SipRequestService {
                     """, this.sipConfUtils.getId(), device.getNodeHost(), channelBean.getChannelCode(), device.getNodeHost(), device.getNodePort(), ssrc);
 
 
-            Console.log("invite sdp:{}",sdp);
+            Console.log("invite sdp:{}", sdp);
             ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
             request.setContent(sdp, contentTypeHeader);
 
@@ -244,8 +246,8 @@ public class SipRequestService {
     private Request createBase(DeviceBean device, String method, String content, String fromTag, String toTag, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
         SipURI requestURI = createRequestURI(device);
         ArrayList<ViaHeader> viaHeaders = createViaHeaders(device, true);
-        FromHeader fromHeader = createFromHeader(fromTag);
-        ContactHeader contact = createContact(fromHeader.getAddress());
+        FromHeader fromHeader = createFromHeader(fromTag, device);
+        ContactHeader contact = createContact(device);
 
         ToHeader toHeader = createToHeader(device, toTag);
         MaxForwardsHeader maxForwards = createMaxForwardsHeader();
@@ -278,7 +280,9 @@ public class SipRequestService {
 
 
         String branch = this.sipUtils.getNewViaBranch();
-        ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(sipConfUtils.getIp(), sipConfUtils.getPort(), device.getTransport(), branch);
+
+        String ip = device.getNetType().equals(NetworkEnum.private_net) ? sipConfUtils.getIp() : sipConfUtils.getRemoteIp();
+        ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(ip, sipConfUtils.getPort(), device.getTransport(), branch);
         if (rPort) {
             viaHeader.setRPort();
         }
@@ -286,16 +290,20 @@ public class SipRequestService {
         return viaHeaders;
     }
 
-    private FromHeader createFromHeader(String fromTag) throws ParseException, PeerUnavailableException {
-        SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(this.sipConfUtils.getId(), sipConfUtils.getIp() + ":" + sipConfUtils.getPort());
+    // TODO:此处可以改内外网port不一致
+    private FromHeader createFromHeader(String fromTag, DeviceBean device) throws ParseException, PeerUnavailableException {
+        SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(this.sipConfUtils.getId(), device.getNetType().equals(NetworkEnum.private_net) ? sipConfUtils.getIp() + ":" + sipConfUtils.getPort() : sipConfUtils.getRemoteIp() + ":" + sipConfUtils.getPort());
         Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
 
         return SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, fromTag);
     }
 
 
-    private ContactHeader createContact(Address address) throws PeerUnavailableException {
-        return SipFactory.getInstance().createHeaderFactory().createContactHeader(address);
+    private ContactHeader createContact(DeviceBean device) throws PeerUnavailableException, ParseException {
+
+        SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(this.sipConfUtils.getId(), device.getNetType().equals(NetworkEnum.private_net) ? sipConfUtils.getIp() + ":" + sipConfUtils.getPort() : sipConfUtils.getRemoteIp() + ":" + sipConfUtils.getPort());
+        Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
+        return SipFactory.getInstance().createHeaderFactory().createContactHeader(fromAddress);
 
     }
 

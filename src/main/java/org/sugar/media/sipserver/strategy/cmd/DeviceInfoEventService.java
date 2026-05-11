@@ -1,6 +1,7 @@
 package org.sugar.media.sipserver.strategy.cmd;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.log.StaticLog;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.message.SIPRequest;
 import jakarta.annotation.Resource;
@@ -51,6 +52,7 @@ public class DeviceInfoEventService implements SipCmdHandler {
     @Override
     public void processMessage(RequestEventExt evtExt) {
 
+
         SIPRequest request = (SIPRequest) evtExt.getRequest();
         String deviceId = this.sipUtils.getDeviceId((request));
         // 判断缓存是否存在
@@ -73,11 +75,14 @@ public class DeviceInfoEventService implements SipCmdHandler {
 
         // 存储设备发过来的信息
         device.setHost(evtExt.getRemoteIpAddress());
-        device.setPort(evtExt.getRemotePort());
+        int port = this.sipUtils.getPort(evtExt);
+        device.setPort(port);
         device.setTransport(this.sipUtils.getTransportProtocol(request));
         device.setSyncTime(new Date());
 
         this.sipUtils.getDeviceInfo(xmlContent, device);
+
+        StaticLog.info("存储device：{}", device.toString());
         this.deviceService.createDevice(device);
         // 给设备发送200消息
         this.sipSenderService.sendOKMessage(evtExt);
@@ -87,7 +92,6 @@ public class DeviceInfoEventService implements SipCmdHandler {
         log.warn("发送catalog获取目录");
         // 发完之后，要发送catalog消息 获取设备目录
         this.sipRequestSender.sendCatalog(this.sipCacheService.getSipDevice(deviceId));
-
         log.warn("订阅catalog获取目录");
         this.sipRequestSender.sendCancelCatalogSubscribe(sipDevice);
         this.sipRequestSender.sendCatalogSubscribe(sipDevice);

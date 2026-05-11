@@ -168,6 +168,7 @@ public class ZlmHookController {
     @PostMapping("/stream/nof/found")
     public ResponseBean streamNotFound(@RequestBody OnPlayBean body) {
         if (body.getApp().equals("record")) return ResponseBean.success();
+        if (body.getApp().equals("rtp")) return ResponseBean.success();
         Console.log("{}===触发流未找到事件", body);
 
         // 再次鉴权

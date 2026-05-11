@@ -6,6 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.MessageChannel;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -69,7 +70,14 @@ public class RegisterEventService implements SipSignalHandler {
             Console.error(transportProtocol);
 
             String host = requestEventExt.getRemoteIpAddress();
-            int port = requestEventExt.getRemotePort();
+
+
+            int port = this.sipUtils.getPort(requestEventExt);
+
+
+            System.out.println("真实端口: " + port);
+
+            Console.log("port:{}", port);
 
 
             //  log.info(authTemplate, tip, "收到设备认证请求", deviceId, equest.getLocalAddress().getHostAddress()), request.getViaPort());
@@ -149,6 +157,7 @@ public class RegisterEventService implements SipSignalHandler {
                 DeviceBean deviceBean = new DeviceBean();
                 deviceBean.setHost(host);
                 deviceBean.setPort(port);
+                deviceBean.setNetType(sipDevice.getNetType());
                 deviceBean.setTransport(this.sipUtils.getTransportProtocol(request));
                 deviceBean.setDeviceId(this.sipUtils.getDeviceId(request));
                 Console.log("解析设备的bean{}", deviceBean.toString());

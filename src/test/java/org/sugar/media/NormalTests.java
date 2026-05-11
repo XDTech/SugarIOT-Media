@@ -45,8 +45,13 @@ public class NormalTests {
 
     @Test
     public void aesTest(){
-       String s= AesUtil.aesEncrypt("1");
-        AesUtil.aesDecrypt(s);
+
+        JWT parseToken = JWTUtil.parseToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NjM4Njc0MzMsInR5cGUiOiJnYiJ9.WSSebdF43ZcRNv2-TcyG1hNa_PlWxbTqX5dMEX398GU");
+        Object streamId = parseToken.getPayload("type");
+
+        Console.log(streamId);
+//       String s= AesUtil.aesEncrypt("1");
+//        AesUtil.aesDecrypt(s);
     }
     private static final String[] UNITS = {"B", "KB", "MB", "GB", "TB", "PB"};
     private static final int UNIT_THRESHOLD = 1024; // 换算单位为1024
