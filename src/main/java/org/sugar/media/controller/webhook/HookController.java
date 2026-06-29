@@ -189,33 +189,46 @@ public class HookController {
                     break;
                 }
                 case "rtp" -> {
+                    app = "rtp";
                     Optional<DeviceChannelModel> channel = this.channelService.getChannel(id);
                     if (channel.isPresent()) {
-                        Map<String, List<String>> addrMap = this.channelService.inviteChannel(channel.get());
-
-
-                        if (ObjectUtil.isEmpty(addrMap)) {
-                            Console.error("发送rtp失败，暂无返回地址");
-                            return ResponseEntity.ok(ResponseBean.fail());
-                        }
-                        SsrcInfoBean ssrcByCode = this.ssrcManager.getSsrcByCode(channel.get().getChannelCode());
                         Optional<DeviceModel> device = this.deviceService.getDevice(channel.get().getDeviceId());
-                        app = "rtp";
+
+
+                        SsrcInfoBean ssrcByCode = this.ssrcManager.getSsrcByCode(channel.get().getChannelCode());
+
                         stream = this.channelService.genGBStream(device.get().getDeviceId(), channel.get().getChannelCode());
-                        Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
-                        nodeModel = node.get();
+
+                        if (ObjectUtil.isNotEmpty(ssrcByCode)) {
+                            Console.log("该设备存在ssrc:{}", ssrcByCode);
+
+                            Optional<NodeModel> node = this.nodeService.getNode(ssrcByCode.getNodeId());
+
+
+                            nodeModel = node.get();
+                        } else {
+                            Map<String, List<String>> addrMap = this.channelService.inviteChannel(channel.get());
+                            if (ObjectUtil.isEmpty(addrMap)) {
+                                Console.error("发送rtp失败，暂无返回地址");
+                                return ResponseEntity.ok(ResponseBean.fail());
+                            }
+                            // rtp流需要在流改变事件里调用录像，因为是异步的
+                            this.stringRedisTemplate.opsForValue().set(StrUtil.format("{}_{}", app, stream), customPath);
+                            return ResponseEntity.ok(ResponseBean.success());
+                        }
+
+
                     }
 
                 }
             }
-
-            if (app.equals("rtp")) {
-                // rtp流需要在流改变事件里调用录像，因为是异步的
-                this.stringRedisTemplate.opsForValue().set(StrUtil.format("{}_{}", app, stream), customPath);
-
-                return ResponseEntity.ok(ResponseBean.success());
-
-            }
+//
+//            if (app.equals("rtp")) {
+//
+//
+//                return ResponseEntity.ok(ResponseBean.success());
+//
+//            }
             BaseBean baseBean = this.zlmApiService.startRecord(app, stream, nodeModel, customPath);
 
             Console.log("{}========", baseBean.toString());

@@ -282,6 +282,7 @@ public class ZlmApiService {
             builder.queryParam("enable_audio", BaseUtil.convertBool(pullModel.isEnableAudio()));
             builder.queryParam("add_mute_audio", BaseUtil.convertBool(pullModel.isAddMuteAudio()));
             builder.queryParam("mp4_max_second", pullModel.getMp4MaxSecond());
+            builder.queryParam("mp4_as_player", true);
 
             if (pullModel.getAutoClose().equals(AutoCloseEnum.yes)) {
                 builder.queryParam("auto_close", "1");
