@@ -1,6 +1,7 @@
 package org.sugar.media.controller.gb;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
@@ -212,6 +213,8 @@ public class DeviceController {
         Optional<DeviceModel> device = this.deviceService.getDevice(deviceId);
 
         if (device.isEmpty()) return ResponseEntity.ok(ResponseBean.fail());
+
+        device.get().setDeviceId(StrUtil.format("{}-{}",device.get().getDeviceId(), DateUtil.date().getTime()));
 
         this.deviceService.deleteDevice(device.get());
 

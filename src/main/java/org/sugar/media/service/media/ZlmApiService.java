@@ -43,7 +43,7 @@ public class ZlmApiService {
     @Resource
     private TenantService tenantService;
 
-    public static String savePathPrefix = "./www";
+    public static String savePathPrefix = "www";
 
     // 创建一个新的zlm实例时，应当初始化该方法
 
@@ -108,11 +108,15 @@ public class ZlmApiService {
         //    confMap.put("api.secret",nodeModel.getId().toString());
         builder.queryParam("http.sslport", nodeModel.getHttpsPort().toString());
         builder.queryParam("http.port", nodeModel.getHttpPort().toString());
+        builder.queryParam("http.notFound", "资源未找到");
         // 是否启用hook事件，启用后，推拉流都将进行鉴权
         builder.queryParam("hook.enable", "1");
 
         // 关闭hls 否则会自动录制
         builder.queryParam("protocol.enable_hls", "0");
+
+        // 是否将mp4录制当做观看者
+        builder.queryParam("protocol.mp4_as_player", "1");
 
         // 服务器唯一id，用于触发hook时区别是哪台服务器
         builder.queryParam("general.mediaServerId", nodeModel.getId().toString());
@@ -447,4 +451,114 @@ public class ZlmApiService {
     }
 
 
+    // 开启流的录制
+
+    public BaseBean startRecord(String app, String stream, NodeModel nodeModel, String customPath) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/startRecord");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            builder.queryParam("app", app);
+            builder.queryParam("stream", stream);
+            builder.queryParam("vhost", "__defaultVhost__");
+            // 0为hls，1为mp4	0/1
+            builder.queryParam("type", 1);
+
+            if (StrUtil.isNotEmpty(customPath)) {
+                builder.queryParam("customized_path", savePathPrefix + "/" + customPath);
+            }
+
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<BaseBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, BaseBean.class);
+
+
+            Console.log(exchange.getBody());
+            return exchange.getBody();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            BaseBean baseBean = new BaseBean();
+            baseBean.setCode(-1);
+            baseBean.setResult(false);
+
+
+            return baseBean;
+
+        }
+    }
+
+
+    // 关闭流录制
+
+    public BaseBean closeRecord(String app, String stream, NodeModel nodeModel) {
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/stopRecord");
+
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            builder.queryParam("app", app);
+            builder.queryParam("stream", stream);
+            builder.queryParam("vhost", "__defaultVhost__");
+            // 0为hls，1为mp4	0/1
+            builder.queryParam("type", 1);
+
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<BaseBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, BaseBean.class);
+
+            return exchange.getBody();
+
+        } catch (Exception e) {
+
+            BaseBean baseBean = new BaseBean();
+            baseBean.setCode(-1);
+            baseBean.setResult(false);
+
+
+            e.printStackTrace();
+            return baseBean;
+
+        }
+    }
+
+
+    // 查询mp4 file
+
+    public RecordBean getMp4File(NodeModel nodeModel, String app, String stream, String period, String customized_path) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.createZlmHost(nodeModel) + "/index/api/getMP4RecordFile");
+            // add param
+            builder.queryParam("secret", nodeModel.getSecret());
+            builder.queryParam("app", app);
+            builder.queryParam("stream", stream);
+            builder.queryParam("vhost", "__defaultVhost__");
+            if (StrUtil.isNotEmpty(period)) {
+                builder.queryParam("period", period);
+            }
+            if (StrUtil.isNotEmpty(customized_path)) {
+                builder.queryParam("customized_path", customized_path);
+            }
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<RecordBean> exchange = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, RecordBean.class);
+
+            return exchange.getBody();
+
+        } catch (Exception e) {
+
+            RecordBean baseBean = new RecordBean();
+            baseBean.setCode(-1);
+
+            e.printStackTrace();
+            return baseBean;
+
+        }
+    }
 }

@@ -167,7 +167,7 @@ public class StreamPullService {
      * @param streamPullModel
      * @return
      */
-    private CommonBean playStreamPull(StreamPullModel streamPullModel) {
+    public CommonBean playStreamPull(StreamPullModel streamPullModel) {
         CommonBean commonBean = new CommonBean();
 
         Optional<NodeModel> playerNode = this.getPlayerNode(streamPullModel);

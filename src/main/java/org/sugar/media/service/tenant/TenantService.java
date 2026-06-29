@@ -1,6 +1,7 @@
 package org.sugar.media.service.tenant;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.Console;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,7 @@ public class TenantService {
     public void createRoot() {
         TenantModel tenant = this.getTenant(100000);
         if (tenant == null) {
+
             TenantModel tenantModel = new TenantModel();
             tenantModel.setCode(100000);
 

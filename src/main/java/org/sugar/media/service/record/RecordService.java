@@ -38,6 +38,50 @@ public class RecordService {
 
     }
 
+    public List<RecordModel> getRecordList(Long startDate, Long endDate, Long tenantId, String app, String stream) {
+        // Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Specification<RecordModel> specification = (Root<RecordModel> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+
+            // 用于暂时存放查询条件的集合
+            List<Predicate> predicatesList = new ArrayList<>();
+
+
+
+
+            if (startDate != null && startDate != 0) {
+                predicatesList.add(cb.between(root.get("startTime"), startDate, endDate));
+            }
+            if (tenantId != null) {
+                predicatesList.add(cb.equal(root.get("tenantId"), tenantId));
+            }
+
+            if (StrUtil.isNotEmpty(app)) {
+                predicatesList.add(cb.equal(root.get("app"), app));
+            }
+
+
+            if (StrUtil.isNotEmpty(stream)) {
+                predicatesList.add(cb.equal(root.get("stream"), stream));
+            }
+            // --------------------------------------------
+            // 模糊查询
+            /**
+             if (!StrUtil.isEmpty(username)) {
+             predicatesList.add(cb.like(root.get("username"), "%" + username + "%"));
+             }
+             if (!StrUtil.isEmpty(status)) {
+             predicatesList.add(cb.equal(root.get("status"), UserStatusEnum.valueOf(status)));
+             }
+             **/
+            Predicate[] p = new Predicate[predicatesList.size()];
+            query.where(predicatesList.toArray(p));
+            query.orderBy(cb.desc(root.get("createdAt")));
+            return query.getGroupRestriction();
+
+        };
+        return this.recordRepo.findAll(specification);
+
+    }
 
     public Page<RecordModel> getRecordPageList(Integer pi, Integer ps, Long startDate, Long endDate, Long tenantId, String app, String stream) {
         // Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");

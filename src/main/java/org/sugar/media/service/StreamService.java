@@ -116,6 +116,9 @@ public class StreamService {
             screenBean.setId(deviceChannelModel.getId());
             screenBean.setNodeType("1");
 
+
+            screenBean.setSecret(this.getStreamCode(deviceChannelModel.getId(),AppEnum.rtp.toString()));
+
             Optional<ScreenBean> beanOptional = screenBeanList.stream().filter(s -> s.getId().equals(deviceChannelModel.getDeviceId())).findFirst();
             beanOptional.ifPresent(bean -> screenBean.setDeviceCode(bean.getDeviceCode()));
             screenBean.setChannelCode(deviceChannelModel.getChannelCode());
@@ -146,6 +149,8 @@ public class StreamService {
             screenBean.setStream(stream.getStream());
             screenBean.setSecret(this.getStreamCode(stream.getId(), AppEnum.proxy.toString()));
             screenBean.setTenantId(stream.getTenantId());
+
+            screenBean.setSecret(this.getStreamCode(stream.getId(),AppEnum.proxy.toString()));
             if (stream.getNodeId() != null) {
                 Optional<NodeModel> node = this.nodeService.getNode(stream.getNodeId());
 
@@ -237,7 +242,7 @@ public class StreamService {
 
     }
 
-    public Map<String, List<String>> getPushStreamAddr(Long id){
+    public Map<String, List<String>> getPushStreamAddr(Long id) {
 
         Optional<StreamPushModel> streamPushModel = this.streamPushService.getStreamPush(id);
         if (streamPushModel.isEmpty()) {

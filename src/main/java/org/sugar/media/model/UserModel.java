@@ -67,8 +67,8 @@ public class UserModel {
     private RoleEnum role;// 角色
 
 
-    private Long tenantId;// 为空是平台管理员
-    private Integer tenantCode;// 为空是平台管理员
+    private Long tenantId;
+    private Integer tenantCode;
 
 
     @CreationTimestamp

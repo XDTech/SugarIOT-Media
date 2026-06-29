@@ -1,6 +1,7 @@
 package org.sugar.media.controller.record;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import org.sugar.media.model.node.NodeModel;
@@ -9,6 +10,7 @@ import org.sugar.media.beans.MRecordBean;
 
 import org.sugar.media.security.UserSecurity;
 import org.sugar.media.service.media.MediaCacheService;
+import org.sugar.media.service.media.ZlmApiService;
 import org.sugar.media.service.node.NodeService;
 import org.sugar.media.service.record.RecordService;
 import org.sugar.media.beans.ResponseBean;
@@ -68,6 +70,7 @@ public class MRecordController {
     public ResponseEntity<?> getMRecordPageList(@RequestParam Integer pi, @RequestParam Integer ps, @RequestParam(required = false) Long startDate, @RequestParam(required = false) Long endDate, @RequestParam(required = false) String app, @RequestParam(required = false) String stream) {
 
         Long tenantId = this.userSecurity.getCurrentTenantId();
+
         Page<RecordModel> mRecordList = this.mRecordService.getRecordPageList(pi, ps, startDate, endDate, tenantId, app, stream);
 
 
@@ -80,7 +83,7 @@ public class MRecordController {
         mRecordBeans = mRecordBeans.stream().peek(s -> {
             NodeModel nodeModel = nodeModelMap.get(Convert.toLong(s.getMediaServerId()));
             if (ObjectUtil.isNotEmpty(nodeAll) && this.mediaCacheService.isOnline(nodeModel.getId())) {
-                s.setPlayUrl(StrUtil.format("http://{}:{}/{}", nodeModel.getRemoteIp(), nodeModel.getHttpPort(), s.getUrl()));
+                s.setPlayUrl(StrUtil.format("http://{}:{}{}", nodeModel.getRemoteIp(), nodeModel.getHttpPort(), s.getFilePath().substring(ZlmApiService.savePathPrefix.length())));
             }
 
         }).collect(Collectors.toList());

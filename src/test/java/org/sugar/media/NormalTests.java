@@ -216,6 +216,12 @@ public class NormalTests {
     @Test
     void test() {
 
+        String f= "www/custom/1/2/record/rtp/10000000001111111111_10000000001320000009/";
+
+        if(f.contains("custom/1/2")){
+
+        }
+
         String s = BaseUtil.ssrc2hex("200008772");
         Console.log(s);
 

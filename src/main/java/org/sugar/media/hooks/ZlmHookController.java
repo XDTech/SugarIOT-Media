@@ -15,6 +15,7 @@ import cn.hutool.jwt.JWTUtil;
 import cn.hutool.log.StaticLog;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.sugar.media.beans.ResponseBean;
 import org.sugar.media.beans.SocketMsgBean;
@@ -60,12 +61,11 @@ public class ZlmHookController {
 
 
     @Value("${live.enableMp4}")
-    private Boolean liveEnableMp4=false;
-
+    private Boolean liveEnableMp4 = false;
 
 
     @Value("${live.autoClose}")
-    private Boolean liveAutoClose=true;
+    private Boolean liveAutoClose = true;
 
     @Resource
     private MediaCacheService mediaCacheService;
@@ -94,6 +94,9 @@ public class ZlmHookController {
     @Resource
     private StreamPushService streamPushService;
 
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     // 服务器定时上报时间，上报间隔可配置，默认10s上报一次
     @PostMapping("/keepalive")
@@ -188,9 +191,10 @@ public class ZlmHookController {
 
         if (ObjectUtil.isEmpty(streamId)) {
 
-            Console.log("stream is empty {}",streamId);
+            Console.log("stream is empty {}", streamId);
             return ResponseBean.fail();
-        };
+        }
+        ;
 
 
         Console.log("{}====鉴权耗时", timer.intervalRestart());
@@ -272,7 +276,9 @@ public class ZlmHookController {
 
                 if (ObjectUtil.isNotEmpty(ssrcInfoBean)) {
                     // 是否关闭流
-                    if (ssrcInfoBean.getAutoClose().equals(AutoCloseEnum.ignore)) {
+                    Console.log(ssrcInfoBean);
+                    if (ssrcInfoBean.getAutoClose() == AutoCloseEnum.ignore) {
+                        Console.log("不关闭流");
                         map.put("close", false);// 不关闭
                     } else {
                         this.sipRequestSender.sendBye(channelCode);
@@ -295,14 +301,10 @@ public class ZlmHookController {
 
                     if (ObjectUtil.isNotEmpty(streamPullModel)) {
 
-
-                        if (streamPullModel.getAutoClose().equals(AutoCloseEnum.ignore)) {
+                        if (streamPullModel.getAutoClose() == AutoCloseEnum.ignore) {
                             map.put("close", false);
-
-
                             break;
                         }
-
 
                         this.streamPullService.resetStream(streamPullModel);
 
@@ -313,8 +315,7 @@ public class ZlmHookController {
 
             }
 
-            case "live"->{
-
+            case "live" -> {
                 map.put("close", this.liveAutoClose);
             }
             default -> map.put("close", true);
@@ -345,6 +346,23 @@ public class ZlmHookController {
 
         StaticLog.warn("流改变事件：{}", data.toString());
 
+        if (data.get("app").equals("rtp")) {
+
+
+            String key = StrUtil.format("{}_{}", data.get("app"), data.get("stream"));
+            // 是否需要异步录制流
+            String path = this.stringRedisTemplate.opsForValue().get(key);
+
+            if (StrUtil.isNotEmpty(path)) {
+                // 需要录制
+                Optional<NodeModel> mediaServerId = this.zlmNodeService.getNode(Convert.toLong(data.get("mediaServerId")));
+                mediaServerId.ifPresent(nodeModel -> this.zlmApiService.startRecord(data.get("app").toString(), data.get("stream").toString(), nodeModel, path));
+                this.stringRedisTemplate.delete(key);
+
+            }
+
+
+        }
         return ResponseBean.success();
     }
 
@@ -418,6 +436,7 @@ public class ZlmHookController {
                 streamPushModel.setStream(publishAckBean.getStreamReplace());
                 streamPushModel.setRelevanceId(ssrcInfoBean.getChannelId());
                 publishAckBean.setEnableMp4(ssrcInfoBean.isEnableMp4());
+
                 streamPushModel.setName(ssrcInfoBean.getName());
 
             }
@@ -485,7 +504,7 @@ public class ZlmHookController {
             publishAckBean.setEnableRtsp(true);
             publishAckBean.setEnableTs(true);
             publishAckBean.setModifyStamp(2);
-            publishAckBean.setMp4AsPlayer(false);
+            publishAckBean.setMp4AsPlayer(true);
             publishAckBean.setAutoClose(false);
             publishAckBean.setMp4MaxSecond(3600);
 
